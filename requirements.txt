@@ -1,0 +1,27 @@
+# -*- coding: utf-8 -*-
+# 工程预装模块
+# 需要额外的python包，可直接在文件后面添加
+# 请确保指定的包和版本号，可通过pip安装
+
+# blueapps requirement
+
+redis==3.2.0
+Django==2.2.6
+celery==4.4.0
+eventlet==0.26.1
+django-celery-beat==2.0.0
+django-celery-results==1.2.1
+django-cors-headers==3.5.0
+
+# jwt
+pyCryptodome==3.9.7
+PyJWT==1.7.1
+cryptography==2.7
+mysqlclient==1.4.4
+MarkupSafe==1.1.1
+Mako==1.1.4
+requests==2.22.0
+python-json-logger==0.1.7
+whitenoise==3.3.0
+six==1.11.0
+gunicorn==19.6.0
