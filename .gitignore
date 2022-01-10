@@ -549,3 +549,4 @@ docs/_book
 test/
 
 build.yml
+.codecc
