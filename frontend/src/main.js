@@ -17,6 +17,13 @@ import { bus } from '@/common/bus'
 import AuthComponent from '@/components/auth'
 import '@/common/bkmagic'
 
+// 全量引入 bk-magic-vue
+import bkMagic from 'bk-magic-vue'
+// 全量引入 bk-magic-vue 样式
+import 'bk-magic-vue/dist/bk-magic-vue.min.css'
+
+Vue.use(bkMagic)
+
 Vue.component('app-exception', Exception)
 Vue.component('app-auth', AuthComponent)
 

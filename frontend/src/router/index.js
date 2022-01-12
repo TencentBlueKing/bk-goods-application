@@ -13,9 +13,9 @@ import preload from '@/common/preload'
 Vue.use(VueRouter)
 
 const MainEntry = () => import(/* webpackChunkName: 'entry' */'@/views')
-const Example1 = () => import(/* webpackChunkName: 'example1' */'@/views/example1')
-const Example2 = () => import(/* webpackChunkName: 'example2' */'@/views/example2')
-const Example3 = () => import(/* webpackChunkName: 'example3' */'@/views/example3')
+const PurchaseHome = () => import(/* webpackChunkName: 'example1' */'@/views/purchaseHome')
+const ItemManagement = () => import(/* webpackChunkName: 'example2' */'@/views/itemManagement')
+const ItemDetail = () => import(/* webpackChunkName: 'example3' */'@/views/itemDetail')
 const NotFound = () => import(/* webpackChunkName: 'none' */'@/views/404')
 
 const routes = [
@@ -26,20 +26,20 @@ const routes = [
         alias: '',
         children: [
             {
-                path: 'example1',
+                path: 'purchaseHome',
                 alias: '',
-                name: 'example1',
-                component: Example1
+                name: 'purchaseHome',
+                component: PurchaseHome
             },
             {
-                path: 'example2',
-                name: 'example2',
-                component: Example2
+                path: 'itemManagement',
+                name: 'itemManagement',
+                component: ItemManagement
             },
             {
-                path: 'example3',
-                name: 'example3',
-                component: Example3
+                path: 'itemDetail',
+                name: 'itemDetail',
+                component: ItemDetail
             }
         ]
     },
