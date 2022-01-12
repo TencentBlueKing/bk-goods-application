@@ -27,8 +27,7 @@ def get_good_detail(request):
     """
     good_id = request.GET.get("good_id", 0)
     # 校验参数
-    check_result = check_param_id(good_id)
-    if not check_result:
+    if not check_param_id(good_id):
         return get_result({"code": 1, "result": False, "message": "good_id参数校验出错"})
     try:
         good = Good.objects.get(id=good_id, status=1).to_json()
