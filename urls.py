@@ -24,4 +24,6 @@ urlpatterns = [
     # 这里的 mako_application 可以改成你想要的名字
     url(r"^mako/", include("mako_application.urls")),
     url(r"^i18n/", include("django.conf.urls.i18n")),
+    url(r"^purchase/", include("apps.good_purchase.urls")),
+    url(r"^apply/", include("apps.good_apply.urls")),
 ]
