@@ -23,9 +23,16 @@ import VMdPreview from '@kangc/v-md-editor/lib/preview'
 import '@kangc/v-md-editor/lib/style/preview.css'
 import githubTheme from '@kangc/v-md-editor/lib/theme/github.js'
 import '@kangc/v-md-editor/lib/theme/style/github.css'
+
+// 全量引入 bk-magic-vue
+import bkMagic from 'bk-magic-vue'
+// 全量引入 bk-magic-vue 样式
+import 'bk-magic-vue/dist/bk-magic-vue.min.css'
 VMdPreview.use(githubTheme)
 Vue.use(VMdEditor)
 Vue.use(VMdPreview)
+
+Vue.use(bkMagic)
 
 Vue.component('app-exception', Exception)
 Vue.component('app-auth', AuthComponent)

@@ -67,6 +67,7 @@ INSTALLED_APPS += (  # noqa
 # 自定义中间件
 MIDDLEWARE += (
     "blueapps.middleware.bkui.middlewares.BkuiPageMiddleware",
+    "apps.utils.middlewares.ViewErrorMiddleware",
 )
 
 # 添加首页搜索范围
