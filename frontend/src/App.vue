@@ -35,6 +35,12 @@
                     </bk-popover>
                 </div>
             </template>
+            <div v-if="header.active === 0" class="toCarTab" @click="toShoppingCar">
+                <svg t="1641539862015" class="icon" viewBox="0 0 1028 1024" version="1.1" p-id="2153" width="40" height="40">
+                    <path d="M332.8 790.528q19.456 0 36.864 7.168t30.208 19.968 20.48 30.208 7.68 36.864-7.68 36.864-20.48 30.208-30.208 20.48-36.864 7.68q-20.48 0-37.888-7.68t-30.208-20.48-20.48-30.208-7.68-36.864 7.68-36.864 20.48-30.208 30.208-19.968 37.888-7.168zM758.784 792.576q19.456 0 37.376 7.168t30.72 19.968 20.48 30.208 7.68 36.864-7.68 36.864-20.48 30.208-30.72 20.48-37.376 7.68-36.864-7.68-30.208-20.48-20.48-30.208-7.68-36.864 7.68-36.864 20.48-30.208 30.208-19.968 36.864-7.168zM930.816 210.944q28.672 0 44.544 7.68t22.528 18.944 6.144 24.064-3.584 22.016-13.312 37.888-22.016 62.976-23.552 68.096-18.944 53.248q-13.312 40.96-33.28 56.832t-49.664 15.872l-35.84 0-65.536 0-86.016 0-96.256 0-253.952 0 14.336 92.16 517.12 0q49.152 0 49.152 41.984 0 20.48-9.728 35.84t-38.4 14.336l-49.152 0-94.208 0-118.784 0-119.808 0-99.328 0-55.296 0q-20.48 0-34.304-9.216t-23.04-24.064-14.848-32.256-8.704-32.768q-1.024-6.144-5.632-29.696t-11.264-58.88-14.848-78.848-16.384-87.552q-19.456-103.424-44.032-230.4l-76.8 0q-15.36 0-25.6-7.68t-16.896-18.432-9.216-23.04-2.56-22.528q0-20.48 13.824-33.792t37.376-12.288l103.424 0q20.48 0 32.768 6.144t19.456 15.36 10.24 18.944 5.12 16.896q2.048 8.192 4.096 23.04t4.096 30.208q3.072 18.432 6.144 38.912l700.416 0zM892.928 302.08l-641.024-2.048 35.84 185.344 535.552 1.024z" p-id="2154" fill="#bfbfbf">
+                    </path>
+                </svg>
+            </div>
             <div class="monitor-navigation-content">
                 <main class="main-content" v-bkloading="{ isLoading: mainContentLoading, opacity: 1 }">
                     <router-view :key="routerKey" v-show="!mainContentLoading" />
@@ -57,6 +63,7 @@
 
     export default {
         name: 'monitor-navigation',
+
         data () {
             return {
                 routerKey: +new Date(),
@@ -92,34 +99,6 @@
                     ],
                     active: 0,
                     bizId: 1
-                },
-                message: {
-                    list: [
-                        {
-                            message: '你的“20181212112308”单据已通过',
-                            date: '刚刚'
-                        },
-                        {
-                            message: '你的“20181212112308”单据被驳回',
-                            date: '45分钟前'
-                        },
-                        {
-                            message: '你的“20181212112308”单据部分被驳回',
-                            date: '3天前'
-                        },
-                        {
-                            message: '你的“20181212112308”单据部分被驳回',
-                            date: '12月14日'
-                        },
-                        {
-                            message: '你的“20181212112308”单据部分被驳回',
-                            date: '12月14日'
-                        },
-                        {
-                            message: 'jinnyyang 提醒了你',
-                            date: '12月14日'
-                        }
-                    ]
                 },
                 user: {
                     list: [
@@ -170,15 +149,12 @@
             })
         },
         methods: {
-            handleSelect (id, item) {
-                this.nav.id = id
-                console.info(`你选择了${id}`)
-                this.$router.push({
-                    name: item.pathName
-                })
-            },
             handleToggle (v) {
                 this.nav.toggle = v
+            },
+            toShoppingCar () {
+                this.header.active = -1
+                this.$router.push({ path: '/shoppingcart' })
             }
         }
     }
@@ -187,7 +163,28 @@
 <style lang="postcss">
     @import './css/reset.css';
     @import './css/app.css';
-
+    .toCarTab{
+        position: absolute;
+        bottom: 140px;
+        right: 60px;
+        z-index: 1000;
+        cursor: pointer;
+        border-radius: 50%;
+        width: 74px;
+        height: 74px;
+        border: 1px solid #979BA5;
+        background: #fff;
+        svg{
+            margin-top: 18px;
+            margin-left: 15px;
+        }
+    }
+    .toCarTab:hover{
+        box-shadow: 0px 0px 4px #888888;
+        path{
+            fill: #3A84FF;
+        }
+    }
     .monitor-navigation-header {
         -webkit-box-flex: 1;
         -ms-flex: 1;
@@ -351,6 +348,7 @@
         }
     }
     .monitor-navigation-content {
+        overflow: auto;
         padding: 5px 15px 15px 15px;
         font-size: 14px;
         color: #737987;
@@ -360,7 +358,6 @@
         box-shadow: 0px 2px 4px 0px rgba(25,25,41,0.05);
         border-radius: 2px;
         border: 1px solid rgba(220,222,229,1);
-        height: 1400px;
         .main-content {
             min-height: 600px;
             height: 100%;

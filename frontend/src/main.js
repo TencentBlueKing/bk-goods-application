@@ -16,6 +16,16 @@ import Exception from '@/components/exception'
 import { bus } from '@/common/bus'
 import AuthComponent from '@/components/auth'
 import '@/common/bkmagic'
+// 引入vue-markdown组件
+import VMdEditor from '@kangc/v-md-editor'
+import '@kangc/v-md-editor/lib/style/base-editor.css'
+import VMdPreview from '@kangc/v-md-editor/lib/preview'
+import '@kangc/v-md-editor/lib/style/preview.css'
+import githubTheme from '@kangc/v-md-editor/lib/theme/github.js'
+import '@kangc/v-md-editor/lib/theme/style/github.css'
+VMdPreview.use(githubTheme)
+Vue.use(VMdEditor)
+Vue.use(VMdPreview)
 
 // 全量引入 bk-magic-vue
 import bkMagic from 'bk-magic-vue'
