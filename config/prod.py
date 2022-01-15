@@ -44,3 +44,5 @@ DATABASES.update(
         },
     }
 )
+
+MEDIAZ_URL = '%smedia/' % SITE_URL
