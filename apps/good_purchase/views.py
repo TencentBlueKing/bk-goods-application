@@ -24,6 +24,7 @@ from apps.tools.response import get_result
 from config.default import os
 from django.conf import settings
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Q
 # 开发框架中通过中间件默认是需要登录态的，如有不需要登录的，可添加装饰器login_exempt
 # 装饰器引入 from blueapps.account.decorators import login_exempt
@@ -154,7 +155,7 @@ def get_good_list(request):
     paginator = Paginator(goods, size)
     cur_goods = paginator.get_page(page)  # 获取指定页元素，获取当前页的商品 ！要不要try catch
     # 返回数据
-    data = {"total_num": len(goods),
+    data = {"total_num": goods.count(),
             "good_list": [good.to_json() for good in cur_goods]}  # ！这里还是for循环内部查询了数据库
     return get_result({"data": data})
 
@@ -177,8 +178,7 @@ def add_good(request):
         message = get_error_message(good_serializers)
         return get_result({"code": 1, "result": False, "message": message})  # 输出错误方式
     # 检查商品编码是否存在
-    goods = Good.objects.filter(good_code=good.get("good_code"))
-    if goods.count():
+    if Good.objects.filter(good_code=good.get("good_code")).exists():
         return get_result({"code": 1, "result": False, "message": "商品编码已存在"})
     # 检验商品类型是否存在
     type_id = good.get("good_type_id")
@@ -186,7 +186,8 @@ def add_good(request):
         GoodType.objects.get(id=type_id)
     except GoodType.DoesNotExist:
         return get_result({"code": 1, "result": False, "message": "商品类型不存在"})
-    Good.objects.create(**good)
+    with transaction.atomic():
+        Good.objects.create(**good)
     return get_result({"message": "新增商品成功"})
 
 
@@ -221,7 +222,7 @@ def update_good(request):
     return get_result({"message": "修改商品信息成功"})
 
 
-# 如何规定PUT方式
+@require_POST
 def down_good(request):
     """商品下架"""
     good_id = json.loads(request.body).get('good_id')
