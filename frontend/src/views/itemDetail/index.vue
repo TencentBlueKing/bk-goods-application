@@ -92,7 +92,7 @@
                     }
                 ],
                 goodPicList: [],
-                numberInputValue: '1',
+                numberInputValue: 1,
                 detailPanels: [
                     { name: 'detail', label: '商品详情', count: 10 },
                     { name: 'params', label: '参数规格', count: 20 }
@@ -101,10 +101,13 @@
                 markDownInfo: {
                     goodDetail: '',
                     goodParams: ''
-                }
+                },
+                goodInfo: {},
+                curUsername: ''
             }
         },
         created () {
+            this.curUsername = localStorage.getItem('username')
             this.getDetailInfo()
         },
         methods: {
@@ -112,6 +115,7 @@
                 const goodId = 2
                 this.$http.get('/purchase/get_good_detail?good_id=' + goodId).then((res) => {
                     if (res.result && res.data !== null) {
+                        this.goodInfo = res.data
                         this.infoDetailList[0].value = '￥' + res.data.price
                         this.infoDetailList[1].value = res.data.good_name
                         this.infoDetailList[2].value = res.data.good_code
@@ -192,7 +196,38 @@
                 }
             },
             addToCar () {
-                
+                const updateInfo = {
+                    num: this.numberInputValue,
+                    id: this.goodInfo.id,
+                    username: this.curUsername
+                }
+                this.$http.post(
+                    '/purchase/add_cart_goods',
+                    {
+                        goodInfo: updateInfo
+                    }
+                ).then((res) => {
+                    if (res.result) {
+                        this.$bkMessage({
+                            message: '物资已加入购物车',
+                            theme: 'success'
+                        })
+                    } else {
+                        this.$bkMessage({
+                            message: '物资数量更新失败',
+                            offsetY: 80,
+                            theme: 'error'
+                        })
+                    }
+                }).catch(() => {
+                    this.$bkMessage({
+                        message: 'update_cart_goods接口报错',
+                        offsetY: 80,
+                        theme: 'error'
+                    })
+                }).finally(() => {
+                   
+                })
             }
         }
     }

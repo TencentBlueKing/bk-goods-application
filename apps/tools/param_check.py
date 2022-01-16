@@ -18,3 +18,14 @@ def check_param_str(p: str) -> bool:
     if isinstance(p, str) and p:
         return True
     return False
+
+
+def check_param_good_num(num) -> int:
+    """
+    校验参数 - num
+    """
+    if isinstance(num, int) and num > 0:
+        return True
+    return False
+
+
