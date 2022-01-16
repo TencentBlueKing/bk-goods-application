@@ -13,6 +13,8 @@ class StatusEnums(Enum):
     # 客户端错误
     USER_ERROR = (4001, "用户名不正确")
     PWD_ERROR = (4002, "密码错误")
+    USER_NOTEXIST_ERROR = (4003, "缺少用户名")
+    PARAMS_ERROR = (40005, '参数错误')
 
     # 服务端错误
     STOCK_ERROR = (5001, "库存不足")

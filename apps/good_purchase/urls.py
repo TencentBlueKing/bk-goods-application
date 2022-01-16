@@ -12,11 +12,16 @@ specific language governing permissions and limitations under the License.
 """
 from django.conf.urls import url
 from django.urls import path
+from apps.tools import derive_excel, del_excel
 
 from . import views
 
 urlpatterns = (
     path("get_good_detail", views.get_good_detail),  # 商品详情
-    url(r"^goods/$", views.get_goods),  # 获取指定商品信息
-    url(r"^types/$", views.get_types),  # 获取商品类型
+    url(r"^get_personal_goods/$", views.get_personal_goods),  # 获取个人物资接口
+    path("get_good_list", views.get_good_list),  # 获取商品列表
+    path("get_good_type_list", views.get_good_type_list),  # 获取商品类别列表
+    path("get_good_status_list", views.get_good_status_list), # 获取物资状态列表
+    path("derive_excel", derive_excel.derive_excel),  # 导出excel
+    path("del_excel", del_excel.del_excel)  # 删除excel文件
 )

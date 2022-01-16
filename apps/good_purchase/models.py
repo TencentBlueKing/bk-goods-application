@@ -14,7 +14,7 @@ class TimeBasic(models.Model):
 
 # 商品类型表
 class GoodType(models.Model):
-    type_name = models.CharField(max_length=20, verbose_name="类型名称")
+    type_name = models.CharField(max_length=20, unique=True, verbose_name="类型名称")
 
     class Meta:
         verbose_name = "商品类型表"
@@ -74,6 +74,13 @@ class UserInfo(models.Model):
     position = models.CharField(max_length=100, verbose_name="所在地区")
     phone = models.CharField(max_length=30, verbose_name="联系电话")
 
+    def to_json(self) -> dict:
+        return {
+            "id": self.id,
+            "username": self.username,
+            "position": self.position,
+            "phone": self.phone
+        }
 
 # 购物车表
 class Cart(TimeBasic):
@@ -81,16 +88,50 @@ class Cart(TimeBasic):
     good_id = models.IntegerField(verbose_name="商品id")
     num = models.IntegerField(verbose_name="数量")
 
+    def to_json(self) -> dict:
+        res_good = Good.objects.get(id=self.good_id)
+        good_name = res_good.good_name
+        good_code = res_good.good_code
+        good_type_id = res_good.good_type_id
+        status = res_good.status
+        price = res_good.price
+        good_type_name = GoodType.objects.get(id=good_type_id).type_name
+        return {
+            "id": self.id,
+            "good_code": good_code,
+            "good_name": good_name,
+            "good_type_id": good_type_id,
+            "good_type_name": good_type_name,
+            "price": price,
+            "num": self.num,
+            "status": status
+        }
 
 # 部门所需物资表
 class GroupApply(TimeBasic):
+    STATUS_TYPE = (
+        (1, "已退回"),
+        (2, "在使用"),
+        (3, "退回中")
+    )
     good_code = models.CharField(max_length=30, verbose_name="商品编码")
     num = models.IntegerField(verbose_name="商品数量")
     username = models.CharField(max_length=30, verbose_name="使用人")
     position = models.CharField(max_length=100, verbose_name="所在地区")
     phone = models.CharField(max_length=30, verbose_name="联系电话")
-    status = models.IntegerField(verbose_name="物资状态")
+    status = models.IntegerField(choices=STATUS_TYPE, verbose_name="物资状态")
 
+    def to_json(self) -> dict:
+        good_name = Good.objects.get(good_code=self.good_code).good_name
+        return {
+            "good_code": self.good_code,
+            "num": self.num,
+            "username": self.username,
+            "position": self.position,
+            "status": self.get_status_display(),
+            "phone": self.phone,
+            "good_name": good_name
+        }
 
 # 物资退回表
 class Withdraw(TimeBasic):

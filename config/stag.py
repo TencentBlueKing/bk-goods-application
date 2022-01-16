@@ -52,3 +52,5 @@ DATABASES.update(
     }
 )
 
+MEDIA_URL = '%smedia/' % SITE_URL
+

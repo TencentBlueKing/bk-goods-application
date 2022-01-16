@@ -169,3 +169,8 @@ if locals().get("DISABLED_APPS"):
         locals()[_key] = tuple(
             [_item for _item in locals()[_key] if not _item.startswith(_app + ".")]
         )
+
+
+# 存放媒体数据的路径
+MEDIA_ROOT = os.path.join(BASE_DIR, "USERRES")
+BK_BACK_URL = os.getenv('BK_BACK_URL')

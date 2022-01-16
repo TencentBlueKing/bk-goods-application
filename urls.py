@@ -13,6 +13,9 @@ specific language governing permissions and limitations under the License.
 
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.conf import settings
+from django.urls import re_path
+from django.views.static import serve
 
 urlpatterns = [
     url(r"^admin/", admin.site.urls),
@@ -26,4 +29,6 @@ urlpatterns = [
     url(r"^i18n/", include("django.conf.urls.i18n")),
     url(r"^purchase/", include("apps.good_purchase.urls")),
     url(r"^apply/", include("apps.good_apply.urls")),
+    re_path(r'^media/(?P<path>.*)$', serve,
+            kwargs={"document_root": settings.MEDIA_ROOT}),
 ]

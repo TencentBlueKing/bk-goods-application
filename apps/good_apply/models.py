@@ -23,14 +23,18 @@ class Position(models.Model):
     name = models.CharField(max_length=20, verbose_name="地区名")
     parent_code = models.CharField(max_length=10, null=True, verbose_name="上级地区代码")
 
-
+    def to_json(self):
+        return {
+            "id": self.id,
+            "name": self.name
+        }
 # 申请表
 class Apply(TimeBasic):
     STATUS_TYPE = (
-        (0, "申请终止"),
-        (1, "组长审核中"),
-        (2, "管理员审核中"),
-        (3, "审核完成")
+        (1, "申请终止"),
+        (2, "组长审核中"),
+        (3, "管理员审核中"),
+        (4, "审核完成")
     )
     good_code = models.CharField(max_length=30, verbose_name="物资编号")
     good_name = models.CharField(max_length=50, verbose_name="物资名称")
@@ -57,8 +61,16 @@ class Apply(TimeBasic):
 
 # 申请审核表
 class Review(TimeBasic):
+    IDENTITY_TYPES = (
+        (1, '组长'),
+        (2, '秘书')
+    )
+    RESULT_TYPES = (
+        (1, '通过'),
+        (2, '未通过')
+    )
     apply_id = models.IntegerField(verbose_name="申请物资id")
     reviewer = models.CharField(max_length=30, verbose_name="审核人")
-    reviewer_identity = models.BooleanField(verbose_name="审核人身份")
-    result = models.BooleanField(verbose_name="审核结果")
+    reviewer_identity = models.IntegerField(verbose_name="审核人身份", choices=IDENTITY_TYPES)
+    result = models.IntegerField(verbose_name="审核结果", choices=RESULT_TYPES)
     reason = models.CharField(max_length=255, verbose_name="审核意见")

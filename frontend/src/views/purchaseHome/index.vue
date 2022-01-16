@@ -55,13 +55,15 @@
 
 <script>
 
-    const goodsUrl = '/purchase/goods/' // 获取物品信息接口
-    const typesUrl = '/purchase/types/'
+    const goodsUrl = '/purchase/get_good_list' // 获取物品信息接口
+    const typesUrl = '/purchase/get_good_type_list' // 获取商品种类
     const detailUrl = 'xxx' // 物品详情跳转链接
+    const add2cartUrl = '/purchase/add_cart_goods' // 添加到购物车接口
 
     export default {
         data () {
             return {
+                username: '', // 用户名
                 typeList: {}, // 种类列表
                 type: '', // 种类
                 lastType: '', // 存放上一类型
@@ -81,7 +83,12 @@
                 },
                 showReturn: 0, // 是否展示返回首页按钮
                 showBanner: 1, // 是否展示轮播图
-                showEmpty: 0
+                showEmpty: 0,
+                goodInfo: {
+                    num: 1,
+                    id: '',
+                    username: this.username
+                }
             }
         },
         watch: {
@@ -93,6 +100,7 @@
             }
         },
         created () {
+            this.username = this.$store.state.user.username
             this.loadData() // 创建实例时加载数据
         },
         methods: {
@@ -102,7 +110,6 @@
             },
             getTypes () { // 获取所有商品类型
                 this.$http.get(typesUrl).then(res => {
-                    console.log(res)
                     if (res && res.result === true) { // 判空
                         // eslint-disable-next-line no-new-object
                         const allTypes = new Object()
@@ -123,17 +130,19 @@
                 }
                 this.$http.get(goodsUrl, {
                     params: {
-                        name: this.searchContent, // 指定商品名称所含内容
-                        type: this.type.id, // 指定商品类型
-                        page: this.paramPage // 指定页
+                        good_name: this.searchContent, // 指定商品名称所含内容
+                        good_type_id: this.type.id, // 指定商品类型
+                        page: this.paramPage, // 指定页
+                        size: 8
                     }
                 }).then(res => {
                     if (res && res.result === true) {
                         this.lastType = this.type
+                        this.lastSearchContent = this.searchContent
                         this.currentPage = this.paramPage
-                        this.goodsList = res.data.slice(0, res.data.length - 1) // 给商品列表列表赋值
+                        this.goodsList = res.data.good_list
                         this.bannerPics = []
-                        for (let i = 0; i < res.data.length - 1; i++) {
+                        for (let i = 0; i < res.data.good_list.length; i++) {
                             if (i < this.bannerNum && this.currentPage === 1) { // 给轮播图列表赋值，逻辑是将前六个商品图片赋值给轮播图列表
                                 const bannerObject = Object()
                                 bannerObject.url = this.goodsList[i].pics[0]
@@ -142,8 +151,8 @@
                             }
                             this.goodsList[i].pics = this.goodsList[i].pics[0] // 将商品的第一个图片作为展示图片
                         }
-                        this.pageCount = res.data[res.data.length - 1].page_count * 10 // 给页面总数赋值
-                        if (res.data.length === 1) {
+                        this.pageCount = res.data.total_num / 8 * 10 // 给页面总数赋值
+                        if (res.data.total_list.length === 0) {
                             this.showEmpty = 1 // 显示搜索为空
                         } else {
                             this.showEmpty = 0
@@ -164,7 +173,17 @@
                 this.$router.push({ path: detailUrl + '/' + id })
             },
             add2cart (id) { // 点击加入购物车按钮将商品加入购物车
-                // TODO: 根据加入购物车的接口逻辑实现加入购物车
+                this.goodInfo.id = id
+                if (this.goodInfo.id) {
+                    this.$http.post(add2cartUrl, { goodInfo: this.goodInfo }).then(res => {
+                        // eslint-disable-next-line no-empty
+                        if (res && res.result === true) {
+                            
+                        } else if (res && res.result === false) {
+                            this.handleError({ theme: 'error' }, res.message)
+                        }
+                    })
+                }
             },
             dropdownShow () {
                 this.isDropdownShow = true
