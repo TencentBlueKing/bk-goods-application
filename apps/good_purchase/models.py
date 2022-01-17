@@ -14,7 +14,7 @@ class TimeBasic(models.Model):
 
 # 商品类型表
 class GoodType(models.Model):
-    type_name = models.CharField(max_length=20, verbose_name="类型名称")
+    type_name = models.CharField(max_length=20, unique=True, verbose_name="类型名称")
 
     class Meta:
         verbose_name = "商品类型表"
