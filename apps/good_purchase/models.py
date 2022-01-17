@@ -89,7 +89,7 @@ class Cart(TimeBasic):
     num = models.IntegerField(verbose_name="数量")
 
     def to_json(self) -> dict:
-        res_good = Good.objects.get(id=self.good_id)
+        res_good = Good.objects.get(id=self.good_id, status=1)
         good_name = res_good.good_name
         good_code = res_good.good_code
         good_type_id = res_good.good_type_id
@@ -112,7 +112,8 @@ class GroupApply(TimeBasic):
     STATUS_TYPE = (
         (1, "已退回"),
         (2, "在使用"),
-        (3, "退回中")
+        (3, "退回中"),
+        (4, "购买中")
     )
     good_code = models.CharField(max_length=30, verbose_name="商品编码")
     num = models.IntegerField(verbose_name="商品数量")

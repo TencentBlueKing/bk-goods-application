@@ -35,7 +35,7 @@ def derive_excel(request):
                 unit = []  # 存放一行excel信息
                 unit.append(good_code)  # 物资编码
 
-                good = Good.objects.filter(good_code=good_code).first()  # 根据物品编码查询对应物品
+                good = Good.objects.filter(good_code=good_code, status=1).first()  # 根据物品编码查询对应物品
                 group_apply = GroupApply.objects.filter(good_code=good_code).first()  # 根据物品编码查询对应申请表
 
                 good_name = good.good_name  # 物资名称
@@ -119,7 +119,7 @@ def derive_excel(request):
             for good_id in goods['selectedRows']:
                 unit = []  # 存放一行excel信息
 
-                good = Good.objects.filter(id=good_id).first()  # 根据物品id查询对应物品
+                good = Good.objects.filter(id=good_id, status=1).first()  # 根据物品id查询对应物品
                 good_cart = Cart.objects.filter(good_id=good_id).first()  # 根据物品id查询对应购物车
 
                 good_user = good_cart.username  # 使用人
@@ -205,7 +205,7 @@ def derive_excel(request):
 
                 apply = Apply.objects.filter(id=apply_id).first()  # 根据申请表id查询对应申请表
                 good_code = apply.good_code
-                good = Good.objects.filter(good_code=good_code).first()  # 根据申请表id查询编码，再根据编码查询对应物品
+                good = Good.objects.filter(good_code=good_code, status=1).first()  # 根据申请表id查询编码，再根据编码查询对应物品
 
                 apply_user = apply.apply_user  # 使用人
                 unit.append(apply_user)

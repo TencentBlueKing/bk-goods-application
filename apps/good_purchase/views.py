@@ -85,7 +85,7 @@ def get_personal_goods(request):
 
         # 对form内容进行处理，获得所需查询集
         if name:
-            goods = Good.objects.filter(good_name__icontains=name)
+            goods = Good.objects.filter(good_name__icontains=name, status=1)
             good_codes = []
             for good in goods:
                 good_codes.append(good.good_code)
@@ -100,7 +100,7 @@ def get_personal_goods(request):
             query = query & Q(status=status)
         queryset = queryset.filter(query)
         if good_type and good_type != 0:
-            goods = Good.objects.filter(good_type_id=good_type)
+            goods = Good.objects.filter(good_type_id=good_type, status=1)
             good_codes = []
             for good in goods:
                 good_codes.append(good.good_code)
