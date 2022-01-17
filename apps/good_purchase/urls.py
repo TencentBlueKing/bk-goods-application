@@ -24,4 +24,11 @@ urlpatterns = (
     path("update_cart_goods", views.update_cart_goods),  # 修改购物车数量信息
     path("update_group_apply", views.update_group_apply),   # 给申请表添加数据
     path("add_cart_goods", views.add_cart_goods), # 添加物资到购物车/更新购物车物资数量
+    path("get_good_list", views.get_good_list),  # 获取商品列表
+    path("get_good_type_list", views.get_good_type_list),  # 获取商品类别列表
+    path("add_good", views.add_good),  # 新增商品信息
+    path("update_good", views.update_good),  # 修改商品信息
+    path("add_good_type", views.add_good_type),  # 新增商品类型信息
+    path("down_good", views.down_good),  # 下架商品
+    path("upload_img", views.upload_img),  # 上传图片
 )
