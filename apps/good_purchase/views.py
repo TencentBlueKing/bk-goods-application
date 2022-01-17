@@ -15,6 +15,11 @@ import collections
 import json
 import uuid
 
+from django.core.paginator import Paginator
+from django.db import transaction
+from django.db.models import Q
+from django.views.decorators.http import require_GET, require_POST
+
 from apps.good_purchase.models import Good, GoodType, GroupApply, Cart
 from apps.good_purchase.serializers import GoodSerializers, GoodTypeSerializers
 from apps.tools.param_check import (check_param_id, check_param_page,
@@ -23,21 +28,11 @@ from apps.tools.param_check import (check_param_id, check_param_page,
 from apps.tools.response import get_result
 from config.default import os
 from django.conf import settings
-import xlwt
-from django.core.paginator import Paginator
-from django.db import transaction
-from django.db.models import Q
-from django.http import HttpResponse, StreamingHttpResponse, FileResponse
-from django.shortcuts import render
-
-# 开发框架中通过中间件默认是需要登录态的，如有不需要登录的，可添加装饰器login_exempt
-# 装饰器引入 from blueapps.account.decorators import login_exempt
-from django.views.decorators.http import require_GET, require_POST
-from django.views.decorators.http import require_GET, require_POST
-
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
 
+# 开发框架中通过中间件默认是需要登录态的，如有不需要登录的，可添加装饰器login_exempt
+# 装饰器引入 from blueapps.account.decorators import login_exempt
 
 @require_GET
 def get_good_detail(request):
