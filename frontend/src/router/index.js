@@ -17,7 +17,7 @@ const PurchaseHome = () => import(/* webpackChunkName: 'example1' */'@/views/pur
 const ItemManagement = () => import(/* webpackChunkName: 'example2' */'@/views/itemManagement')
 const ItemDetail = () => import(/* webpackChunkName: 'example3' */'@/views/itemDetail')
 const NotFound = () => import(/* webpackChunkName: 'none' */'@/views/404')
-const personalGoods = () => import(/* webpackChunkName: 'personalGoods' */'@/views/personalGoods/personalGoods.vue')
+// const personalGoods = () => import(/* webpackChunkName: 'personalGoods' */'@/views/personalGoods/personalGoods.vue')
 
 const routes = [
     {
@@ -41,12 +41,13 @@ const routes = [
                 path: 'itemDetail',
                 name: 'itemDetail',
                 component: ItemDetail
-            },
-            {
-                path: 'personalGoods',
-                name: 'personalGoods',
-                component: personalGoods
             }
+            // ,
+            // {
+            //     path: 'personalGoods',
+            //     name: 'personalGoods',
+            //     component: personalGoods
+            // }
         ]
     },
     // 404
