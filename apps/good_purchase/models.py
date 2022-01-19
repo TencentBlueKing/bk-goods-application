@@ -118,6 +118,7 @@ class GroupApply(TimeBasic):
     position = models.CharField(max_length=100, verbose_name="所在地区")
     phone = models.CharField(max_length=30, verbose_name="联系电话")
     status = models.IntegerField(verbose_name="物资状态")
+    remarks = models.CharField(max_length=255, verbose_name="备注")
 
     def to_json(self) -> dict:
         return {
@@ -126,6 +127,25 @@ class GroupApply(TimeBasic):
             "username": self.username,
             "position": self.position,
             "phone": self.phone,
+            "status": self.status
+        }
+
+    def to_good_json(self, apply_good_code) -> dict:
+        res_good = Good.objects.get(good_code=apply_good_code)
+        good_type_name = GoodType.objects.get(id=res_good.good_type_id).type_name
+        return {
+            "id": self.id,
+            "good_id": res_good.id,
+            "good_name": res_good.good_name,
+            "good_code": self.good_code,
+            "good_type_id": res_good.good_type_id,
+            "good_type_name": good_type_name,
+            "price": res_good.price,
+            "username": self.username,
+            "position": self.position,
+            "phone": self.phone,
+            "remarks": self.remarks,
+            "num": self.num,
             "status": self.status
         }
 

@@ -12,8 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 from django.conf.urls import url
 from django.urls import path
-
+from apps.tools.del_excel import del_excel
+from apps.tools.import_excel import import_excel
 from . import views
+from apps.tools.derive_excel import derive_excel
 
 urlpatterns = (
     path("get_good_detail", views.get_good_detail),  # 商品详情
@@ -22,6 +24,11 @@ urlpatterns = (
     path("get_shopping_car", views.get_shopping_cart),  # 获取购物车信息
     path("delete_cart_goods", views.delete_cart_goods),  # 删除购物车信息
     path("update_cart_goods", views.update_cart_goods),  # 修改购物车数量信息
-    path("update_group_apply", views.update_group_apply),   # 给申请表添加数据
-    path("add_cart_goods", views.add_cart_goods), # 添加物资到购物车/更新购物车物资数量
+    path("add_cart_goods", views.add_cart_goods),  # 添加物资到购物车/更新购物车物资数量
+    path("get_group_apply", views.get_group_apply),  # 获取组内物资表数据
+    path("delete_group_apply", views.delete_group_apply),  # 删除组内物资表数据
+    path("update_group_apply", views.update_group_apply),  # 更新组内物资表数据
+    path("import_excel", import_excel),  # 通过excel导入数据到部门所需物资
+    path("derive_excel", derive_excel),  # 导出部门所需物资数据
+    path("del_excel", del_excel),  # 删除excel文件
 )

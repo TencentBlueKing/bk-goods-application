@@ -6,14 +6,71 @@
                     <span>全部物资</span>
                     <bk-tag radius="10px">{{allGoodsCount}}</bk-tag>
                 </div>
+                <div class="import-btn" v-if="isAdmin">
+                    <bk-upload
+                        :theme="'button'"
+                        :with-credentials="true"
+                        :custom-request="upload"
+                        :size="50"
+                        :files="excelFiles"
+                        :accept="'.xls, .xlsx'"
+                        :limit="1"
+                    ></bk-upload>
+                </div>
             </div>
             <div class="content-wapper">
-                <div class="goods-type-list" v-for="(item,index) in cartList" :key="index">
+                <div class="goods-type-list" v-if="cartList.length === 0">
+                    <div class="empty-cart">
+                        <svg t="1642558051352" class="icon" viewBox="0 0 1024 1024" version="1.1" p-id="5516" width="200" height="200">
+                            <path d="M64 409l227.038-152.906A24 24 0 0 1 304.444 252h417.194a24 24 0 0 1 13.492 4.151L960 409v339c0 13.255-10.745 24-24 24H88c-13.255 0-24-10.745-24-24V409z" fill="#9F9F9F" fill-opacity=".5" p-id="5517"></path>
+                            <path d="M64 409h283.136c13.255 0 24 10.745 24 24v44.68c0 13.254 10.745 24 24 24h233.136c13.255 0 24-10.746 24-24V433c0-13.255 10.745-24 24-24H960v355a8 8 0 0 1-8 8H72a8 8 0 0 1-8-8V409z" fill="#FFFFFF" fill-opacity=".4" p-id="5518"></path>
+                        </svg>
+                        <div>空购物车</div>
+                    </div>
+                </div>
+                <div v-else class="goods-type-list" v-for="(item,index) in cartList" :key="index">
                     <div class="type-item-wapper">
                         <div class="type-title">
                             <bk-tag theme="info">{{item.goods_type_name}}</bk-tag>
+                            <bk-button theme="primary" :title="isAdmin ? '申请' : '导出'" class="mr10" @click="isAdmin ? submitApply(item,index) : exportCart()">
+                                {{isAdmin ? '申请' : '导出'}}
+                            </bk-button>
                         </div>
-                        <div class="goods-item-list">
+                        <div v-if="isAdmin">
+                            <bk-table
+                                :ref="'typeTable' + item.goods_type_id"
+                                @select="rowSelectChange"
+                                @select-all="(val) => tableSelectAll(val,index)"
+                                ext-cls="type-table"
+                                :data="item.goods_list"
+                                :size="size"
+                                :outer-border="false"
+                                :header-border="false"
+                                :header-cell-style="{ background: '#fff' }"
+                            >
+                                <bk-table-column type="selection" width="60"></bk-table-column>
+                                <bk-table-column label="物资编码" prop="good_code"></bk-table-column>
+                                <bk-table-column label="物资名称" prop="good_name"></bk-table-column>
+                                <bk-table-column label="参考价格" prop="price"></bk-table-column>
+                                <bk-table-column label="使用人" prop="username"></bk-table-column>
+                                <bk-table-column label="配送地区" prop="position"></bk-table-column>
+                                <bk-table-column show-overflow-tooltip="true" label="备注" prop="remarks"></bk-table-column>
+                                <bk-table-column label="数量">
+                                    <template slot-scope="props">
+                                        <bk-input @change="(value, event) => goodNumChange(value, event, props.row)"
+                                            type="number" :max="1000" :min="1"
+                                            v-model="props.row.num"
+                                        ></bk-input>
+                                    </template>
+                                </bk-table-column>
+                                <bk-table-column label="操作" width="150">
+                                    <template slot-scope="props">
+                                        <bk-button class="mr10" theme="primary" text @click="showAdminRemoveBox(props.row)">移除</bk-button>
+                                    </template>
+                                </bk-table-column>
+                            </bk-table>
+                        </div>
+                        <div v-else class="goods-item-list">
                             <bk-table
                                 :ref="'typeTable' + item.goods_type_id"
                                 @select="rowSelectChange"
@@ -51,7 +108,7 @@
                 <!-- 占位 -->
             </div>
         </div>
-        <div class="fun-bar-wapper">
+        <!-- <div v-if="false" class="fun-bar-wapper">
             <div class="fun-list-wapper">
                 <div class="select-fun">
                     <bk-checkbox
@@ -75,18 +132,16 @@
                     <div class="total-price">{{'合计：' + selectedPrice}}</div>
                 </div>
             </div>
-            <div class="export-btn" title="导出" @click="exportCart">
-                <bk-icon type="download" />
+            <div class="submit-btn" :class="{ 'un-submit': selectedCount === 0 }" @click="submitAllCart">
+                {{isAdmin ? "保存" : "申请"}}
             </div>
-            <div class="submit-btn" :class="{ 'un-submit': selectedCount === 0 }" @click="submitCart">
-                申请
-            </div>
-        </div>
+        </div> -->
     </div>
 </template>
 
 <script>
     import { bkTable, bkTableColumn, bkButton } from 'bk-magic-vue'
+    const delFilesUrl = '/purchase/del_excel' // 删除已生成的excel文件接口
     export default {
         components: {
             bkTable,
@@ -95,16 +150,18 @@
         },
         data () {
             return {
+                isAdmin: false,
                 cartUsername: '',
                 allSelectVal: false,
-                size: 'small',
+                size: 'medium',
                 cartList: [],
                 allGoodsCount: 0,
                 selectGoodsList: [],
                 selectedCount: 0,
                 selectedPrice: 0,
                 timer: null,
-                changeGoodsList: []
+                changeGoodsList: [],
+                excelFiles: [] // 导入组件绑定列表
             }
         },
         computed: {
@@ -135,12 +192,21 @@
             
         },
         mounted () {
-            this.getUserInfo()
-            this.getCartList()
+            this.initUserInfo()
+            if (this.isAdmin) {
+                const importDom = document.querySelector('.file-wrapper')
+                if (importDom !== undefined && importDom !== null) {
+                    document.querySelector('.file-wrapper').setAttribute('bk-lablename', '导入物资')
+                }
+                this.getGroupApplyList()
+            } else {
+                this.getCartList()
+            }
         },
         methods: {
-            getUserInfo () {
+            initUserInfo () {
                 this.cartUsername = localStorage.getItem('username')
+                this.isAdmin = this.$store.getters.isAdmin
             },
             getCartList () {
                 if (this.cartUsername !== '') {
@@ -217,6 +283,27 @@
                     }
                 })
             },
+            showAdminRemoveBox (row, type) {
+                const deleteList = [row]
+                this.$bkInfo({
+                    title: '确定要删除该物资吗？',
+                    confirmFn: async () => {
+                        try {
+                            // await this.deleteTableGoods(deleteList)
+                            await this.deleteApplyList(deleteList)
+                            this.recoverSelected()
+                            this.$bkMessage({
+                                message: '删除成功',
+                                theme: 'success'
+                            })
+                            return true
+                        } catch (e) {
+                            console.warn(e)
+                            return false
+                        }
+                    }
+                })
+            },
             deleteTableGoods (deleteList) {
                 // 在页面删除物资
                 deleteList.forEach((item) => {
@@ -243,6 +330,26 @@
                     idList.push(item.id)
                 })
                 this.$http.post('/purchase/delete_cart_goods', { goodsIdList: idList }).then((res) => {
+                    if (res.result) {
+                        this.deleteTableGoods(deleteList)
+                    } else {
+                        this.$bkMessage({
+                            message: res.message,
+                            offsetY: 80,
+                            theme: 'error'
+                        })
+                    }
+                }).catch(() => {
+                    this.$bkMessage({
+                        message: 'delete_cart_goods接口报错',
+                        offsetY: 80,
+                        theme: 'error'
+                    })
+                })
+            },
+            deleteApplyList (deleteList) {
+                const id = deleteList[0].id
+                this.$http.post('/purchase/delete_group_apply', { applyId: id }).then((res) => {
                     if (res.result) {
                         this.deleteTableGoods(deleteList)
                     } else {
@@ -321,12 +428,9 @@
                         })
                     }
                 })
-                this.$http.post(
-                    '/purchase/update_cart_goods',
-                    {
-                        goodsList: updateList
-                    }
-                ).then((res) => {
+                const updateUrl = this.isAdmin ? 'update_group_apply' : 'update_cart_goods'
+                const params = this.isAdmin ? { applyList: updateList, updateType: 'num' } : { goodsList: updateList }
+                this.$http.post('/purchase/' + updateUrl, params).then((res) => {
                     if (!res.result) {
                         this.$bkMessage({
                             message: '物资数量更新失败',
@@ -336,7 +440,7 @@
                     }
                 }).catch(() => {
                     this.$bkMessage({
-                        message: 'update_cart_goods接口报错',
+                        message: updateUrl + '接口报错',
                         offsetY: 80,
                         theme: 'error'
                     })
@@ -345,7 +449,7 @@
                     this.changeGoodsList = []
                 })
             },
-            submitCart () {
+            submitAllCart () {
                 if (this.selectedCount > 0) {
                     this.$bkInfo({
                         title: '确定要提交申请吗？',
@@ -403,7 +507,18 @@
                 return selectedList
             },
             exportCart () {
-                const submitGoods = { selectedRows: this.getSelectedGoodsList() }
+                const submitGoods = { selectedRows: [] }
+                this.getSelectedGoodsList().forEach((good) => {
+                    submitGoods.selectedRows.push(good.id)
+                })
+                if (submitGoods.selectedRows.length === 0) {
+                    this.$bkMessage({
+                        message: '请先选择物资',
+                        offsetY: 80,
+                        theme: 'warning'
+                    })
+                    return
+                }
                 this.$http.post('/purchase/derive_excel',
                                 { model: 2, dataList: submitGoods })
                     .then((res) => {
@@ -411,7 +526,13 @@
                             this.$bkMessage({
                                 message: '购物车导出成功',
                                 offsetY: 80,
-                                theme: 'error'
+                                theme: 'success'
+                            })
+                        } else {
+                            this.$bkMessage({
+                                message: '购物车导出失败',
+                                offsetY: 80,
+                                theme: 'console.error();'
                             })
                         }
                     }).catch(() => {
@@ -421,6 +542,151 @@
                             theme: 'error'
                         })
                     })
+            },
+            getGroupApplyList () {
+                this.$http.get('/purchase/get_group_apply').then((res) => {
+                    if (res.result && res.data !== null) {
+                        this.allGoodsCount = 0
+                        this.cartList = JSON.parse(JSON.stringify(res.data))
+                        this.cartList.forEach((typeItem, typeIndex) => {
+                            this.allGoodsCount += typeItem.goods_list.length
+                            typeItem.goods_list.forEach((good) => {
+                                good['table_index'] = typeIndex
+                            })
+                        })
+                        // 初始化购物车选择状态数组
+                        this.selectGoodsList = []
+                        JSON.parse(JSON.stringify(this.cartList)).forEach((typeItem) => {
+                            typeItem.goods_list.forEach((good) => {
+                                good.selected = false
+                                this.selectGoodsList.push(good)
+                            })
+                        })
+                    } else {
+                        this.$bkMessage({
+                            message: res.message,
+                            offsetY: 80,
+                            theme: 'error'
+                        })
+                    }
+                }).catch(() => {
+                    this.$bkMessage({
+                        message: 'get_group_apply接口报错',
+                        offsetY: 80,
+                        theme: 'error'
+                    })
+                })
+            },
+            submitApply (tableItem, tableIndex) {
+                const submitApplyList = this.selectGoodsList.filter((apply) => {
+                    return apply.selected && apply.table_index === tableIndex
+                })
+                if (submitApplyList.length === 0) {
+                    this.$bkMessage({
+                        message: '请先选择物资',
+                        offsetY: 80,
+                        theme: 'warning'
+                    })
+                    return
+                }
+                this.$bkInfo({
+                    title: '确定要提交' + tableItem.goods_type_name + '物资申请吗？',
+                    confirmFn: async () => {
+                        try {
+                            this.$http.post(
+                                '/purchase/update_group_apply',
+                                {
+                                    applyList: submitApplyList,
+                                    updateType: 'status'
+                                }
+                            ).then((res) => {
+                                if (!res.result) {
+                                    this.$bkMessage({
+                                        message: res.message,
+                                        offsetY: 80,
+                                        theme: 'error'
+                                    })
+                                } else {
+                                    this.deleteTableGoods(submitApplyList)
+                                    this.$bkMessage({
+                                        message: '申请成功',
+                                        theme: 'success'
+                                    })
+                                }
+                            }).catch(() => {
+                                this.$bkMessage({
+                                    message: 'add_group_apply接口报错',
+                                    offsetY: 80,
+                                    theme: 'error'
+                                })
+                            }).finally(() => {
+                                this.timer = null
+                                this.changeGoodsList = []
+                            })
+                            return true
+                        } catch (e) {
+                            console.warn(e)
+                            return false
+                        }
+                    }
+                })
+            },
+            sleep (time) { // 计时器
+                return new Promise((resolve, reject) => {
+                    setTimeout(resolve, time * 1000)
+                })
+            },
+            upload (file) { // 上传文件函数
+                this.getBase64(file.fileObj.origin).then(res => {
+                    const excelFile = res.split(',')[1] // 获取文件信息
+                    const fileName = file.fileObj.name // 获取文件名
+                    this.$http.post('/purchase/import_excel', { file: excelFile, fileName: fileName }).then(res => {
+                        if (res && res.result === true && res.code === 200) { // 全部导入成功
+                            this.handleError({ theme: 'success' }, res.message)
+                        } else if (res && res.result === true && res.code === 5003) { // 存在导入失败物品
+                            this.handleError({ theme: 'warning' }, '物资' + res.data.created_fail_list + '导入失败')
+                        } else if (res && res.result === false) { // 有错误
+                            this.handleError({ theme: 'error' }, res.message)
+                        }
+                        this.excelFiles.push({ // 给上传组件绑定列表添加文件信息
+                            name: fileName
+                        })
+                        this.sleep(2).then(() => {
+                            const delDirPath = 'import_excel' // 后台存放导入文件路径
+                            this.$http.post(delFilesUrl, { dirName: delDirPath, fileName: fileName }).then(() => { // 导入后删除文件
+                                this.excelFiles.pop() // 如果你不想用下面的刷新页面就用这个pop 把下面的refresh删掉就行
+                                // this.refresh()
+                            })
+                        })
+                    })
+                })
+            },
+            refresh () { // 刷新页面
+                this.$router.go(0)
+            },
+            getBase64 (file) { // 用FileReader解析文件
+                return new Promise(function (resolve, reject) {
+                    const reader = new FileReader()
+                    let fileResult = ''
+                    reader.readAsDataURL(file)
+                    // 文件加载成功时触发
+                    reader.onload = function () {
+                        fileResult = reader.result
+                    }
+                    // 文件加载失败时触发
+                    reader.onerror = function (error) {
+                        reject(error)
+                    }
+                    // 加载成功后使用
+                    reader.onloadend = function () {
+                        resolve(fileResult)
+                    }
+                })
+            },
+            handleError (config, message) { // 页面弹出提示信息
+                config.message = message
+                config.offsetY = 80
+                this.$bkMessage(config)
             }
         }
     }
@@ -442,11 +708,15 @@
             display: flex;
             border-bottom: 1px solid #C4C6CC;
             margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             .head-total-info{
                 line-height: 50px;
                 padding: 0 18px;
                 font-size: 16px;
                 min-width: 100px;
+                
                 span{
                     font-weight: bold;
                 }
@@ -455,18 +725,49 @@
                     margin: 0 !important;
                 }
             }
+            .import-btn{
+                font-size: 24px;
+                cursor: pointer;
+                /deep/ .file-wrapper{
+                    margin: 0;
+                    cursor: pointer;
+                }
+            }
+            .import-btn:hover{
+                color: #1768EF;
+            }
         }
         .goods-type-list{
             width: 100%;
             margin-bottom: 40px;
+            .empty-cart{
+                width: 400px;
+                margin: 140px auto 0;
+                display: flex;
+                flex-direction: column;
+                svg{
+                    margin: 0 auto;
+                }
+                div{
+                    text-align: center;
+                    font-size: 20px;
+                }
+            }
             .type-item-wapper{
                 width: 100%;
                 .type-title{
                     padding-left: 10px;
                     height: 36px;
                     line-height: 34px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
                     /deep/.bk-tag{
                         font-size: 16px;
+                    }
+                    .bk-button{
+                        height: 26px;
+                        line-height: 26px;height: ;
                     }
                 }
                 .goods-item-list{
@@ -551,17 +852,8 @@
             cursor: pointer;
         }
         .un-submit{
-            cursor:not-allowed;
+            cursor: not-allowed;
             background: #979BA5;
-        }
-        .export-btn{
-            width: 50px;
-            height: 100%;
-            line-height: 60px;
-            font-size: 24px;
-            i{
-                cursor: pointer;
-            }
         }
     }
 </style>

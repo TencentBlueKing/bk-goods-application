@@ -71,3 +71,5 @@ try:
     from local_settings import *  # noqa
 except ImportError:
     pass
+
+MEDIA_URL = '/media/'

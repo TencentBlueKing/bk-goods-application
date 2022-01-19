@@ -18,7 +18,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 
 from apps.good_purchase.models import Good, GoodType, Cart, UserInfo, GroupApply
-from apps.tools.param_check import check_param_id
+from apps.tools.param_check import check_param_id, check_param_str, check_apply_update_param
 from apps.tools.response import get_result
 # 开发框架中通过中间件默认是需要登录态的，如有不需要登录的，可添加装饰器login_exempt
 # 装饰器引入 from blueapps.account.decorators import login_exempt
@@ -119,6 +119,10 @@ def get_shopping_cart(request):
     获取购物车信息
     """
     username = request.GET.get("userName")
+    if not check_param_str(username):
+        return get_result({"code": 4005, "result": False, "message": "参数不合法"})
+    if not UserInfo.objects.filter(username=username).exists():
+        return get_result({"code": 4004, "result": False, "message": "用户不存在"})
     good_list = Cart.objects.filter(username=username)
     cart_list = []
     for good in good_list:
@@ -138,7 +142,7 @@ def get_shopping_cart(request):
                 }
                 cart_list.append(temp_obj)
     if len(cart_list) == 0:
-        return get_result({"data": [], "message": "购物车为空"})
+        return get_result({"code": 200, "data": [], "message": "购物车为空"})
     return get_result({"code": 200, "data": cart_list})
 
 
@@ -148,12 +152,12 @@ def delete_cart_goods(request):
     """
     req = json.loads(request.body)
     goods_id_list = req.get("goodsIdList")
-    if len(goods_id_list) == 0:
-        return get_result({"code": 1, "result": False, "message": "good_id_list为空"})
+    if not isinstance(goods_id_list, list):
+        return get_result({"code": 4005, "result": False, "message": "物资删除参数错误"})
     try:
         Cart.objects.filter(id__in=goods_id_list).delete()
     except Cart.DoesNotExist:
-        return get_result({"code": 1, "result": False, "message": "删除失败"})
+        return get_result({"code": 4004, "result": False, "message": "删除失败"})
     return get_result({"code": 200, "message": "删除成功"})
 
 
@@ -163,11 +167,11 @@ def add_cart_goods(request):
     """
     req = json.loads(request.body)
     good_info = req.get("goodInfo")
-    try:
-        temp_good = Cart.objects.get(id=good_info["id"]).to_json()
-        num = int(temp_good["num"]) + int(good_info["num"])
+    temp_good = Cart.objects.filter(id=good_info["id"])
+    if temp_good.exists():
+        num = int(temp_good[0].num) + int(good_info["num"])
         Cart.objects.filter(id=good_info["id"]).update(num=num, update_time=datetime.now())
-    except Cart.DoesNotExist:
+    else:
         Cart.objects.create(good_id=good_info['id'], username=good_info['username'], num=good_info['num'])
     return get_result({"code": 200, "message": "修改成功"})
 
@@ -184,50 +188,80 @@ def update_cart_goods(request):
             try:
                 temp_good = Cart.objects.get(id=good["id"])
             except Cart.DoesNotExist:
-                return get_result({"code": 1, "result": False, "message": "该物资不存在，导致数量更新失败。"})
+                return get_result({"code": 4004, "result": False, "message": "该物资不存在，导致数量更新失败。"})
             temp_good.num = int(good["num"])
             temp_good.update_time = datetime.now()
             all_goods.append(temp_good)
         Cart.objects.bulk_update(all_goods, ['num', 'update_time'])
     else:
-        return get_result({"code": 1, "result": False, "message": "物资数量参数异常"})
+        return get_result({"code": 4005, "result": False, "message": "物资数量参数异常"})
     return get_result({"code": 200, "message": "修改成功"})
+
+
+def get_group_apply(request):
+    """
+    获取组内物资信息
+    """
+    apply_list = GroupApply.objects.filter(status=4)
+    cart_list = []
+    if apply_list.exists():
+        for apply in apply_list:
+            apply = apply.to_good_json(apply.good_code)
+            has_type = False
+            for type_item in cart_list:
+                if type_item["goods_type_name"] == apply["good_type_name"]:
+                    type_item["goods_list"].append(apply)
+                    has_type = True
+                    break
+            if not has_type:
+                temp_obj = {
+                    "goods_type_name": apply["good_type_name"],
+                    "goods_type_id": apply["good_type_id"],
+                    "goods_list": [apply]
+                }
+                cart_list.append(temp_obj)
+    return get_result({"code": 200, "data": cart_list, "message": "获取成功"})
+
+
+def delete_group_apply(request):
+    """
+    删除组内物资
+    """
+    req = json.loads(request.body)
+    apply_id = req.get("applyId")
+    if not check_param_id(apply_id):
+        return get_result({"code": 4005, "result": False, "message": "组内物资删除参数错误"})
+    try:
+        GroupApply.objects.get(id=apply_id).delete()
+    except GroupApply.DoesNotExist:
+        return get_result({"code": 501, "result": False, "message": "组内物资删除失败"})
+    return get_result({"code": 200, "message": "删除成功"})
 
 
 def update_group_apply(request):
     """
-    购物车提交申请
+    更新申请物资数量信息
     """
     req = json.loads(request.body)
-    user_name = req.get("userName")
-    cart_list = req.get("cartList")
-    try:
-        user_info = UserInfo.objects.get(username=user_name).to_json()
-    except UserInfo.DoesNotExist:
-        return get_result({"code": 1, "result": False, "message": "用户信息获取失败"})
-    if isinstance(cart_list, list):
-        create_goods_list = []
-        update_goods_list = []
-        for good in cart_list:
+    apply_list = req.get("applyList")
+    update_type = req.get("updateType")
+    if isinstance(apply_list, list) and check_apply_update_param(update_type):
+        all_applies = []
+        for apply in apply_list:
             try:
-                apply_item = GroupApply.objects.get(good_code=good['good_code'])
-                apply_item.num += int(good['num'])
-                apply_item.update_time = datetime.now()
-                update_goods_list.append(apply_item)
+                temp_apply = GroupApply.objects.get(id=apply["id"])
             except GroupApply.DoesNotExist:
-                temp_good = GroupApply(
-                    good_code=good['good_code'],
-                    num=int(good['num']),
-                    username=user_name,
-                    position=user_info['position'],
-                    phone=user_info['phone'],
-                    status=2
-                )
-                create_goods_list.append(temp_good)
-        if len(create_goods_list) != 0:
-            GroupApply.objects.bulk_create(create_goods_list)
-        if len(update_goods_list) != 0:
-            GroupApply.objects.bulk_update(update_goods_list, ['num', 'update_time'])
+                return get_result({"code": 4004, "result": False, "message": "该物资不存在，导致更新失败。"})
+            temp_apply.num = int(apply["num"])
+            if update_type == 'status':
+                temp_apply.status = 2
+            temp_apply.update_time = datetime.now()
+            all_applies.append(temp_apply)
+        if update_type == 'status':
+            GroupApply.objects.bulk_update(all_applies, ['status', 'update_time'])
+        else:
+            GroupApply.objects.bulk_update(all_applies, ['num', 'update_time'])
     else:
-        return get_result({"code": 1, "result": False, "message": "购物车申请物资列表参数异常"})
-    return get_result({"code": 200, "message": "申请成功"})
+        return get_result({"code": 4005, "result": False, "message": "更新组内物资接口参数异常"})
+    return get_result({"code": 200, "message": "修改成功"})
+
