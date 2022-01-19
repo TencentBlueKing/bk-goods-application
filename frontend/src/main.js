@@ -23,12 +23,15 @@ import VMdPreview from '@kangc/v-md-editor/lib/preview'
 import '@kangc/v-md-editor/lib/style/preview.css'
 import githubTheme from '@kangc/v-md-editor/lib/theme/github.js'
 import '@kangc/v-md-editor/lib/theme/style/github.css'
+import hljs from 'highlight.js'
 
 // 全量引入 bk-magic-vue
 import bkMagic from 'bk-magic-vue'
 // 全量引入 bk-magic-vue 样式
 import 'bk-magic-vue/dist/bk-magic-vue.min.css'
 VMdPreview.use(githubTheme)
+VMdEditor.use(githubTheme,
+    { Hljs: hljs })
 Vue.use(VMdEditor)
 Vue.use(VMdPreview)
 

@@ -31,4 +31,11 @@ urlpatterns = (
     path("import_excel", import_excel),  # 通过excel导入数据到部门所需物资
     path("derive_excel", derive_excel),  # 导出部门所需物资数据
     path("del_excel", del_excel),  # 删除excel文件
+    path("get_good_list", views.get_good_list),  # 获取商品列表
+    path("get_good_type_list", views.get_good_type_list),  # 获取商品类别列表
+    path("add_good", views.add_good),  # 新增商品信息
+    path("update_good", views.update_good),  # 修改商品信息
+    path("add_good_type", views.add_good_type),  # 新增商品类型信息
+    path("down_good", views.down_good),  # 下架商品
+    path("upload_img", views.upload_img),  # 上传图片
 )
