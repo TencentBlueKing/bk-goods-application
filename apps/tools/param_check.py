@@ -20,11 +20,11 @@ def check_param_str(p: str) -> bool:
     return False
 
 
-def check_param_good_num(num) -> int:
+def check_apply_update_param(p: str) -> bool:
     """
-    校验参数 - num
+    校验组内物资更新类型参数
     """
-    if isinstance(num, int) and num > 0:
+    if isinstance(p, str) and p and (p == 'status' or p == 'num'):
         return True
     return False
 
