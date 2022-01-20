@@ -329,7 +329,7 @@
                 deleteList.forEach((item) => {
                     idList.push(item.id)
                 })
-                this.$http.post('/purchase/delete_cart_goods', { goodsIdList: idList }).then((res) => {
+                this.$http.post('/purchase/delete_cart_goods', { userName: this.cartUsername, cartIdList: idList }).then((res) => {
                     if (res.result) {
                         this.deleteTableGoods(deleteList)
                     } else {

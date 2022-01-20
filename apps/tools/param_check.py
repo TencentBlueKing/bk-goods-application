@@ -60,3 +60,13 @@ def get_error_message(serializer):
             message.append(detail_errors)
     message = ','.join(message)
     return message
+
+def get_error_message(serializer):
+    """通过序列化器获取错误信息"""
+    message = []
+    errors = serializer.errors
+    for key in errors:
+        for detail_errors in errors[key]:
+            message.append(detail_errors)
+    message = ','.join(message)
+    return message

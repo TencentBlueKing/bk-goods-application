@@ -109,7 +109,7 @@
                 },
                 goodInfo: {},
                 curUsername: '',
-                goodId: 4
+                goodId: 6
             }
         },
         created () {
@@ -211,7 +211,7 @@
             },
             addToCar () {
                 const updateInfo = {
-                    num: this.numberInputValue,
+                    num: parseInt(this.numberInputValue),
                     id: this.goodInfo.id,
                     username: this.curUsername
                 }
@@ -228,7 +228,7 @@
                         })
                     } else {
                         this.$bkMessage({
-                            message: '物资数量更新失败',
+                            message: '物资加入购物车失败',
                             offsetY: 80,
                             theme: 'error'
                         })
