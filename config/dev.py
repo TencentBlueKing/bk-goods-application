@@ -72,4 +72,5 @@ try:
 except ImportError:
     pass
 
+
 MEDIA_URL = '/media/'
