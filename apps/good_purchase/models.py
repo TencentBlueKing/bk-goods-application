@@ -84,12 +84,32 @@ class Cart(TimeBasic):
 
 # 部门所需物资表
 class GroupApply(TimeBasic):
+    STATUS_TYPE = (
+        (1, "已退回"),
+        (2, "在使用"),
+        (3, "退回中"),
+        (4, "购买中")
+    )
     good_code = models.CharField(max_length=30, verbose_name="商品编码")
     num = models.IntegerField(verbose_name="商品数量")
     username = models.CharField(max_length=30, verbose_name="使用人")
     position = models.CharField(max_length=100, verbose_name="所在地区")
     phone = models.CharField(max_length=30, verbose_name="联系电话")
-    status = models.IntegerField(verbose_name="物资状态")
+    status = models.IntegerField(choices=STATUS_TYPE, verbose_name="物资状态")
+    remarks = models.CharField(max_length=255, verbose_name="备注")
+
+    def to_json(self) -> dict:
+        good_name = Good.objects.get(good_code=self.good_code).good_name
+        return {
+            "id": self.id,
+            "good_code": self.good_code,
+            "num": self.num,
+            "username": self.username,
+            "position": self.position,
+            "status": self.get_status_display(),
+            "phone": self.phone,
+            "good_name": good_name
+        }
 
 
 # 物资退回表

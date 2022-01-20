@@ -15,8 +15,11 @@ import collections
 import json
 import uuid
 
-from apps.good_purchase.models import Good, GoodType
-from apps.good_purchase.serializers import GoodSerializers, GoodTypeSerializers
+from apps.good_purchase.models import (Good, GoodType, GroupApply, Withdraw,
+                                       WithdrawReason)
+from apps.good_purchase.serializers import (CheckWithdrawsSeralizers,
+                                            GoodSerializers,
+                                            GoodTypeSerializers)
 from apps.tools.param_check import (check_param_id, check_param_page,
                                     check_param_size, check_param_str,
                                     get_error_message)
@@ -26,6 +29,7 @@ from django.conf import settings
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
+from django.utils.datetime_safe import datetime
 # 开发框架中通过中间件默认是需要登录态的，如有不需要登录的，可添加装饰器login_exempt
 # 装饰器引入 from blueapps.account.decorators import login_exempt
 from django.views.decorators.http import require_GET, require_POST
@@ -178,19 +182,19 @@ def add_good(request):
         message = get_error_message(good_serializers)
         return get_result({"code": 1, "result": False, "message": message})  # 输出错误方式
     # 检查商品编码是否存在
-    if Good.objects.filter(good_code=good.get("good_code")).exists():
+    good_code = good_serializers.validated_data.get("good_code")
+    if Good.objects.filter(good_code=good_code, status=1).exists():
         return get_result({"code": 1, "result": False, "message": "商品编码已存在"})
     # 检验商品类型是否存在
-    type_id = good.get("good_type_id")
-    try:
-        GoodType.objects.get(id=type_id)
-    except GoodType.DoesNotExist:
+    good_type_id = good_serializers.validated_data.get("good_type_id")
+    if not GoodType.objects.filter(id=good_type_id).exists():
         return get_result({"code": 1, "result": False, "message": "商品类型不存在"})
     with transaction.atomic():
         Good.objects.create(**good)
     return get_result({"message": "新增商品成功"})
 
 
+@require_POST
 def update_good(request):
     """修改商品信息"""
     good = json.loads(request.body)
@@ -199,37 +203,36 @@ def update_good(request):
     if not good_serializers.is_valid():
         message = get_error_message(good_serializers)
         return get_result({"code": 1, "result": False, "message": message})
-    try:
-        # 校验id
-        good_id = good.get("id", 0)
-        if not check_param_id(good_id):
-            return get_result({"code": 1, "result": False, "message": "商品id不合法"})
-        # 检验编码是否重复(good_code相同，但id不同的商品)
-        goods = Good.objects.filter(Q(good_code=good.get("good_code")) & ~Q(id=good_id))
-        if goods:
-            return get_result({"code": 1, "result": False, "message": "商品编号已存在"})
-        # 校验商品类型是否存在
-        type_id = good.get("good_type_id")
-        GoodType.objects.get(id=type_id)
-        # 校验商品是否存在
-        Good.objects.get(id=good_id)
-        # 更新数据
-        Good.objects.filter(id=good_id).update(**good)
-    except Good.DoesNotExist:
+    # 校验id
+    good_id = good.get("id", 0)
+    if not check_param_id(good_id):
+        return get_result({"code": 1, "result": False, "message": "商品id不合法"})
+    # 校验商品是否存在
+    if not Good.objects.filter(id=good_id, status=1).exists():
         return get_result({"code": 1, "result": False, "message": "商品不存在"})
-    except GoodType.DoesNotExist:
+    # 检验商品编码是否重复(good_code相同，但id不同的商品)
+    good_code = good_serializers.validated_data.get("good_code")
+    if Good.objects.filter(Q(good_code=good_code) & ~Q(id=good_id) & Q(status=1)).exists():
+        return get_result({"code": 1, "result": False, "message": "商品编号已存在"})
+    # 校验商品类型是否存在
+    good_type_id = good_serializers.validated_data.get("good_type_id")
+    if not GoodType.objects.filter(id=good_type_id).exists():
         return get_result({"code": 1, "result": False, "message": "商品类型不存在"})
+    # 更新数据
+    Good.objects.filter(id=good_id).update(**good, update_time=datetime.now())
     return get_result({"message": "修改商品信息成功"})
 
 
-@require_POST
+@require_GET
 def down_good(request):
     """商品下架"""
-    good_id = json.loads(request.body).get('good_id')
+    good_id = request.GET.get("id", 0)
     # 校验参数
     if not check_param_id(good_id):
         return get_result({"code": 1, "result": False, "message": "good_id参数校验出错"})
-    # 是否存在商品不存在的情况
+    # 校验商品是否存在
+    if not Good.objects.filter(id=good_id, status=1).exists():
+        return get_result({"code": 1, "result": False, "message": "商品不存在"})
     Good.objects.filter(id=good_id).update(status=0)
     return get_result({"message": "下架商品成功"})
 
@@ -237,16 +240,15 @@ def down_good(request):
 @require_POST
 def add_good_type(request):
     """新增商品类型"""
-    good_type = json.loads(request.body)
+    req = json.loads(request.body)
     # 参数校验
-    good_type_serializers = GoodTypeSerializers(data=good_type)
+    good_type_serializers = GoodTypeSerializers(data=req)
     if not good_type_serializers.is_valid():
         message = get_error_message(good_type_serializers)
         return get_result({"code": 1, "result": False, "message": message})
     # 验证该商品类型是否存在
-    type_name = good_type.get("type_name")
-    good_types = GoodType.objects.filter(type_name=type_name)
-    if good_types:
+    type_name = good_type_serializers.validated_data.get("type_name")
+    if GoodType.objects.filter(type_name=type_name).exists():
         return get_result({"code": 1, "result": False, "message": "商品类型名称已存在"})
     good_type = GoodType.objects.create(type_name=type_name)
     return get_result({"message": "新增商品类型成功", "data": {"id": good_type.id}})
@@ -270,3 +272,43 @@ def upload_img(request):
         f.write(base64.b64decode(img_obj))
     pic_url = settings.BK_BACK_URL + '/media/good_purchase/' + file_name
     return get_result({"message": "上传图片成功", "data": {"pic_url": pic_url}})
+
+
+@require_POST
+def add_withdraw_apply(request):
+    """提交退回物资申请"""
+    req = json.loads(request.body)
+    username = request.user.username
+    check_withdraws_seralizers = CheckWithdrawsSeralizers(data=req)
+    if not check_withdraws_seralizers.is_valid():
+        message = get_error_message(check_withdraws_seralizers)
+        return get_result({"code": 1, "result": False, "message": message})
+    ids = check_withdraws_seralizers.validated_data.get("good_ids")
+    reason_id = check_withdraws_seralizers.validated_data.get("reason_id")
+    position = check_withdraws_seralizers.validated_data.get("position")
+    remark = check_withdraws_seralizers.validated_data.get("remark", '')
+    good_ids = GroupApply.objects.filter(id__in=ids, status=2, username=username).values_list("id", flat=True)
+    if not set(good_ids).issubset(ids):
+        return get_result({"code": 1, "result": False, "message": "个人物资不存在，或商品不是正在使用状态"})
+    if not WithdrawReason.objects.filter(id=reason_id).exists():
+        return get_result({"code": 1, "result": False, "message": "退回原因不存在"})
+    # 创建需要批量添加的withdraw数组
+    withdraw_list = []
+    for good_id in good_ids:
+        withdraw = Withdraw(good_apply_id=good_id, username=username, reason_id=reason_id,
+                            position=position, remark=remark)
+        withdraw_list.append(withdraw)
+    with transaction.atomic():
+        # 修改个人物资状态
+        GroupApply.objects.filter(id__in=list(good_ids)).update(status=1)
+        # 批量添加物资退回表
+        Withdraw.objects.bulk_create(withdraw_list)
+    return get_result({"message": "退回商品申请提交成功"})
+
+
+@require_GET
+def get_withdraw_reason(request):
+    """获取所有退库原因"""
+    withdraw_reasons = WithdrawReason.objects.all()
+    withdraw_reason_list = [reason.to_json() for reason in withdraw_reasons]
+    return get_result({"data": withdraw_reason_list})

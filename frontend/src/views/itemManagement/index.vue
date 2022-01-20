@@ -8,17 +8,17 @@
         <div class="header-wrapper">
             <div class="fun-bar">
                 <span>物品名称：</span>
-                <bk-input :clearable="true" v-model="searchInput.goodCode"></bk-input>
+                <bk-input :clearable="true" v-model="unSubmitSearch.goodCode"></bk-input>
             </div>
             <div class="fun-bar">
                 <span>物品编号：</span>
-                <bk-input :clearable="true" v-model="searchInput.goodName"></bk-input>
+                <bk-input :clearable="true" v-model="unSubmitSearch.goodName"></bk-input>
             </div>
             <div class="fun-bar">
                 <span style="width:72px;">物品类别：</span>
-                <bk-select :disabled="false" v-model="searchInput.goodTypeId" style="width:200px;"
+                <bk-select :disabled="false" v-model="unSubmitSearch.goodTypeId" style="width:200px;"
                     searchable
-                    @change="getGoods">
+                >
                     <bk-option
                         :key="0"
                         :id="0"
@@ -83,9 +83,7 @@
                         </bk-select>
                     </bk-form-item>
                     <bk-form-item :label-width="80" label="参考价" :required="true" :property="'price'">
-                        <bk-input v-model="goodFormData.price">
-                            <!-- 数字怎么用 -->
-                            <bk-animate-number :value="1" :digits="digits"></bk-animate-number>
+                        <bk-input type="number" precision="2" v-model="goodFormData.price">
                         </bk-input>
                     </bk-form-item>
                 </bk-form>
@@ -130,7 +128,7 @@
         </bk-dialog>
         <div class="goods-info-load" v-bkloading="{ isLoading: isGoodsInfoLoad, theme: 'primary', zIndex: 10 }"></div>
         <div class="goods-info-table">
-            <bk-table v-show="!isGoodsInfoLoad" style="margin-top: 20px;"
+            <bk-table v-show="!isGoodsInfoLoad" v-if="getGoodsFlag" style="margin-top: 20px;"
                 max-height="400"
                 :data="goodsInfo.goodList"
                 :pagination="goodsInfo.pagination"
@@ -160,8 +158,12 @@
         components: {},
         data () {
             return {
-                testVisiable: true,
-                searchInput: {
+                unSubmitSearch: {
+                    goodCode: '',
+                    goodName: '',
+                    goodTypeId: 0
+                },
+                submitSearchInput: {
                     goodCode: '',
                     goodName: '',
                     goodTypeId: 0
@@ -181,6 +183,7 @@
                     }
                 },
                 // 商品类型信息
+                getGoodsFlag: true,
                 goodTypeList: [],
                 isGoodTypesLoad: true,
                 // 商品添加/编辑dialog
@@ -261,14 +264,14 @@
             getGoods () {
                 this.isGoodsInfoLoad = true
                 this.$http.get('/purchase/get_good_list'
-                    + '?good_code=' + this.searchInput.goodCode
-                    + '&good_name=' + this.searchInput.goodName
-                    + '&good_type_id=' + this.searchInput.goodTypeId
+                    + '?good_code=' + this.submitSearchInput.goodCode
+                    + '&good_name=' + this.submitSearchInput.goodName
+                    + '&good_type_id=' + this.submitSearchInput.goodTypeId
                     + '&page=' + this.goodsInfo.pagination.current
                     + '&size=' + this.goodsInfo.pagination.limit
                 ).then(res => {
                     if (res.result) {
-                        console.log(res.data)
+                        this.getGoodsFlag = false
                         this.goodsInfo.totalNum = res.data.total_num
                         this.goodsInfo.goodList = res.data.good_list
                         this.goodsInfo.pagination.count = res.data.total_num
@@ -281,6 +284,7 @@
                         })
                     }
                 }).finally(() => {
+                    this.getGoodsFlag = true
                     this.isGoodsInfoLoad = false
                 })
             },
@@ -323,19 +327,14 @@
             dealGoodPics () {
                 // 处理提交表单前的图片路径
                 let picUrls = []
-                console.log(this.goodFormData.pics.length)
-                if (this.goodFormData.pics.length !== 0) {
-                    this.goodFormData.pics.forEach(pic => {
-                        picUrls.push(pic.url)
-                    })
-                }
+                this.goodFormData.pics.forEach(pic => {
+                    picUrls.push(pic.url)
+                })
                 picUrls = picUrls.join(';')
                 return picUrls
             },
             addGood () {
-                // const formData = this.goodFormData
-                const formData = this.goodFormData
-                console.log('formData', formData)
+                const formData = JSON.parse(JSON.stringify(this.goodFormData))
                 const picUrls = this.dealGoodPics()
                 formData.pics = picUrls
                 this.$http.post('/purchase/add_good', formData).then(res => {
@@ -368,11 +367,11 @@
                 })
             },
             updateGood () {
-                const formData = this.goodFormData
+                const formData = JSON.parse(JSON.stringify(this.goodFormData))
                 const picUrls = this.dealGoodPics()
                 formData.pics = picUrls
                 formData.id = this.currentGoodId
-                this.$http.put('/purchase/update_good', formData).then(res => {
+                this.$http.post('/purchase/update_good', formData).then(res => {
                     const config = {
                         'offsetY': 80,
                         'delay': 2000
@@ -392,7 +391,7 @@
             },
             // 下架商品
             downGood (goodId) {
-                this.$http.post('/purchase/down_good', { good_id: goodId }).then(res => {
+                this.$http.get('/purchase/down_good?id=' + goodId).then(res => {
                     const config = {
                         'offsetY': 80,
                         'delay': 2000
@@ -445,6 +444,9 @@
                             return true
                         }
                     })
+                }).catch(() => {
+                    console.log('文件解析失败')
+                    return false
                 })
             },
             handleUploadImage (event, insertImage, files) {
@@ -495,6 +497,9 @@
             },
             // 操作事件
             searchGoodsInfo () {
+                this.submitSearchInput.goodCode = this.unSubmitSearch.goodCode
+                this.submitSearchInput.goodName = this.unSubmitSearch.goodName
+                this.submitSearchInput.goodTypeId = this.unSubmitSearch.goodTypeId
                 this.getGoods()
             },
             clickAddGood () {

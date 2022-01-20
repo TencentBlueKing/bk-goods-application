@@ -48,6 +48,10 @@ def get_error_message(serializer):
     errors = serializer.errors
     for key in errors:
         for detail_errors in errors[key]:
-            message.append(detail_errors)
+            if isinstance(detail_errors, str):
+                message.append(detail_errors)
+            else:
+                for detail_error in errors[key][detail_errors]:
+                    message.append(detail_error)
     message = ','.join(message)
     return message
