@@ -38,4 +38,6 @@ urlpatterns = (
     path("add_good_type", views.add_good_type),  # 新增商品类型信息
     path("down_good", views.down_good),  # 下架商品
     path("upload_img", views.upload_img),  # 上传图片
+    path("get_withdraw_reason", views.get_withdraw_reason),  # 获取所有退回商品原因
+    path("add_withdraw_apply", views.add_withdraw_apply),  # 提交退回商品申请
 )
