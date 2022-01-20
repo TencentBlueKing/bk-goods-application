@@ -21,12 +21,14 @@ const store = new Vuex.Store({
     state: {
         mainContentLoading: false,
         // 系统当前登录用户
-        user: {}
+        user: {},
+        isAdmin: false
     },
     // 公共 getters
     getters: {
         mainContentLoading: state => state.mainContentLoading,
-        user: state => state.user
+        user: state => state.user,
+        isAdmin: state => state.isAdmin
     },
     // 公共 mutations
     mutations: {
@@ -48,6 +50,10 @@ const store = new Vuex.Store({
          */
         updateUser (state, user) {
             state.user = Object.assign({}, user)
+        },
+
+        setIdentity (state, status) {
+            state.isAdmin = status
         }
     },
     actions: {
@@ -72,6 +78,11 @@ const store = new Vuex.Store({
                 context.commit('updateUser', userData)
                 return userData
             })
+        },
+        setUserIdentity ({ commit, state }, status) {
+            // 跟后台打交道
+            // 调用mutaions里面的方法
+            commit('setIdentity', status)
         }
     }
 })
