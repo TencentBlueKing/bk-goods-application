@@ -31,12 +31,14 @@ def derive_excel(request):
     if model == 1:  # 个人物资查询导出模式
         excel_data = []
         try:
-            for good_code in goods['selectedRows']:  # 遍历列表获得单个物资编码
+            for group_apply_id in goods['selectedRows']:  # 遍历列表获得单个物资编码
+
+                group_apply = GroupApply.objects.filter(id=group_apply_id).first()  # 根据物品编码查询对应申请表
+                good_code = group_apply.good_code
+                good = Good.objects.filter(good_code=good_code).first()  # 根据物品编码查询对应物品
+
                 unit = []  # 存放一行excel信息
                 unit.append(good_code)  # 物资编码
-
-                good = Good.objects.filter(good_code=good_code, status=1).first()  # 根据物品编码查询对应物品
-                group_apply = GroupApply.objects.filter(good_code=good_code).first()  # 根据物品编码查询对应申请表
 
                 good_name = good.good_name  # 物资名称
                 unit.append(good_name)

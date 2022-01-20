@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 from django.conf.urls import url
 from django.urls import path
 
-from apps.tools import derive_excel, del_excel
+from apps.tools import derive_excel, del_excel, import_excel
 
 from . import views
 
@@ -30,4 +30,7 @@ urlpatterns = (
     path("add_good_type", views.add_good_type),  # 新增商品类型信息
     path("down_good", views.down_good),  # 下架商品
     path("upload_img", views.upload_img),  # 上传图片
+    path("import_excel", import_excel.import_excel),  # 通过excel导入数据到部门所需物资
+    path("get_withdraw_reason", views.get_withdraw_reason),  # 获取所有退回商品原因
+    path("add_withdraw_apply", views.add_withdraw_apply),  # 提交退回商品申请
 )

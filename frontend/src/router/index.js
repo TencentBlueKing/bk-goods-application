@@ -18,6 +18,9 @@ const ItemManagement = () => import(/* webpackChunkName: 'example2' */'@/views/i
 const ItemDetail = () => import(/* webpackChunkName: 'example3' */'@/views/itemDetail')
 const NotFound = () => import(/* webpackChunkName: 'none' */'@/views/404')
 const personalGoods = () => import(/* webpackChunkName: 'personalGoods' */'@/views/personalGoods/personalGoods.vue')
+const returnGoods = () => import(/* webpackChunkName: 'returnGoods' */'@/views/returnGoods/returnGoods.vue')
+
+const Test = () => import('@/views/test/test_upload_excel.vue')
 
 const routes = [
     {
@@ -46,6 +49,16 @@ const routes = [
                 path: 'personalGoods',
                 name: 'personalGoods',
                 component: personalGoods
+            },
+            {
+                path: 'returnGoods',
+                name: 'returnGoods',
+                component: returnGoods
+            },
+            {
+                path: 'test',
+                name: 'test',
+                component: Test
             }
         ]
     },

@@ -45,4 +45,9 @@ DATABASES.update(
     }
 )
 
+<<<<<<< HEAD
 MEDIA_URL = '%smedia/' % SITE_URL
+=======
+
+MEDIAZ_URL = '%smedia/' % SITE_URL
+>>>>>>> bk-goods/dev

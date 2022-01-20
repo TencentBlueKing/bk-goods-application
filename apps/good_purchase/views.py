@@ -20,7 +20,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.views.decorators.http import require_GET, require_POST
 
-from apps.good_purchase.models import Good, GoodType, GroupApply, Cart
+from apps.good_purchase.models import Good, GoodType, GroupApply, Cart, WithdrawReason, Withdraw
 from apps.good_purchase.serializers import GoodSerializers, GoodTypeSerializers
 from apps.tools.param_check import (check_param_id, check_param_page,
                                     check_param_size, check_param_str,
@@ -40,6 +40,7 @@ def get_good_detail(request):
     根据商品id获取商品详情信息
     """
     good_id = request.GET.get("good_id", 0)
+    print("good_id", good_id)
     # 校验参数
     if not check_param_id(good_id):
         return get_result({"code": 1, "result": False, "message": "good_id参数校验出错"})
@@ -60,6 +61,9 @@ def get_personal_goods(request):
     form = request.GET.get('form', None)
     page_limit = int(request.GET.get('pageLimit', 10))
     page = int(request.GET.get('page', 1))
+    id_list = request.GET.get('idList', None)
+    if id_list:
+        id_list = eval(id_list)
 
     # 若params没有username则报错
     if not username:
@@ -111,9 +115,14 @@ def get_personal_goods(request):
     serializer_data = []
 
     # 序列化查询集
-    for item in queryset:
-        if item.good_code not in unnecessary_goods:
-            serializer_data.append(item.to_json())
+    if id_list:
+        for item in queryset:
+            if item.good_code not in unnecessary_goods and item.id in id_list:
+                serializer_data.append(item.to_json())
+    else:
+        for item in queryset:
+            if item.good_code not in unnecessary_goods:
+                serializer_data.append(item.to_json())
 
     # 自定义分页
     total = len(serializer_data)
@@ -292,3 +301,50 @@ def upload_img(request):
     pic_url = settings.BK_BACK_URL + '/media/good_purchase/' + file_name
     return get_result({"message": "上传图片成功", "data": {"pic_url": pic_url}})
 
+@require_GET
+def get_withdraw_reason(request):
+    """获取所有退库原因"""
+    withdraw_reasons = WithdrawReason.objects.all()
+    withdraw_reason_list = [reason.to_json() for reason in withdraw_reasons]
+    return get_result({"data": withdraw_reason_list})
+
+@require_POST
+def add_withdraw_apply(request):
+    """提交退回物资申请"""
+    req = json.loads(request.body)
+    username = request.user.username
+    # 参数：个人物资id列表good_apply_ids, 用户名username, 备注remark, 原因reason, 地区position
+    good_ids = req.get("good_ids")
+    if not isinstance(good_ids, list) or not good_ids:
+        return get_result({"code": 1, "result": False, "message": "物资id列表参数不合法"})
+    reason_id = req.get("reason_id", 0)
+    position = req.get("position")
+    remark = req.get("remark", '')
+    if not check_param_id(reason_id):
+        return get_result({"code": 1, "result": False, "message": "退回原因id参数不合法"})
+    if not WithdrawReason.objects.filter(id=reason_id).exists():
+        return get_result({"code": 1, "result": False, "message": "退回原因不存在"})
+    if not check_param_str(position):
+        return get_result({"code": 1, "result": False, "message": "退回地址参数不合法"})
+    # 形成需要批量添加的withdraw数组
+    withdraw_list = []
+    for good_id in good_ids:
+        if not GroupApply.objects.filter(id=good_id, status=2).exists():
+            return get_result({"code": 1, "result": False,
+                               "message": u"个人物资id={}的物资不存在，或商品不是正在使用状态".format(good_id)})
+        withdraw_info = {"good_apply_id": good_id,
+                         "username": username,
+                         "reason_id": reason_id,
+                         "position": position,
+                         "remark": remark}
+        # withdraw_serializers = WithdrawSerializers(data=withdraw_info)
+        # if not withdraw_serializers.is_valid():
+        #     message = get_error_message(withdraw_serializers)
+        #     return get_result({"code": 1, "result": False, "message": message})
+        withdraw_list.append(Withdraw(**withdraw_info))
+    with transaction.atomic():
+        # 修改个人物资状态
+        GroupApply.objects.filter(id__in=good_ids).update(status=1)
+        # 批量添加物资退回表
+        Withdraw.objects.bulk_create(withdraw_list)
+    return get_result({"message": "退回商品申请提交成功"})

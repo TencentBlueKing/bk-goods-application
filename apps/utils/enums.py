@@ -14,10 +14,17 @@ class StatusEnums(Enum):
     USER_ERROR = (4001, "用户名不正确")
     PWD_ERROR = (4002, "密码错误")
     USER_NOTEXIST_ERROR = (4003, "缺少用户名")
-    PARAMS_ERROR = (40005, '参数错误')
+    NOTFOUND_ERROR = (4004, '资源不存在')
+    PARAMS_ERROR = (4005, '参数错误')
+    PHONE_ERROR = (4006, '电话号码格式错误')
+    NUM_ERROR = (4007, '物资数量格式错误')
+    IMPORT_FILE_EMPTY_ERROR = (4008, '导入文件为空')
+
 
     # 服务端错误
     STOCK_ERROR = (5001, "库存不足")
+    CREATE_ERROR = (5002, "创建失败")
+    IMPORT_ERROR = (5003, "导入失败")
 
     @property
     def code(self):
