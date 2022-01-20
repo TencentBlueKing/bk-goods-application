@@ -128,7 +128,7 @@ class GroupApply(TimeBasic):
 
     def to_json(self) -> dict:
         good_name = Good.objects.get(good_code=self.good_code).good_name
-       return {
+        return {
             "id": self.id,
             "good_code": self.good_code,
             "num": self.num,
@@ -136,9 +136,7 @@ class GroupApply(TimeBasic):
             "position": self.position,
             "status": self.get_status_display(),
             "phone": self.phone,
-            "good_name": good_name
-            "phone": self.phone,
-            "status": self.status
+            "good_name": good_name,
         }
 
     def to_good_json(self, apply_good_code) -> dict:
@@ -174,3 +172,9 @@ class Withdraw(TimeBasic):
 # 退库原因表
 class WithdrawReason(models.Model):
     reason_type = models.CharField(max_length=20, verbose_name="退货原因")
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "reason_name": self.reason_type
+        }

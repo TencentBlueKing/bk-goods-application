@@ -16,11 +16,10 @@ from django.urls import path
 # from apps.tools.import_excel import import_excel
 from . import views
 # from apps.tools.derive_excel import derive_excel
+from ..tools import import_excel, derive_excel, del_excel
 
 urlpatterns = (
     path("get_good_detail", views.get_good_detail),  # 商品详情
-    url(r"^goods/$", views.get_goods),  # 获取指定商品信息
-    url(r"^types/$", views.get_types),  # 获取商品类型
     path("get_shopping_car", views.get_shopping_cart),  # 获取购物车信息
     path("delete_cart_goods", views.delete_cart_goods),  # 删除购物车信息
     path("update_cart_goods", views.update_cart_goods),  # 修改购物车数量信息
@@ -28,9 +27,9 @@ urlpatterns = (
     path("get_group_apply", views.get_group_apply),  # 获取组内物资表数据
     path("delete_group_apply", views.delete_group_apply),  # 删除组内物资表数据
     path("update_group_apply", views.update_group_apply),  # 更新组内物资表数据
-    path("import_excel", import_excel),  # 通过excel导入数据到部门所需物资
-    path("derive_excel", derive_excel),  # 导出部门所需物资数据
-    path("del_excel", del_excel),  # 删除excel文件
+    path("import_excel", import_excel.import_excel),  # 通过excel导入数据到部门所需物资
+    path("derive_excel", derive_excel.derive_excel),  # 导出部门所需物资数据
+    path("del_excel", del_excel.del_excel),  # 删除excel文件
     path("get_good_list", views.get_good_list),  # 获取商品列表
     path("get_good_type_list", views.get_good_type_list),  # 获取商品类别列表
     path("add_good", views.add_good),  # 新增商品信息
@@ -40,4 +39,6 @@ urlpatterns = (
     path("upload_img", views.upload_img),  # 上传图片
     path("get_withdraw_reason", views.get_withdraw_reason),  # 获取所有退回商品原因
     path("add_withdraw_apply", views.add_withdraw_apply),  # 提交退回商品申请
+    url(r"^get_personal_goods/$", views.get_personal_goods),  # 获取个人物资接口
+    path("get_good_status_list", views.get_good_status_list), # 获取物资状态列表
 )

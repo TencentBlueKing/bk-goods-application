@@ -17,6 +17,8 @@ class StatusEnums(Enum):
     NOTFOUND_ERROR = (4004, '资源不存在')
     PARAMS_ERROR = (4005, '参数错误')
     PHONE_ERROR = (4006, '电话号码格式错误')
+    NUM_ERROR = (4007, '物资数量格式错误')
+    IMPORT_FILE_EMPTY_ERROR = (4008, '导入文件为空')
 
 
     # 服务端错误

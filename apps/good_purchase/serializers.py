@@ -1,5 +1,8 @@
-from apps.good_purchase.models import Good, GoodType
+from apps.good_purchase.models import Good, GoodType, UserInfo, GroupApply
 from rest_framework import serializers
+
+from apps.utils.enums import StatusEnums
+from apps.utils.exceptions import BusinessException
 
 
 class GoodSerializers(serializers.Serializer):
@@ -54,3 +57,41 @@ class CheckWithdrawsSeralizers(serializers.Serializer):
                                                      'required': '退货地址不可为空',
                                                      'blank': '退货地址不可为空'})
     remark = serializers.CharField(allow_blank=True)
+
+class GroupApplySerializers(serializers.Serializer):
+    good_code = serializers.CharField(max_length=30, required=True,
+                                      error_messages={'max_length': '商品编码过长',
+                                                      'required': '商品编码不可为空',
+                                                      'blank': '商品编码不可为空'}
+                                      )
+    username = serializers.CharField(max_length=30, required=True,
+                                      error_messages={'max_length': '用户名过长',
+                                                      'required': '用户名不可为空',
+                                                      'blank': '用户名不可为空'})
+    position = serializers.CharField(max_length=100, required=True,
+                                     error_messages={'max_length': '地区名过长',
+                                                     'required': '地区名不可为空',
+                                                     'blank': '地区名不可为空'})
+    num = serializers.IntegerField()
+
+
+    def validate_good_code(self, value):
+        if not Good.objects.filter(good_code=value, status=1).first():
+            raise BusinessException(StatusEnums.NOTFOUND_ERROR)
+        else:
+            return value
+
+    def validate_username(self, value):
+        if not UserInfo.objects.filter(username=value).first():
+            raise BusinessException(StatusEnums.USER_NOTEXIST_ERROR)
+        else:
+            return value
+
+    def validate_num(self, value):
+        if (not isinstance(value, int) and not isinstance(value, float)) or not value >= 0:
+            raise BusinessException(StatusEnums.NUM_ERROR)
+        else:
+            return value
+
+    class Meta:
+        model = GroupApply

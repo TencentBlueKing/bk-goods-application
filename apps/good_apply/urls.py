@@ -12,9 +12,12 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.conf.urls import url
+from django.urls import path
 
 from . import views
 
 urlpatterns = (
     url(r"^$", views.home),
+    path("get_position_list", views.get_position_list),  # 获取地区列表
+    path("if_admin", views.if_admin)
 )
