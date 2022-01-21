@@ -71,12 +71,12 @@ class DeriveModel(object):
         self.excel_title = ['物资编码', '物资名称', '物品类型', '物品价格', '物品数量', '所在地区', '使用人', '使用人联系电话', '状态']  # excel标题行
 
     def init_cart_data(self):  # 初始化购物车数据
-        for good_id in self.goods['selectedRows']:
+        for cart_id in self.goods['selectedRows']:
 
             unit = []  # 存放一行excel信息
-
+            good_cart = Cart.objects.filter(id=cart_id).first()  # 根据id查询对应购物车
+            good_id = good_cart.good_id
             good = Good.objects.filter(id=good_id, status=1).first()  # 根据物品id查询对应物品
-            good_cart = Cart.objects.filter(good_id=good_id).first()  # 根据物品id查询对应购物车
 
             good_user = good_cart.username  # 使用人
             unit.append(good_user)

@@ -27,8 +27,8 @@
                         </div>
                         <template slot="content">
                             <ul class="monitor-navigation-admin">
-                                <li class="nav-item" v-for="userItem in user.list" :key="userItem">
-                                    {{userItem}}
+                                <li class="nav-item" v-for="userItem in user.list" :key="userItem" @click="PUSH(userItem.path)">
+                                    {{userItem.name}}
                                 </li>
                             </ul>
                         </template>
@@ -96,8 +96,21 @@
                 },
                 user: {
                     list: [
-                        '个人中心',
-                        '退出'
+                        {
+                            name: '个人中心',
+                            id: '',
+                            path: ''
+                        },
+                        {
+                            name: '个人物资查询',
+                            id: '',
+                            path: 'personalGoods'
+                        },
+                        {
+                            name: '退出',
+                            id: '',
+                            path: ''
+                        }
                     ]
                 }
             }
@@ -166,6 +179,9 @@
                         theme: 'error'
                     })
                 })
+            },
+            PUSH (path) {
+                this.$router.push(path)
             }
         }
     }
