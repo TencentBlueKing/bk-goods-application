@@ -26,12 +26,14 @@ from apps.good_purchase.models import (Good, GoodType, GroupApply, Withdraw,
                                        WithdrawReason)
 from apps.good_purchase.serializers import (CheckWithdrawsSeralizers,
                                             GoodSerializers,
-                                            GoodTypeSerializers)
+                                            GoodTypeSerializers, personalFormSerializer, personalSerializer)
 import uuid
 from apps.tools.param_check import (check_param_id, check_param_page,
                                     check_param_size, check_param_str,
                                     get_error_message)
 from apps.tools.response import get_result, get_cart_result, get_apply_result
+from apps.utils.enums import StatusEnums
+from apps.utils.exceptions import BusinessException
 from config.default import os
 from django.conf import settings
 from django.core.paginator import Paginator
@@ -58,76 +60,104 @@ def get_good_detail(request):
         return get_result({"code": 1, "result": False, "message": "商品不存在"})
     return get_result({"data": good})
 
-
-def get_goods(request):
-    if request.method == "GET":
-        good_name = request.GET.get('name', None)
-        good_type = request.GET.get('type', None)
-        page = request.GET.get('page', 1)
-        if not page.isdigit():  # 若页数为非数字
-            page = 1
-
-        if good_type == "0":  # good_type为0指的是所有类型
-            good_type = None
-
-        query = Q(status=1)
-        if good_name:  # 若存在搜索内容
-            query = query & Q(good_name__icontains=good_name)
-        if good_type:  # 若指定了商品类型
-            query = query & Q(good_type_id=good_type)
-        queryset = Good.objects.filter(query)  # 获得指定的查询集
-        paginator = Paginator(queryset, 8)  # 获取分页器对象
-        queryset = paginator.get_page(page)  # 获取指定页数内容，若无指定默认为第一页
-        serializer_data = []
-        for item in queryset:
-            serializer_data.append(item.to_json())
-        pageNum_dict = collections.OrderedDict()  # 创建OrderedDict对象
-        pageNum_dict['page_count'] = queryset.paginator.num_pages  # 将page_count加入到OrderedDict对象
-        serializer_data.append(pageNum_dict)  # 将新建的OrderedDict与序列化后的数据拼接
-        data = {
-            "code": 200,
-            "result": True,
-            "message": "OK",
-            "data": serializer_data
-        }
-        return get_result(data)
-
-    else:
-        data = {
-            "code": 405,
-            "result": True,
-            "message": "OK",
-            "data": '请求方法只能为get'
-        }
-        return get_result(data)
-
-
-def get_types(request):
+@require_GET
+def get_personal_goods(request):
     """
-    获取所有类型
+    获取个人物资
     """
-    if request.method == "GET":  # 指定请求方法
-        queryset = GoodType.objects.all()
-        serializer_data = []
+    # 获取params
+    username = request.GET.get('username', None)
+    form = request.GET.get('form', None)
+    page_limit = int(request.GET.get('pageLimit', 10))
+    page = int(request.GET.get('page', 1))
+    id_list = request.GET.get('idList', None)
+    if id_list:
+        id_list = json.loads(id_list)
+
+    personal_serializer = personalSerializer(data={
+        "username": username
+        # "id_list": id_list
+    })
+    if not personal_serializer.is_valid():
+        raise ValueError(get_error_message(personal_serializer))
+
+
+
+    # 获得查询集
+    queryset = GroupApply.objects.filter(username=username)
+
+    unnecessary_goods = []  # 用于记录被过滤掉的物品
+
+    # 若form存在
+    if form:
+        # 获取form的内容
+        form = json.loads(form)
+        name = form.get('name')
+        code = form.get('code')
+        location = form.get('location')
+        status = form.get('status')
+        good_type = form.get('type')
+
+        personal_form_serializer = personalFormSerializer(data={
+            "good_name": name,
+            "good_code": code
+        })
+
+        if not personal_form_serializer.is_valid():
+            raise ValueError(get_error_message(personal_serializer))
+
+        # 建立初始查询条件query
+        query = Q(status__gte=0)
+
+        # 对form内容进行处理，获得所需查询集
+        if name:
+            goods = Good.objects.filter(good_name__icontains=name)
+            good_codes = []
+            for good in goods:
+                good_codes.append(good.good_code)
+            for item in queryset:
+                if item.good_code not in good_codes:
+                    unnecessary_goods.append(item.good_code)
+        if code:
+            query = query & Q(good_code=code)
+        if location and location != '0':
+            query = query & Q(position=location)
+        if status and int(status) != 0:
+            query = query & Q(status=status)
+        queryset = queryset.filter(query)
+        if good_type and int(good_type) != 0:
+            goods = Good.objects.filter(good_type_id=good_type, status=1)
+            good_codes = []
+            for good in goods:
+                good_codes.append(good.good_code)
+            for item in queryset:
+                if item.good_code not in good_codes:
+                    unnecessary_goods.append(item.good_code)
+
+    serializer_data = []
+
+    # 序列化查询集
+    if id_list:
         for item in queryset:
-            serializer_data.append(item.to_json())
-        data = {
-            "code": 200,
-            "result": True,
-            "message": "OK",
-            "data": serializer_data
-        }
-        return get_result(data)
-
+            if item.good_code not in unnecessary_goods and item.id in id_list:
+                serializer_data.append(item.to_json())
     else:
-        data = {
-            "code": 405,
-            "result": True,
-            "message": "OK",
-            "data": '请求方法只能为get'
-        }
-        return get_result(data)
+        for item in queryset:
+            if item.good_code not in unnecessary_goods:
+                serializer_data.append(item.to_json())
 
+    # 自定义分页
+    total = len(serializer_data)
+    serializer_data = serializer_data[(page - 1) * page_limit:page * page_limit]
+    serializer_data.append({'total': total})
+
+    data = {
+        "code": 200,
+        "result": True,
+        "message": "OK",
+        "data": serializer_data
+    }
+    return get_result(data)
 
 def get_shopping_cart(request):
     """
@@ -313,6 +343,15 @@ def get_good_type_list(request):
     good_type_list = [good_type.to_json() for good_type in good_types]
     return get_result({"data": good_type_list})
 
+@require_GET
+def get_good_status_list(request):
+    """
+    获取物资状态列表
+    """
+    good_status_list = []
+    for item in GroupApply.STATUS_TYPE:
+        good_status_list.append({'id': item[0], 'status_name': item[1]})
+    return get_result({"data": good_status_list})
 
 @require_POST
 def add_good(request):

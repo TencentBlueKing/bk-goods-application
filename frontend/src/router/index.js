@@ -18,7 +18,8 @@ const ItemManagement = () => import(/* webpackChunkName: 'example2' */'@/views/i
 const ItemDetail = () => import(/* webpackChunkName: 'example3' */'@/views/itemDetail')
 const NotFound = () => import(/* webpackChunkName: 'none' */'@/views/404')
 const ShoppingCart = () => import(/* webpackChunkName: 'example3' */'@/views/shoppingCart')
-// const personalGoods = () => import(/* webpackChunkName: 'personalGoods' */'@/views/personalGoods/personalGoods.vue')
+const personalGoods = () => import(/* webpackChunkName: 'personalGoods' */'@/views/personalGoods/personalGoods.vue')
+const returnGoods = () => import(/* webpackChunkName: 'returnGoods' */'@/views/returnGoods/returnGoods.vue')
 
 const routes = [
     {
@@ -47,13 +48,17 @@ const routes = [
                 path: 'shoppingCart',
                 name: 'shoppingCart',
                 component: ShoppingCart
+            },
+            {
+                path: 'personalGoods',
+                name: 'personalGoods',
+                component: personalGoods
+            },
+            {
+                path: 'returnGoods',
+                name: 'returnGoods',
+                component: returnGoods
             }
-            // ,
-            // {
-            //     path: 'personalGoods',
-            //     name: 'personalGoods',
-            //     component: personalGoods
-            // }
         ]
     },
     // 404

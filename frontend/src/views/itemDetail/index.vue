@@ -114,16 +114,16 @@
         },
         created () {
             this.curUsername = localStorage.getItem('username')
-            // if (this.$route.query.goodId === undefined || this.$route.query.goodId === null) {
-            //     this.$bkMessage({
-            //         message: '物品ID获取失败',
-            //         offsetY: 80,
-            //         theme: 'error'
-            //     })
-            // } else {
-            //     this.goodId = this.$route.query.goodId
-            this.getDetailInfo()
-            // }
+            if (this.$route.query.goodId === undefined || this.$route.query.goodId === null) {
+                this.$bkMessage({
+                    message: '物品ID获取失败',
+                    offsetY: 80,
+                    theme: 'error'
+                })
+            } else {
+                this.goodId = this.$route.query.goodId
+                this.getDetailInfo()
+            }
         },
         methods: {
             getDetailInfo () {
