@@ -180,13 +180,7 @@
                     limit: 10
                 },
                 get_params: { // 用于提交请求的数据
-                    form: {
-                        name: '',
-                        code: '',
-                        location: '',
-                        status: '',
-                        type: ''
-                    },
+                    form: '',
                     page: 1,
                     pageLimit: 10
                 },
@@ -243,7 +237,7 @@
                             const dirName = res.data.file_url.split('/').slice(-2, -1)[0] // 获取文件夹名
                             this.fileCache.push([fileName, dirName])
                             this.sleep(30 * 60).then(() => { // 半小时后删除excel文件
-                                this.$http.post(delFilesUrl, { dirName: this.fileCache[0][1], fileName: this.fileCache[0][0] }).then(() => {
+                                this.$http.post(delFilesUrl, { dirName: this.fileCache[0][1], fileName: this.fileCache[0][0], username: this.username }).then(() => {
                                     this.fileCache.shift()
                                 })
                             })

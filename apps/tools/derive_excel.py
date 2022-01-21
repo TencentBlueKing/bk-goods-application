@@ -93,7 +93,7 @@ def derive_excel(request):
             file_name = good_user + '_personal_goods_' + datetime.datetime.today().strftime('%Y-%m-%d__%H') + '.xls'
 
             # 规定文件夹名
-            dir_path = os.path.join('USERRES', 'personal_goods')
+            dir_path = os.path.join(settings.MEDIA_ROOT, 'personal_goods')
 
             # 检查文件夹是否存在
             if not os.path.exists(dir_path):
@@ -177,7 +177,7 @@ def derive_excel(request):
             file_name = good_user + '_cart_' + datetime.datetime.today().strftime('%Y-%m-%d__%H') + '.xls'
 
             # 规定文件夹名
-            dir_path = os.path.join('USERRES', 'cart')
+            dir_path = os.path.join(settings.MEDIA_ROOT, 'cart')
 
             # 检查文件夹是否存在
             if not os.path.exists(dir_path):
@@ -258,7 +258,7 @@ def derive_excel(request):
             file_name = apply_user + '_apply_history_' + datetime.datetime.today().strftime('%Y-%m-%d__%H') + '.xls'
 
             # 规定文件夹名
-            dir_path = os.path.join('USERRES', 'apply_history')
+            dir_path = os.path.join(settings.MEDIA_ROOT, 'apply_history')
 
             # 检查文件夹是否存在
             if not os.path.exists(dir_path):

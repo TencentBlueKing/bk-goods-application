@@ -14,6 +14,7 @@ from apps.tools.param_check import get_error_message
 from apps.tools.response import get_result
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
+from django.conf import settings
 
 
 @require_POST
@@ -30,7 +31,10 @@ def import_excel(request):
             good_code = gapply_item[1]
 
             # 判断商品是否存在于商品表中，判断用户名是否存在于用户表中
-            if not Good.objects.filter(good_code=good_code, status=1).first() or not UserInfo.objects.filter(username=username).first():
+            if not Good.objects.filter(good_code=good_code, status=1).exists():
+                CANNOT_ADD.append(good_code)
+                continue
+            if not UserInfo.objects.filter(username=username).exists():
                 CANNOT_ADD.append(good_code)
                 continue
             phone = UserInfo.objects.filter(username=username).first().phone
@@ -45,7 +49,7 @@ def import_excel(request):
             position = gapply_item[3]
 
             # 判断地区是否存在于地区表中
-            if not Position.objects.filter(name=position).first():
+            if not Position.objects.filter(name=position).exists():
                 CANNOT_ADD.append(good_code)
                 continue
 
@@ -62,17 +66,18 @@ def import_excel(request):
     body = request.body
 
     # 判空
-    if not json.loads(body)['file']:
+    body = json.loads(body)
+    if not body['file']:
         raise BusinessException(StatusEnums.PARAMS_ERROR)
 
-    file = json.loads(body)['file']
+    file = body['file']
 
     # 判空
-    if not json.loads(body)['fileName']:
+    if not body['fileName']:
         raise BusinessException(StatusEnums.PARAMS_ERROR)
 
-    file_name = json.loads(body)['fileName']
-    dir_path = os.path.join('USERRES', 'import_excel')
+    file_name = body['fileName']
+    dir_path = os.path.join(settings.MEDIA_ROOT, 'import_excel')
 
     # 检查文件夹是否存在
     if not os.path.exists(dir_path):

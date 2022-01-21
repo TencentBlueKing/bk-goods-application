@@ -36,9 +36,9 @@ def get_position_list(request):
 
 @require_GET
 def if_admin(request):
-    ifAdmin = False
+    if_secretary = False
     username = request.GET.get('username', None)
     if username:
-        if Secretary.objects.filter(username=username).first():
-            ifAdmin = True
-    return get_result({"result": ifAdmin})
+        if Secretary.objects.filter(username=username).exists():
+            if_secretary = True
+    return get_result({"result": if_secretary})

@@ -26,7 +26,7 @@ from apps.good_purchase.models import (Good, GoodType, GroupApply, Withdraw,
                                        WithdrawReason)
 from apps.good_purchase.serializers import (CheckWithdrawsSeralizers,
                                             GoodSerializers,
-                                            GoodTypeSerializers)
+                                            GoodTypeSerializers, personalFormSerializer, personalSerializer)
 import uuid
 from apps.tools.param_check import (check_param_id, check_param_page,
                                     check_param_size, check_param_str,
@@ -72,11 +72,16 @@ def get_personal_goods(request):
     page = int(request.GET.get('page', 1))
     id_list = request.GET.get('idList', None)
     if id_list:
-        id_list = eval(id_list)
+        id_list = json.loads(id_list)
 
-    # 若params没有username则报错
-    if not username:
-        raise BusinessException(StatusEnums.USER_NOTEXIST_ERROR)
+    personal_serializer = personalSerializer(data={
+        "username": username
+        # "id_list": id_list
+    })
+    if not personal_serializer.is_valid():
+        raise ValueError(get_error_message(personal_serializer))
+
+
 
     # 获得查询集
     queryset = GroupApply.objects.filter(username=username)
@@ -87,18 +92,26 @@ def get_personal_goods(request):
     if form:
         # 获取form的内容
         form = json.loads(form)
-        name = form['name'] if form['name'] else None
-        code = form['code'] if form['code'] else None
-        location = form['location'] if form['location'] else None
-        status = int(form['status']) if form['status'] else None
-        good_type = int(form['type']) if form['type'] else None
+        name = form.get('name')
+        code = form.get('code')
+        location = form.get('location')
+        status = form.get('status')
+        good_type = form.get('type')
+
+        personal_form_serializer = personalFormSerializer(data={
+            "good_name": name,
+            "good_code": code
+        })
+
+        if not personal_form_serializer.is_valid():
+            raise ValueError(get_error_message(personal_serializer))
 
         # 建立初始查询条件query
         query = Q(status__gte=0)
 
         # 对form内容进行处理，获得所需查询集
         if name:
-            goods = Good.objects.filter(good_name__icontains=name, status=1)
+            goods = Good.objects.filter(good_name__icontains=name)
             good_codes = []
             for good in goods:
                 good_codes.append(good.good_code)
@@ -109,10 +122,10 @@ def get_personal_goods(request):
             query = query & Q(good_code=code)
         if location and location != '0':
             query = query & Q(position=location)
-        if status and status != 0:
+        if status and int(status) != 0:
             query = query & Q(status=status)
         queryset = queryset.filter(query)
-        if good_type and good_type != 0:
+        if good_type and int(good_type) != 0:
             goods = Good.objects.filter(good_type_id=good_type, status=1)
             good_codes = []
             for good in goods:

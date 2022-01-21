@@ -19,6 +19,7 @@ class StatusEnums(Enum):
     PHONE_ERROR = (4006, '电话号码格式错误')
     NUM_ERROR = (4007, '物资数量格式错误')
     IMPORT_FILE_EMPTY_ERROR = (4008, '导入文件为空')
+    AUTHORITY_ERROR = (4009, '权限不足')
 
 
     # 服务端错误

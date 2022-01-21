@@ -76,13 +76,13 @@ class GroupApplySerializers(serializers.Serializer):
 
 
     def validate_good_code(self, value):
-        if not Good.objects.filter(good_code=value, status=1).first():
+        if not Good.objects.filter(good_code=value, status=1).exists():
             raise BusinessException(StatusEnums.NOTFOUND_ERROR)
         else:
             return value
 
     def validate_username(self, value):
-        if not UserInfo.objects.filter(username=value).first():
+        if not UserInfo.objects.filter(username=value).exists():
             raise BusinessException(StatusEnums.USER_NOTEXIST_ERROR)
         else:
             return value
@@ -95,3 +95,31 @@ class GroupApplySerializers(serializers.Serializer):
 
     class Meta:
         model = GroupApply
+
+
+class personalSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=30, required=True,
+                                     error_messages={'max_length': '用户名过长',
+                                                     'required': '用户名不可为空',
+                                                     'blank': '用户名不可为空'})
+    # id_list = serializers.ListField(
+    #                                  error_messages={'invalid': '物资id列表参数不合法'},
+    #                                  child=serializers.IntegerField(min_value=1,
+    #                                                                 error_messages={'min_value': '个人物资存在不合法id',
+    #                                                                                 'invalid': '物资id类型不合法'}),
+    #                                  )
+
+
+class personalFormSerializer(serializers.Serializer):
+    good_name = serializers.CharField(max_length=50, allow_null=True, allow_blank=True, error_messages={'max_length': '商品名过长'})
+    good_code = serializers.CharField(max_length=30, allow_null=True, allow_blank=True, error_messages={'max_length': '商品编码过长'})
+
+
+class delExcelSerializer(serializers.Serializer):
+    username = serializers.CharField()
+
+    def validate_username(self, value):
+        if not UserInfo.objects.filter(username=value).exists():
+            raise BusinessException(StatusEnums.USER_NOTEXIST_ERROR)
+        else:
+            return value
