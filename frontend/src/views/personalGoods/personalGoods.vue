@@ -180,7 +180,13 @@
                     limit: 10
                 },
                 get_params: { // 用于提交请求的数据
-                    form: '',
+                    form: {
+                        name: '',
+                        code: '',
+                        location: '',
+                        status: '',
+                        type: ''
+                    },
                     page: 1,
                     pageLimit: 10
                 },
@@ -226,7 +232,7 @@
                     return
                 }
                 try {
-                    this.$http.post(deriveExcelUrl, { model: 1, dataList: this.selected }).then(res => {
+                    this.$http.post(deriveExcelUrl, { model: 1, dataList: this.selected, username: this.username }).then(res => {
                         if (res && res.result === true) {
                             const link = document.createElement('a') // 生成a元素，用以实现下载功能
                             link.href = res.data.file_url

@@ -88,51 +88,49 @@ def get_personal_goods(request):
 
     unnecessary_goods = []  # 用于记录被过滤掉的物品
 
-    # 若form存在
-    if form:
-        # 获取form的内容
-        form = json.loads(form)
-        name = form.get('name')
-        code = form.get('code')
-        location = form.get('location')
-        status = form.get('status')
-        good_type = form.get('type')
+    # 获取form的内容
+    form = json.loads(form)
+    name = form.get('name')
+    code = form.get('code')
+    location = form.get('location')
+    status = form.get('status')
+    good_type = form.get('type')
 
-        personal_form_serializer = personalFormSerializer(data={
-            "good_name": name,
-            "good_code": code
-        })
+    personal_form_serializer = personalFormSerializer(data={
+        "good_name": name,
+        "good_code": code
+    })
 
-        if not personal_form_serializer.is_valid():
-            raise ValueError(get_error_message(personal_serializer))
+    if not personal_form_serializer.is_valid():
+        raise ValueError(get_error_message(personal_serializer))
 
-        # 建立初始查询条件query
-        query = Q(status__gte=0)
+    # 建立初始查询条件query
+    query = Q(status__gte=0)
 
-        # 对form内容进行处理，获得所需查询集
-        if name:
-            goods = Good.objects.filter(good_name__icontains=name)
-            good_codes = []
-            for good in goods:
-                good_codes.append(good.good_code)
-            for item in queryset:
-                if item.good_code not in good_codes:
-                    unnecessary_goods.append(item.good_code)
-        if code:
-            query = query & Q(good_code=code)
-        if location and location != '0':
-            query = query & Q(position=location)
-        if status and int(status) != 0:
-            query = query & Q(status=status)
-        queryset = queryset.filter(query)
-        if good_type and int(good_type) != 0:
-            goods = Good.objects.filter(good_type_id=good_type, status=1)
-            good_codes = []
-            for good in goods:
-                good_codes.append(good.good_code)
-            for item in queryset:
-                if item.good_code not in good_codes:
-                    unnecessary_goods.append(item.good_code)
+    # 对form内容进行处理，获得所需查询集
+    if name:
+        goods = Good.objects.filter(good_name__icontains=name)
+        good_codes = []
+        for good in goods:
+            good_codes.append(good.good_code)
+        for item in queryset:
+            if item.good_code not in good_codes:
+                unnecessary_goods.append(item.good_code)
+    if code:
+        query = query & Q(good_code=code)
+    if location and location != '0':
+        query = query & Q(position=location)
+    if status and int(status) != 0:
+        query = query & Q(status=status)
+    queryset = queryset.filter(query)
+    if good_type and int(good_type) != 0:
+        goods = Good.objects.filter(good_type_id=good_type, status=1)
+        good_codes = []
+        for good in goods:
+            good_codes.append(good.good_code)
+        for item in queryset:
+            if item.good_code not in good_codes:
+                unnecessary_goods.append(item.good_code)
 
     serializer_data = []
 
