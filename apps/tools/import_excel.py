@@ -67,16 +67,16 @@ def import_excel(request):
 
     # 判空
     body = json.loads(body)
-    if not body['file']:
+    if not body.get('file'):
         raise BusinessException(StatusEnums.PARAMS_ERROR)
 
-    file = body['file']
+    file = body.get('file')
 
     # 判空
-    if not body['fileName']:
+    if not body.get('fileName'):
         raise BusinessException(StatusEnums.PARAMS_ERROR)
 
-    file_name = body['fileName']
+    file_name = body.get('fileName')
     dir_path = os.path.join(settings.MEDIA_ROOT, 'import_excel')
 
     # 检查文件夹是否存在

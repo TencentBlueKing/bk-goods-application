@@ -180,7 +180,13 @@
                     limit: 10
                 },
                 get_params: { // 用于提交请求的数据
-                    form: '',
+                    form: {
+                        name: '',
+                        code: '',
+                        location: '',
+                        status: '',
+                        type: ''
+                    },
                     page: 1,
                     pageLimit: 10
                 },

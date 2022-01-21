@@ -18,12 +18,33 @@ def derive_excel(request):
     """
     导出excel表
     """
+    def init_excel(excel_title, excel_data, work_sheet):  # 初始化excel表格
+        style = xlwt.XFStyle()
+        font = xlwt.Font()
+        # 加粗标题字体
+        font.bold = True
+        style.font = font
+
+        # 写入标题
+        for index, item in enumerate(excel_title):
+            work_sheet.write(0, index, item, style)
+
+        # 写入数据
+        for index_row, item in enumerate(excel_data):
+            for index_col, unit in enumerate(item):
+                work_sheet.write(index_row + 1, index_col, unit)
+
+        # 设置宽度
+        for index, item in enumerate(excel_title):
+            work_sheet.col(index).width = 3800
+
+
     body = request.body
     body = json.loads(body)
-    if body['model']:
-        model = body['model']
-    if body['dataList']:
-        goods = body['dataList']
+    if body.get('model'):
+        model = body.get('model')
+    if body.get('dataList'):
+        goods = body.get('dataList')
 
     if not model or not goods:  # 判空
         raise BusinessException(StatusEnums.PARAMS_ERROR)
@@ -71,22 +92,7 @@ def derive_excel(request):
             work_sheet = work_book.add_sheet("个人物资表")
 
             excel_title = ['物资编码', '物资名称', '物品类型', '物品价格', '物品数量', '所在地区', '使用人', '使用人联系电话', '状态']  # excel标题行
-            style = xlwt.XFStyle()
-            font = xlwt.Font()
-            # 加粗标题字体
-            font.bold = True
-            style.font = font
-            for index, item in enumerate(excel_title):  # 写入标题
-                work_sheet.write(0, index, item, style)
-
-            # 写入数据
-            for index_row, item in enumerate(excel_data):
-                for index_col, unit in enumerate(item):
-                    work_sheet.write(index_row + 1, index_col, unit)
-
-            # 设置宽度
-            for index, item in enumerate(excel_title):
-                work_sheet.col(index).width = 3800
+            init_excel(excel_title, excel_data, work_sheet)  # 初始化excel表格
 
             # 保存
             # 规定文件名
@@ -153,24 +159,7 @@ def derive_excel(request):
             work_sheet = work_book.add_sheet("购物车表")
 
             excel_title = ['使用人', '物品编码', '物品名称', '数量', '参考单价', '需求地点', '期望领用日期', '标准领用日期', '备注', '配送方式', '验收人', '收货信息']  # excel标题
-            style = xlwt.XFStyle()
-            font = xlwt.Font()
-            # 加粗标题字体
-            font.bold = True
-            style.font = font
-
-            # 写入标题
-            for index, item in enumerate(excel_title):
-                work_sheet.write(0, index, item, style)
-
-            # 写入数据
-            for index_row, item in enumerate(excel_data):
-                for index_col, unit in enumerate(item):
-                    work_sheet.write(index_row + 1, index_col, unit)
-
-            # 设置宽度
-            for index, item in enumerate(excel_title):
-                work_sheet.col(index).width = 3800
+            init_excel(excel_title, excel_data, work_sheet)  # 初始化excel表格
 
             # 保存
             # 规定文件名
@@ -234,24 +223,7 @@ def derive_excel(request):
             work_sheet = work_book.add_sheet("物资申请历史记录表")
 
             excel_title = ['使用人', '物品编码', '申请数量', '需求地点', '期望领用日期', '备注', '物品名称']  # excel标题
-            style = xlwt.XFStyle()
-            font = xlwt.Font()
-            # 加粗标题字体
-            font.bold = True
-            style.font = font
-
-            # 写入标题
-            for index, item in enumerate(excel_title):
-                work_sheet.write(0, index, item, style)
-
-            # 写入数据
-            for index_row, item in enumerate(excel_data):
-                for index_col, unit in enumerate(item):
-                    work_sheet.write(index_row + 1, index_col, unit)
-
-            # 设置宽度
-            for index, item in enumerate(excel_title):
-                work_sheet.col(index).width = 3800
+            init_excel(excel_title, excel_data, work_sheet)  # 初始化excel表格
 
             # 保存
             # 规定文件名
