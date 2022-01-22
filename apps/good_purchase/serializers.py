@@ -1,3 +1,5 @@
+import re
+
 from apps.good_purchase.models import Good, GoodType, UserInfo, GroupApply
 from rest_framework import serializers
 
@@ -83,7 +85,7 @@ class GroupApplySerializers(serializers.Serializer):
 
     def validate_username(self, value):
         if not UserInfo.objects.filter(username=value).exists():
-            raise BusinessException(StatusEnums.USER_NOTEXIST_ERROR)
+            raise BusinessException(StatusEnums.USERNAME_NOT_EXIST_ERROR)
         else:
             return value
 
@@ -111,8 +113,8 @@ class personalSerializer(serializers.Serializer):
 
 
 class personalFormSerializer(serializers.Serializer):
-    good_name = serializers.CharField(max_length=50, allow_null=True, allow_blank=True, error_messages={'max_length': '商品名过长'})
-    good_code = serializers.CharField(max_length=30, allow_null=True, allow_blank=True, error_messages={'max_length': '商品编码过长'})
+    good_name = serializers.CharField(max_length=50, allow_null=True, allow_blank=True, required=False, error_messages={'max_length': '商品名过长'})
+    good_code = serializers.CharField(max_length=30, allow_null=True, allow_blank=True, required=False, error_messages={'max_length': '商品编码过长'})
 
 
 class delExcelSerializer(serializers.Serializer):
@@ -120,6 +122,28 @@ class delExcelSerializer(serializers.Serializer):
 
     def validate_username(self, value):
         if not UserInfo.objects.filter(username=value).exists():
-            raise BusinessException(StatusEnums.USER_NOTEXIST_ERROR)
+            raise BusinessException(StatusEnums.USERNAME_NOT_EXIST_ERROR)
         else:
             return value
+
+
+class UserInfoSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=30, required=True,
+                                     error_messages={'max_length': '用户名过长',
+                                                     'required': '必须传入用户名',
+                                                     'blank': '用户名不可为空'})
+    phone = serializers.CharField(max_length=30, required=True,
+                                     error_messages={'max_length': '号码过长',
+                                                     'required': '必须传入手机号码',
+                                                     'blank': '手机号码不可为空'})
+    position = serializers.CharField(max_length=30, required=True,
+                                     error_messages={'max_length': '地区名过长',
+                                                     'required': '必须传入地区名',
+                                                     'blank': '地区名不可为空'})
+
+    def validate_phone(self, value):
+        if value:
+            if not re.match(r"^1[35678]\d{9}$", value):
+                raise BusinessException(StatusEnums.PHONE_ERROR)
+        return value
+

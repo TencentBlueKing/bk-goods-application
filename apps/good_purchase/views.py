@@ -26,7 +26,8 @@ from apps.good_purchase.models import (Good, GoodType, GroupApply, Withdraw,
                                        WithdrawReason)
 from apps.good_purchase.serializers import (CheckWithdrawsSeralizers,
                                             GoodSerializers,
-                                            GoodTypeSerializers, personalFormSerializer, personalSerializer)
+                                            GoodTypeSerializers, personalFormSerializer, personalSerializer,
+                                            UserInfoSerializer)
 import uuid
 from apps.tools.param_check import (check_param_id, check_param_page,
                                     check_param_size, check_param_str,
@@ -491,3 +492,34 @@ def get_withdraw_reason(request):
     withdraw_reasons = WithdrawReason.objects.all()
     withdraw_reason_list = [reason.to_json() for reason in withdraw_reasons]
     return get_result({"data": withdraw_reason_list})
+
+
+@require_POST
+def get_user_info(request):
+    username = request.user.__str__()  # 获取用户名
+    user = UserInfo.objects.filter(username=username).first()  # 获取用户对象
+    if not user:  # 用户不存在则报错
+        raise BusinessException(StatusEnums.USER_NOT_EXIST_ERROR)
+    user_info = {
+        'phone': user.phone,
+        'position': user.position
+    }
+    return get_result({'code': 200, 'data': user_info})
+
+
+@require_POST
+def edit_user_info(request):
+    username = request.user.__str__()  # 获取用户名
+    phone = request.POST.get('phone')
+    position = request.POST.get('position')
+    user_info = {
+        'username': username,
+        'phone': phone,
+        'position': position
+    }
+    user_info_serializer = UserInfoSerializer(data=user_info)
+    if user_info_serializer.is_valid():  # 参数校验
+        UserInfo.objects.filter(username=username).update(phone=user_info.get('phone'), position=user_info.get('position'))
+        return get_result({'code': 200, 'message': '修改成功'})
+    err_msg = get_error_message(user_info_serializer)
+    return get_result({'result': False, 'message': err_msg})

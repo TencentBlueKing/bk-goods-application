@@ -27,10 +27,18 @@
                         </div>
                         <template slot="content">
                             <ul class="monitor-navigation-admin">
-                                <li class="nav-item" v-for="userItem in user.list" :key="userItem" @click="PUSH(userItem.path)">
+                                <li class="nav-item" v-for="userItem in user.list" :key="userItem" @click="PUSH(userItem)">
                                     {{userItem.name}}
                                 </li>
                             </ul>
+                            <bk-dialog v-model="userCenterDialogVisible" title="个人信息"
+                                :width="700"
+                                :esc-close="false"
+                                :show-footer="false">
+                                <div style="width: 99%; margin: 0 auto">
+                                    <user-center></user-center>
+                                </div>
+                            </bk-dialog>
                         </template>
                     </bk-popover>
                 </div>
@@ -55,13 +63,18 @@
 
     import { bus } from '@/common/bus'
 
+    import UserCenter from '@/views/userCenter/userCenter.vue'
+
     export default {
         name: 'monitor-navigation',
-
+        components: {
+            UserCenter
+        },
         data () {
             return {
                 routerKey: +new Date(),
                 systemCls: 'mac',
+                userCenterDialogVisible: false,
                 nav: {
                     list: [
                         {
@@ -99,7 +112,7 @@
                         {
                             name: '个人中心',
                             id: '',
-                            path: ''
+                            path: 'userCenter'
                         },
                         {
                             name: '个人物资查询',
@@ -180,8 +193,12 @@
                     })
                 })
             },
-            PUSH (path) {
-                this.$router.push(path)
+            PUSH (item) {
+                if (item.name === '个人中心') {
+                    this.userCenterDialogVisible = true
+                } else {
+                    this.$router.push(item.path)
+                }
             }
         }
     }

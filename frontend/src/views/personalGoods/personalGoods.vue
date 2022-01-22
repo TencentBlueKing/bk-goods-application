@@ -157,9 +157,6 @@
                 username: '',
                 navList: [ // 面包屑列表
                     {
-                        title: '个人中心', link: { name: 'purchaseHome' }
-                    },
-                    {
                         title: '个人物资查询', link: { name: 'personalGoods' }
                     }
                 ],
@@ -169,9 +166,9 @@
                 formData: { // 条件搜索表单数据
                     name: '',
                     code: '',
-                    location: '',
-                    status: '',
-                    type: ''
+                    location: 0,
+                    status: 0,
+                    type: 0
                 },
                 data: [], // 表格数据
                 pagination: { // 分页器数据
@@ -232,7 +229,7 @@
                     return
                 }
                 try {
-                    this.$http.post(deriveExcelUrl, { model: 1, dataList: this.selected, username: this.username }).then(res => {
+                    this.$http.post(deriveExcelUrl, { model: 1, dataList: this.selected }).then(res => {
                         if (res && res.result === true) {
                             const link = document.createElement('a') // 生成a元素，用以实现下载功能
                             link.href = res.data.file_url
@@ -243,7 +240,7 @@
                             const dirName = res.data.file_url.split('/').slice(-2, -1)[0] // 获取文件夹名
                             this.fileCache.push([fileName, dirName])
                             this.sleep(30 * 60).then(() => { // 半小时后删除excel文件
-                                this.$http.post(delFilesUrl, { dirName: this.fileCache[0][1], fileName: this.fileCache[0][0], username: this.username }).then(() => {
+                                this.$http.post(delFilesUrl, { dirName: this.fileCache[0][1], fileName: this.fileCache[0][0] }).then(() => {
                                     this.fileCache.shift()
                                 })
                             })
