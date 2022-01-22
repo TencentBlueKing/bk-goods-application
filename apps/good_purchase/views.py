@@ -193,17 +193,18 @@ def add_cart_goods(request):
     """
     req = json.loads(request.body)
     good_info = req.get("goodInfo")
+    username = request.user
     if isinstance(good_info['num'], int) and good_info['num'] > 0:
-        if not UserInfo.objects.filter(username=good_info["username"]).exists():
-            return get_result({"code": 4005, "result": False, "message": "用户名参数验证失败"})
-        temp_good = Cart.objects.filter(good_id=good_info["id"], username=good_info["username"])
+        if not UserInfo.objects.filter(username=username).exists():
+            return get_result({"code": 4005, "result": False, "message": "用户名验证失败"})
+        temp_good = Cart.objects.filter(good_id=good_info["id"], username=username)
     else:
         return get_result({"code": 4005, "result": False, "message": "物资数量参数错误"})
     if temp_good.exists():
         num = int(temp_good[0].num) + int(good_info["num"])
         Cart.objects.filter(good_id=good_info["id"]).update(num=num, update_time=datetime.now())
     else:
-        Cart.objects.create(good_id=good_info['id'], username=good_info['username'], num=good_info['num'])
+        Cart.objects.create(good_id=good_info['id'], username=username, num=good_info['num'])
     return get_result({"code": 200, "message": "物资成功加入购物车"})
 
 

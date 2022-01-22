@@ -212,8 +212,7 @@
             addToCar () {
                 const updateInfo = {
                     num: parseInt(this.numberInputValue),
-                    id: this.goodInfo.id,
-                    username: this.curUsername
+                    id: this.goodInfo.id
                 }
                 this.$http.post(
                     '/purchase/add_cart_goods',
