@@ -113,7 +113,7 @@
             }
         },
         created () {
-            this.curUsername = localStorage.getItem('username')
+            this.curUsername = this.$store.getters.user.username
             if (this.$route.query.goodId === undefined || this.$route.query.goodId === null) {
                 this.$bkMessage({
                     message: '物品ID获取失败',

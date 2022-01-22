@@ -99,17 +99,12 @@
                         {
                             name: '个人中心',
                             id: '',
-                            path: ''
+                            path: 'personalCenter'
                         },
                         {
                             name: '个人物资查询',
                             id: '',
                             path: 'personalGoods'
-                        },
-                        {
-                            name: '退出',
-                            id: '',
-                            path: ''
                         }
                     ]
                 }
@@ -147,11 +142,8 @@
             handleToggle (v) {
                 this.nav.toggle = v
             },
-            checkAdmin () {
-                console.log('')
-            },
             getUserIdentity () {
-                const username = localStorage.getItem('username')
+                const username = this.$store.state.user.username
                 let isAdmin = false
                 if (username === undefined) {
                     this.$bkMessage({
@@ -181,6 +173,7 @@
                 })
             },
             PUSH (path) {
+                this.header.active = -1
                 this.$router.push(path)
             }
         }

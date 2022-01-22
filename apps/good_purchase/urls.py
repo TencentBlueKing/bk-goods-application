@@ -20,7 +20,7 @@ from ..tools import import_excel, derive_excel, del_excel
 
 urlpatterns = (
     path("get_good_detail", views.get_good_detail),  # 商品详情
-    path("get_shopping_car", views.get_shopping_cart),  # 获取购物车信息
+    path("get_shopping_cart", views.get_shopping_cart),  # 获取购物车信息
     path("delete_cart_goods", views.delete_cart_goods),  # 删除购物车信息
     path("update_cart_goods", views.update_cart_goods),  # 修改购物车数量信息
     path("add_cart_goods", views.add_cart_goods),  # 添加物资到购物车/更新购物车物资数量
