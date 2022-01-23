@@ -25,7 +25,6 @@ def derive_excel(request):
     model = body.get('model')
     goods = body.get('dataList')
     username = request.user.__str__()
-    print("username", username, type(username))
 
     if not model or not goods or not username:  # 判空
         raise BusinessException(StatusEnums.PARAMS_ERROR)
