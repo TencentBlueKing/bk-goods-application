@@ -27,7 +27,7 @@
                         </div>
                         <template slot="content">
                             <ul class="monitor-navigation-admin">
-                                <li class="nav-item" v-for="userItem in user.list" :key="userItem" @click="PUSH(userItem.path)">
+                                <li class="nav-item" v-for="userItem in user.list" :key="userItem" @click="PUSH(userItem)">
                                     {{userItem.name}}
                                 </li>
                             </ul>
@@ -63,9 +63,11 @@
 
     import { bus } from '@/common/bus'
 
+    import userCenter from './views/userCenter/userCenter.vue'
+
     export default {
         name: 'monitor-navigation',
-
+        components: { userCenter },
         data () {
             return {
                 routerKey: +new Date(),
@@ -120,7 +122,8 @@
                             path: ''
                         }
                     ]
-                }
+                },
+                userCenterDialogVisible: false
             }
         },
         computed: {
@@ -188,9 +191,10 @@
             PUSH (item) {
                 if (item.name === '个人中心') {
                     this.userCenterDialogVisible = true
-                } else {
                     this.header.active = -1
+                } else {
                     this.$router.push(item.path)
+                    this.header.active = -1
                 }
             }
         }
