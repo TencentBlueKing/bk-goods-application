@@ -6,7 +6,7 @@
                     <span>全部物资</span>
                     <bk-tag radius="10px">{{allGoodsCount}}</bk-tag>
                 </div>
-                <div class="import-btn" v-if="isAdmin">
+                <div class="import-btn" v-if="curIsAdmin">
                     <bk-upload
                         :theme="'button'"
                         :with-credentials="true"
@@ -32,11 +32,11 @@
                     <div class="type-item-wapper">
                         <div class="type-title">
                             <bk-tag theme="info">{{item.goods_type_name}}</bk-tag>
-                            <bk-button theme="primary" :title="isAdmin ? '申请' : '导出'" class="mr10" @click="isAdmin ? submitApply(item,index) : exportCart()">
-                                {{isAdmin ? '申请' : '导出'}}
+                            <bk-button theme="primary" :title="curIsAdmin ? '申请' : '导出'" class="mr10" @click="curIsAdmin ? submitApply(item,index) : exportCart()">
+                                {{curIsAdmin ? '申请' : '导出'}}
                             </bk-button>
                         </div>
-                        <div v-if="isAdmin">
+                        <div v-if="curIsAdmin">
                             <bk-table
                                 :ref="'typeTable' + item.goods_type_id"
                                 @select="rowSelectChange"
@@ -133,13 +133,14 @@
                 </div>
             </div>
             <div class="submit-btn" :class="{ 'un-submit': selectedCount === 0 }" @click="submitAllCart">
-                {{isAdmin ? "保存" : "申请"}}
+                {{curIsAdmin ? "保存" : "申请"}}
             </div>
         </div> -->
     </div>
 </template>
 
 <script>
+    import { mapGetters } from 'vuex'
     import { bkTable, bkTableColumn, bkButton } from 'bk-magic-vue'
     const delFilesUrl = '/purchase/del_excel' // 删除已生成的excel文件接口
     export default {
@@ -150,7 +151,7 @@
         },
         data () {
             return {
-                isAdmin: false,
+                curIsAdmin: false,
                 cartUsername: '',
                 allSelectVal: false,
                 size: 'medium',
@@ -165,8 +166,20 @@
             }
         },
         computed: {
+            ...mapGetters(['isAdmin']),
+            getIsAdmin () {
+                return this.isAdmin
+            }
         },
         watch: {
+            isAdmin: {
+                handler (newVal, oldVal) {
+                    if (newVal !== -1) {
+                        this.curIsAdmin = newVal
+                        this.initCardata()
+                    }
+                }
+            },
             selectGoodsList: {
                 handler (val) {
                     this.selectedCount = 0
@@ -189,28 +202,32 @@
             }
         },
         created () {
-            
         },
         mounted () {
-            this.initUserInfo()
-            if (this.isAdmin) {
-                const importDom = document.querySelector('.file-wrapper')
-                if (importDom !== undefined && importDom !== null) {
-                    document.querySelector('.file-wrapper').setAttribute('bk-lablename', '导入物资')
-                }
-                this.getGroupApplyList()
-            } else {
-                this.getCartList()
+            this.cartUsername = this.$store.getters.user.username // 从state中获取用户名
+            const xIsAdmin = this.$store.getters.isAdmin
+            if (xIsAdmin !== -1) {
+                this.curIsAdmin = xIsAdmin
+                this.initCardata()
+            }
+        },
+        updated () {
+            const importDom = document.querySelector('.file-wrapper')
+            if (importDom !== undefined && importDom !== null) {
+                document.querySelector('.file-wrapper').setAttribute('bk-lablename', '导入物资')
             }
         },
         methods: {
-            initUserInfo () {
-                this.cartUsername = localStorage.getItem('username')
-                this.isAdmin = this.$store.getters.isAdmin
+            initCardata () {
+                if (this.curIsAdmin) {
+                    this.getGroupApplyList()
+                } else {
+                    this.getCartList()
+                }
             },
             getCartList () {
                 if (this.cartUsername !== '') {
-                    this.$http.get('/purchase/get_shopping_car?userName=' + this.cartUsername).then((res) => {
+                    this.$http.get('/purchase/get_shopping_cart').then((res) => {
                         if (res.result && res.data !== null) {
                             this.allGoodsCount = 0
                             if (res.data.length !== 0) {
@@ -329,7 +346,7 @@
                 deleteList.forEach((item) => {
                     idList.push(item.id)
                 })
-                this.$http.post('/purchase/delete_cart_goods', { userName: this.cartUsername, cartIdList: idList }).then((res) => {
+                this.$http.post('/purchase/delete_cart_goods', { cartIdList: idList }).then((res) => {
                     if (res.result) {
                         this.deleteTableGoods(deleteList)
                     } else {
@@ -428,8 +445,8 @@
                         })
                     }
                 })
-                const updateUrl = this.isAdmin ? 'update_group_apply' : 'update_cart_goods'
-                const params = this.isAdmin ? { applyList: updateList, updateType: 'num' } : { goodsList: updateList }
+                const updateUrl = this.curIsAdmin ? 'update_group_apply' : 'update_cart_goods'
+                const params = this.curIsAdmin ? { applyList: updateList, updateType: 'num' } : { goodsList: updateList }
                 this.$http.post('/purchase/' + updateUrl, params).then((res) => {
                     if (!res.result) {
                         this.$bkMessage({
@@ -523,6 +540,19 @@
                                 { model: 2, dataList: submitGoods })
                     .then((res) => {
                         if (res.result) {
+                            const link = document.createElement('a') // 生成a元素，用以实现下载功能
+                            link.href = res.data.file_url
+                            document.body.appendChild(link)
+                            link.click()
+                            document.body.removeChild(link)
+                            const fileName = res.data.file_url.split('/').slice(-1)[0] // 获取文件名
+                            const dirName = res.data.file_url.split('/').slice(-2, -1)[0] // 获取文件夹名
+                            this.fileCache.push([fileName, dirName])
+                            this.sleep(30 * 60).then(() => { // 半小时后删除excel文件
+                                this.$http.post(delFilesUrl, { dirName: this.fileCache[0][1], fileName: this.fileCache[0][0], username: this.cartUsername }).then(() => {
+                                    this.fileCache.shift()
+                                })
+                            })
                             this.$bkMessage({
                                 message: '购物车导出成功',
                                 offsetY: 80,

@@ -22,7 +22,7 @@ const store = new Vuex.Store({
         mainContentLoading: false,
         // 系统当前登录用户
         user: {},
-        isAdmin: false
+        isAdmin: -1
     },
     // 公共 getters
     getters: {

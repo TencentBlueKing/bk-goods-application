@@ -21,7 +21,6 @@ from django.db.models import Q
 from apps.good_purchase.models import Good, GoodType, Cart, UserInfo, GroupApply
 from apps.tools.param_check import check_param_id, check_param_str, check_apply_update_param
 
-
 from apps.good_purchase.models import (Good, GoodType, GroupApply, Withdraw,
                                        WithdrawReason)
 from apps.good_purchase.serializers import (CheckWithdrawsSeralizers,
@@ -31,7 +30,7 @@ import uuid
 from apps.tools.param_check import (check_param_id, check_param_page,
                                     check_param_size, check_param_str,
                                     get_error_message)
-from apps.tools.response import get_result, get_cart_result, get_apply_result
+from apps.tools.response import get_result, get_cart_result
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
 from config.default import os
@@ -60,6 +59,7 @@ def get_good_detail(request):
         return get_result({"code": 1, "result": False, "message": "商品不存在"})
     return get_result({"data": good})
 
+
 @require_GET
 def get_personal_goods(request):
     """
@@ -80,8 +80,6 @@ def get_personal_goods(request):
     })
     if not personal_serializer.is_valid():
         raise ValueError(get_error_message(personal_serializer))
-
-
 
     # 获得查询集
     queryset = GroupApply.objects.filter(username=username)
@@ -157,19 +155,18 @@ def get_personal_goods(request):
     }
     return get_result(data)
 
+
 def get_shopping_cart(request):
     """
     获取购物车信息
     """
-    username = request.GET.get("userName")
-    if not check_param_str(username):
-        return get_result({"code": 4005, "result": False, "message": "参数不合法"})
+    username = request.user
     if not UserInfo.objects.filter(username=username).exists():
         return get_result({"code": 4004, "result": False, "message": "用户不存在"})
     good_list = Cart.objects.filter(username=username)
-    cart_list = get_cart_result(good_list)
-    if len(cart_list) == 0:
+    if not good_list.exists():
         return get_result({"code": 200, "data": [], "message": "购物车为空"})
+    cart_list = get_cart_result(good_list, source="shop")
     return get_result({"code": 200, "data": cart_list})
 
 
@@ -177,8 +174,8 @@ def delete_cart_goods(request):
     """
     删除购物车中物资
     """
+    username = request.user
     req = json.loads(request.body)
-    username = req.get("userName")
     cart_id_list = req.get("cartIdList")
     if not isinstance(cart_id_list, list):
         cart_all_id = Cart.objects.filter(username=username).values_list("id", flat=True)
@@ -196,17 +193,18 @@ def add_cart_goods(request):
     """
     req = json.loads(request.body)
     good_info = req.get("goodInfo")
+    username = request.user
     if isinstance(good_info['num'], int) and good_info['num'] > 0:
-        if not UserInfo.objects.filter(username=good_info["username"]).exists():
-            return get_result({"code": 4005, "result": False, "message": "用户名参数验证失败"})
-        temp_good = Cart.objects.filter(good_id=good_info["id"], username=good_info["username"])
+        if not UserInfo.objects.filter(username=username).exists():
+            return get_result({"code": 4005, "result": False, "message": "用户名验证失败"})
+        temp_good = Cart.objects.filter(good_id=good_info["id"], username=username)
     else:
         return get_result({"code": 4005, "result": False, "message": "物资数量参数错误"})
     if temp_good.exists():
         num = int(temp_good[0].num) + int(good_info["num"])
         Cart.objects.filter(good_id=good_info["id"]).update(num=num, update_time=datetime.now())
     else:
-        Cart.objects.create(good_id=good_info['id'], username=good_info['username'], num=good_info['num'])
+        Cart.objects.create(good_id=good_info['id'], username=username, num=good_info['num'])
     return get_result({"code": 200, "message": "物资成功加入购物车"})
 
 
@@ -242,7 +240,7 @@ def get_group_apply(request):
     apply_list = GroupApply.objects.filter(status=4)
     if not apply_list.exists():
         return get_result({"code": 200, "data": [], "message": "申请状态为购买中的列表为空"})
-    cart_list = get_apply_result(apply_list)
+    cart_list = get_cart_result(apply_list, source="apply")
     return get_result({"code": 200, "data": cart_list, "message": "获取成功"})
 
 
@@ -341,6 +339,7 @@ def get_good_type_list(request):
     good_type_list = [good_type.to_json() for good_type in good_types]
     return get_result({"data": good_type_list})
 
+
 @require_GET
 def get_good_status_list(request):
     """
@@ -350,6 +349,7 @@ def get_good_status_list(request):
     for item in GroupApply.STATUS_TYPE:
         good_status_list.append({'id': item[0], 'status_name': item[1]})
     return get_result({"data": good_status_list})
+
 
 @require_POST
 def add_good(request):
