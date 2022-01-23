@@ -104,12 +104,6 @@ class personalSerializer(serializers.Serializer):
                                      error_messages={'max_length': '用户名过长',
                                                      'required': '用户名不可为空',
                                                      'blank': '用户名不可为空'})
-    # id_list = serializers.ListField(
-    #                                  error_messages={'invalid': '物资id列表参数不合法'},
-    #                                  child=serializers.IntegerField(min_value=1,
-    #                                                                 error_messages={'min_value': '个人物资存在不合法id',
-    #                                                                                 'invalid': '物资id类型不合法'}),
-    #                                  )
 
 
 class personalFormSerializer(serializers.Serializer):
@@ -147,3 +141,12 @@ class UserInfoSerializer(serializers.Serializer):
                 raise BusinessException(StatusEnums.PHONE_ERROR)
         return value
 
+
+class ConfirmReceiptSerializer(serializers.Serializer):
+    id_list = serializers.ListField(required=True,
+                                     error_messages={'required': '个人物资id列表不可为空',
+                                                     'invalid': '物资id列表参数不合法'},
+                                     child=serializers.IntegerField(min_value=1,
+                                                                    error_messages={'min_value': '个人物资存在不合法id',
+                                                                                    'invalid': '物资id类型不合法'}),
+                                     )

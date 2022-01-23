@@ -26,7 +26,7 @@ from apps.good_purchase.models import (Good, GoodType, GroupApply, Withdraw,
 from apps.good_purchase.serializers import (CheckWithdrawsSeralizers,
                                             GoodSerializers,
                                             GoodTypeSerializers, personalFormSerializer, personalSerializer,
-                                            UserInfoSerializer)
+                                            UserInfoSerializer, ConfirmReceiptSerializer)
 import uuid
 from apps.tools.param_check import (check_param_id, check_param_page,
                                     check_param_size, check_param_str,
@@ -523,3 +523,22 @@ def edit_user_info(request):
         return get_result({'code': 200, 'message': '修改成功'})
     err_msg = get_error_message(user_info_serializer)
     return get_result({'result': False, 'message': err_msg})
+
+
+@require_POST
+def confirm_receipt(request):
+    body = request.body
+    body = json.loads(body)
+    id_list = body.get('idList')
+    serializer = ConfirmReceiptSerializer(data={"id_list": id_list})
+    if not serializer.is_valid():  # 校验参数
+        err_msg = get_error_message(serializer)
+        return get_result({'result': False, 'message': err_msg})
+    queryset = GroupApply.objects.filter(id__in=id_list, status=5)  # 获取查询集
+    print('queryset', len(queryset))
+    if len(queryset) != len(id_list):  # 列表id中存在状态为非待收货的物品
+        raise BusinessException(StatusEnums.PARAMS_ERROR)
+    with transaction.atomic():
+        queryset.update(status=2)
+
+    return get_result({'message': '收货完成'})

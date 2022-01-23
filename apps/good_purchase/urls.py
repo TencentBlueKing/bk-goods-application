@@ -42,5 +42,6 @@ urlpatterns = (
     url(r"^get_personal_goods/$", views.get_personal_goods),  # 获取个人物资接口
     path("get_good_status_list", views.get_good_status_list),  # 获取物资状态列表
     path('get_user_info', views.get_user_info),  # 获取用户信息
-    path('edit_user_info', views.edit_user_info)  # 修改用户信息
+    path('edit_user_info', views.edit_user_info),  # 修改用户信息
+    path('confirm_receipt', views.confirm_receipt)  # 确认收货
 )
