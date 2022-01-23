@@ -21,7 +21,7 @@ def del_excel(request):
 
     dir_name = body.get('dirName')
     file_name = body.get('fileName')
-    username = body.get('username')
+    username = request.user.__str__()
     del_serializer = delExcelSerializer(data={"username": username})
 
     if not del_serializer.is_valid():

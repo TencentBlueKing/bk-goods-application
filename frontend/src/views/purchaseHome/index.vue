@@ -14,6 +14,7 @@
                 <bk-dropdown-menu class="group-text" @show="dropdownShow" @hide="dropdownHide" ref="dropdown" slot="prepend" :font-size="'medium'">
                     <bk-button type="primary" slot="dropdown-trigger" class="selectType">
                         <span>{{ type.type_name }}</span>
+                        <span v-if="!type">所有类型</span>
                         <i :class="['bk-icon icon-angle-down',{ 'icon-flip': isDropdownShow }]"></i>
                     </bk-button>
                     <ul class="bk-dropdown-list" slot="dropdown-content">
@@ -28,7 +29,7 @@
             </bk-input>
         </div>
         <div class="banner" v-if="showBanner">
-            <bk-swiper :pics="bannerPics" height="300" width="950" :is-loop="false" class="swiper"></bk-swiper>
+            <bk-swiper :pics="bannerPics" height="300" width="900" :is-loop="true" class="swiper"></bk-swiper>
         </div>
         <div class="exception-wrap" v-if="showEmpty">
             <bk-exception class="exception-wrap-item exception-part" type="search-empty" scene="page" :class="{ 'exception-gray': isGray }"> </bk-exception>
@@ -36,7 +37,7 @@
         <div class="goods">
             <div class="goodCard" v-for="(item, index) in goodsList" :key="index" @click="toDetail(item.id)">
                 <bk-card :show-head="false" class="bkCard">
-                    <img :src="item.pics" alt="" style="width: 210px; height: 200px" v-if="item.pics">
+                    <img :src="item.pics" alt="" style="width: 250px; height: 200px" v-if="item.pics">
                     <img src="../../../static/images/nopic.png" alt="" style="width: 210px; height: 200px" v-if="!item.pics">
                     <p class="goodName">{{ item.good_name }}</p>
                     <div class="goodPrice">￥<div style="color: orange">{{ item.price }}</div></div>
@@ -181,9 +182,12 @@
             },
             add2cart (id) { // 点击加入购物车按钮将商品加入购物车
                 this.goodInfo.id = id
-                this.goodInfo.username = this.username
+                const updateInfo = {
+                    id: this.goodInfo.id,
+                    num: 1
+                }
                 if (this.goodInfo.id) {
-                    this.$http.post(add2cartUrl, { goodInfo: this.goodInfo }).then(res => {
+                    this.$http.post(add2cartUrl, { goodInfo: updateInfo }).then(res => {
                         // eslint-disable-next-line no-empty
                         if (res && res.result === true) {
                             
@@ -250,9 +254,19 @@
     .banner{
         width: 100%;
         .swiper {
-            left: 15%;
+            margin: 0 auto;
+            background-size: auto;
             width: 100%;
             height: 300px;
+        }
+        /deep/ .bk-swiper-main .bk-swiper-img {
+            display: inline-block;
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            background-size: auto;
+            background-repeat: no-repeat;
+            background-position: 50%;
         }
         
     }
@@ -269,10 +283,12 @@
         }
     }
     .goods{
-        margin-top: 50px;
         height: auto;
+        width: 1480px;
+        margin: 50px auto 0 auto;
+        overflow: hidden;
         .goodCard{
-            width: 250px;
+            width: 290px;
             display: inline-block;
             float: left;
             margin: 20px 40px;
