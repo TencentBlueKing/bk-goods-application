@@ -27,7 +27,7 @@
                         </div>
                         <template slot="content">
                             <ul class="monitor-navigation-admin">
-                                <li class="nav-item" v-for="userItem in user.list" :key="userItem" @click="PUSH(userItem)">
+                                <li class="nav-item" v-for="userItem in user.list" :key="userItem" @click="PUSH(userItem.path)">
                                     {{userItem.name}}
                                 </li>
                             </ul>
@@ -63,18 +63,13 @@
 
     import { bus } from '@/common/bus'
 
-    import UserCenter from '@/views/userCenter/userCenter.vue'
-
     export default {
         name: 'monitor-navigation',
-        components: {
-            UserCenter
-        },
+
         data () {
             return {
                 routerKey: +new Date(),
                 systemCls: 'mac',
-                userCenterDialogVisible: false,
                 nav: {
                     list: [
                         {
@@ -112,7 +107,7 @@
                         {
                             name: '个人中心',
                             id: '',
-                            path: 'userCenter'
+                            path: ''
                         },
                         {
                             name: '个人物资查询',
@@ -160,11 +155,8 @@
             handleToggle (v) {
                 this.nav.toggle = v
             },
-            checkAdmin () {
-                console.log('')
-            },
             getUserIdentity () {
-                const username = localStorage.getItem('username')
+                const username = this.$store.state.user.username
                 let isAdmin = false
                 if (username === undefined) {
                     this.$bkMessage({
@@ -197,6 +189,7 @@
                 if (item.name === '个人中心') {
                     this.userCenterDialogVisible = true
                 } else {
+                    this.header.active = -1
                     this.$router.push(item.path)
                 }
             }
