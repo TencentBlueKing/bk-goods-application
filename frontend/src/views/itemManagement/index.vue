@@ -7,15 +7,15 @@
         </div>
         <div class="header-wrapper">
             <div class="fun-bar">
-                <span>物品名称：</span>
+                <span>商品编号：</span>
                 <bk-input :clearable="true" v-model="unSubmitSearch.goodCode"></bk-input>
             </div>
             <div class="fun-bar">
-                <span>物品编号：</span>
+                <span>商品名称：</span>
                 <bk-input :clearable="true" v-model="unSubmitSearch.goodName"></bk-input>
             </div>
             <div class="fun-bar">
-                <span style="width:72px;">物品类别：</span>
+                <span style="width:72px;">商品类别：</span>
                 <bk-select :disabled="false" v-model="unSubmitSearch.goodTypeId" style="width:200px;"
                     searchable
                 >
@@ -29,23 +29,7 @@
                         :id="goodType.id"
                         :name="goodType.type_name">
                     </bk-option>
-                    <div slot="extension" @click="addGoodTypeDialog.visiable = true" style="cursor: pointer;">
-                        <i class="bk-icon icon-plus-circle"></i>新增
-                    </div>
                 </bk-select>
-                <bk-dialog
-                    v-model="addGoodTypeDialog.visiable"
-                    theme="primary"
-                    :mask-close="false"
-                    title="添加商品类型"
-                    @confirm="submitAddGoodType"
-
-                >
-                    <div class="add-type-wrapper">
-                        <span>类型名称：</span>
-                        <bk-input :clearable="true" v-model="addGoodTypeDialog.typeName"></bk-input>
-                    </div>
-                </bk-dialog>
             </div>
 
             <bk-button :theme="'primary'" :title="'搜索按钮'" class="mr10 search-btn" @click="searchGoodsInfo">
@@ -60,7 +44,6 @@
             :header-position="goodDialog.headerPosition"
             :z-index="1100"
             :title="goodDialog.typeList[goodDialog.typeIndex] + '商品'"
-            @confirm="submitAddOrUpdateGood"
             class="good-dialog"
         >
             <div class="form-wrapper">
@@ -80,10 +63,39 @@
                                 :id="goodType.id"
                                 :name="goodType.type_name">
                             </bk-option>
+                            <div slot="extension" @click="addGoodTypeDialog.visiable = true" style="cursor: pointer;">
+                                <i class="bk-icon icon-plus-circle"></i>新增
+                            </div>
                         </bk-select>
                     </bk-form-item>
-                    <bk-form-item :label-width="80" label="参考价" :required="true" :property="'price'">
-                        <bk-input type="number" precision="2" v-model="goodFormData.price">
+                    <bk-dialog
+                        v-model="addGoodTypeDialog.visiable"
+                        theme="primary"
+                        :mask-close="false"
+                        title="添加商品类型"
+                    >
+                        <div class="add-type-wrapper">
+                            <span>类型名称：</span>
+                            <bk-input :clearable="true" v-model="addGoodTypeDialog.typeName"></bk-input>
+                        </div>
+                        <div slot="footer">
+                            <bk-button :theme="'primary'" :title="'确认'" class="mr10" @click="submitAddGoodType">
+                                确认
+                            </bk-button>
+                            <bk-button :theme="'default'" :title="'取消'" class="mr10" @click="addGoodTypeDialog.visiable = false">
+                                取消
+                            </bk-button>
+                        </div>
+                    </bk-dialog>
+                    <bk-form-item :label-width="80" label="参考价" ext-cls="price-wrapper" :required="true" :property="'price'">
+                        <bk-input type="number" precision="2" v-model="goodFormData.price" title="保留两位小数">
+                            <template slot="prepend">
+                                <div class="group-text">
+                                    <span v-bk-tooltips="toolTips.top" class="top-start">
+                                        <i class="bk-icon icon-info-circle-shape"></i>
+                                    </span>
+                                </div>
+                            </template>
                         </bk-input>
                     </bk-form-item>
                 </bk-form>
@@ -124,6 +136,14 @@
                     @upload-image="handleUploadImage"
                     height="350px"
                 />
+            </div>
+            <div slot="footer">
+                <bk-button :theme="'primary'" :title="'确认'" class="mr10" @click="submitAddOrUpdateGood">
+                    确认
+                </bk-button>
+                <bk-button :theme="'default'" :title="'取消'" class="mr10" @click="goodDialog.visiable = false">
+                    取消
+                </bk-button>
             </div>
         </bk-dialog>
         <div class="goods-info-load" v-bkloading="{ isLoading: isGoodsInfoLoad, theme: 'primary', zIndex: 10 }"></div>
@@ -251,6 +271,12 @@
                         }
                     ]
                 },
+                toolTips: {
+                    top: {
+                        content: '两位小数',
+                        showOnInit: true,
+                        placements: ['top']
+                    } },
                 picsLimit: 6
             }
         },
@@ -359,6 +385,7 @@
                             introduce: '',
                             specifications: ''
                         }
+                        this.goodDialog.visiable = false
                     } else {
                         config.theme = 'error'
                         config.message = res.message
@@ -382,6 +409,7 @@
                         this.$bkMessage(config)
                         // 编辑成功，重新初始化页面
                         this.getGoods()
+                        this.goodDialog.visiable = false
                     } else {
                         config.theme = 'error'
                         config.message = res.message
@@ -478,9 +506,7 @@
                         this.getGoodTypes()
                         // 清空输入栏
                         this.addGoodTypeDialog.typeName = ''
-                        this.searchInput.goodTypeId = res.data.id
-                        // 编辑成功，重新初始化页面
-                        this.getGoods()
+                        this.goodFormData.good_type_id = res.data.id
                         this.addGoodTypeDialog.visiable = false
                     } else {
                         config.theme = 'error'
@@ -530,8 +556,10 @@
             },
             clickDownGood (row) {
                 this.$bkInfo({
-                    title: '确认下架商品-' + row.good_code + row.good_name + '？',
+                    title: '确认下架商品',
+                    subTitle: row.good_code + '（' + row.good_name + '）',
                     showFooter: true,
+                    extCls: 'down-good-dialog',
                     confirmFn: () => {
                         this.downGood(row.id)
                     }
@@ -631,7 +659,13 @@
             /* width: 40%; */
             margin-right: 20px;
             .bk-form-item .bk-form-content .bk-form-control /deep/ .bk-input-text {
-            width: 100%;
+                width: 100%;
+            }
+            .bk-form-item .bk-form-content .bk-form-control .group-box {
+                border-right: none;
+                .group-text {
+                    padding: 0 4px;
+                }
             }
         }
         .remark-wrapper {
