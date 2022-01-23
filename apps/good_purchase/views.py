@@ -535,7 +535,6 @@ def confirm_receipt(request):
         err_msg = get_error_message(serializer)
         return get_result({'result': False, 'message': err_msg})
     queryset = GroupApply.objects.filter(id__in=id_list, status=5)  # 获取查询集
-    print('queryset', len(queryset))
     if len(queryset) != len(id_list):  # 列表id中存在状态为非待收货的物品
         raise BusinessException(StatusEnums.PARAMS_ERROR)
     with transaction.atomic():
