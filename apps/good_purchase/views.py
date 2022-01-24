@@ -274,7 +274,7 @@ def update_group_apply(request):
             temp_apply = GroupApply.objects.get(id=apply["id"])
             temp_apply.num = int(apply["num"])
             if update_type == 'status':
-                temp_apply.status = 2
+                temp_apply.status = 5
             temp_apply.update_time = datetime.now()
             all_applies.append(temp_apply)
         if update_type == 'status':

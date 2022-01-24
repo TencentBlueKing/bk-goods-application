@@ -84,7 +84,7 @@
                     id: 'home1',
                     toggle: true,
                     submenuActive: false,
-                    title: '蓝鲸物资采购平台'
+                    title: '物资采购平台'
                 },
                 header: {
                     list: [
@@ -115,11 +115,6 @@
                             name: '个人物资查询',
                             id: '',
                             path: 'personalGoods'
-                        },
-                        {
-                            name: '退出',
-                            id: '',
-                            path: ''
                         }
                     ]
                 },
@@ -153,6 +148,14 @@
                     window.location.reload()
                 }, 0)
             })
+        },
+        updated () {
+            if (this.$route.name === 'purchaseHome') {
+                this.header.active = 0
+            }
+            if (this.$route.name === 'itemManagement') {
+                this.header.active = 1
+            }
         },
         methods: {
             handleToggle (v) {
