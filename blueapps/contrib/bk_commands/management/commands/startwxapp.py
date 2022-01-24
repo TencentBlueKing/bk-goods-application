@@ -17,12 +17,11 @@ import shutil
 import sys
 from os import path
 
+import blueapps
 import django
 from django.conf import settings
 from django.core.management.base import CommandError
 from django.core.management.templates import TemplateCommand
-
-import blueapps
 
 from . import open_file
 

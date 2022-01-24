@@ -13,10 +13,9 @@ specific language governing permissions and limitations under the License.
 
 import time
 
+from blueapps.account.decorators import login_exempt
 from django.http import JsonResponse
 from django.shortcuts import render
-
-from blueapps.account.decorators import login_exempt
 
 
 @login_exempt

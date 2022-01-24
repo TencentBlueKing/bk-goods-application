@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-from django.test import TestCase
-
 from blueking.component.utils import get_signature
+from django.test import TestCase
 
 
 class TestUtils(TestCase):

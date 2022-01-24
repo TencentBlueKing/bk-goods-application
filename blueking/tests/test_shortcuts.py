@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import json
 
-from django.test import TestCase, RequestFactory
-
-from blueking.component.shortcuts import get_client_by_user, get_client_by_request
-from blueking.tests.utils.utils import tests_settings as TS  # noqa
+from blueking.component.shortcuts import (get_client_by_request,
+                                          get_client_by_user)
 from blueking.tests.utils.utils import get_user_model
+from blueking.tests.utils.utils import tests_settings as TS  # noqa
+from django.test import RequestFactory, TestCase
 
 
 class TestShortcuts(TestCase):

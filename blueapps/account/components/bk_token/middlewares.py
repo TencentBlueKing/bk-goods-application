@@ -13,13 +13,12 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from django.conf import settings
-from django.contrib import auth
-from django.core.cache import caches
-
 from blueapps.account.components.bk_token.forms import AuthenticationForm
 from blueapps.account.conf import ConfFixture
 from blueapps.account.handlers.response import ResponseHandler
+from django.conf import settings
+from django.contrib import auth
+from django.core.cache import caches
 
 try:
     from django.utils.deprecation import MiddlewareMixin

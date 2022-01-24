@@ -30,6 +30,8 @@ class Position(models.Model):
         }
 
 # 申请表
+
+
 class Apply(TimeBasic):
     STATUS_TYPE = (
         (0, "申请终止"),

@@ -1,11 +1,9 @@
-import json
 import logging
-
-from django.http import JsonResponse
-from django.utils.deprecation import MiddlewareMixin
 
 from apps.utils.exceptions import BusinessException
 from apps.utils.response import ExceptResponse
+from django.http import JsonResponse
+from django.utils.deprecation import MiddlewareMixin
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 logger = logging.getLogger()

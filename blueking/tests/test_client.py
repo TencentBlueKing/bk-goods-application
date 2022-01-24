@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import json
 
-from django.test import TestCase
-
 from blueking.component import collections
-from blueking.component.client import BaseComponentClient, ComponentClientWithSignature
+from blueking.component.client import (BaseComponentClient,
+                                       ComponentClientWithSignature)
 from blueking.tests.utils.utils import tests_settings as TS  # noqa
+from django.test import TestCase
 
 
 class TestBaseComponentClient(TestCase):

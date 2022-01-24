@@ -16,14 +16,13 @@ import os
 import shutil
 from os import path
 
+import blueapps
 import django
 from django.core.management import CommandError
 from django.core.management.templates import TemplateCommand
 from django.core.management.utils import handle_extensions
 from django.template import Context, Engine
 from django.utils.version import get_docs_version
-
-import blueapps
 
 
 class BlueTemplateCommand(TemplateCommand):

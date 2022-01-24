@@ -1,11 +1,10 @@
-import os
 import datetime
+import os
 
 import xlwt
-from django.conf import settings
-
 from apps.good_apply.models import Apply
-from apps.good_purchase.models import GroupApply, Good, GoodType, Cart
+from apps.good_purchase.models import Cart, Good, GoodType, GroupApply
+from django.conf import settings
 
 
 class DeriveModel(object):
@@ -104,7 +103,8 @@ class DeriveModel(object):
             self.excel_data.append(unit)
 
         self.work_sheet = self.work_book.add_sheet("购物车表")
-        self.excel_title = ['使用人', '物品编码', '物品名称', '数量', '参考单价', '需求地点', '期望领用日期', '标准领用日期', '备注', '配送方式', '验收人', '收货信息']  # excel标题
+        self.excel_title = ['使用人', '物品编码', '物品名称', '数量', '参考单价', '需求地点',
+                            '期望领用日期', '标准领用日期', '备注', '配送方式', '验收人', '收货信息']  # excel标题
 
     def init_history_data(self):  # 初始化历史记录数据
 
@@ -165,11 +165,13 @@ class DeriveModel(object):
         # 保存
         # 规定文件名
         if self.model == 1:
-            self.file_name = self.username + '_personal_goods_' + datetime.datetime.today().strftime('%Y-%m-%d__%H') + '.xls'
+            self.file_name = self.username + '_personal_goods_' + \
+                datetime.datetime.today().strftime('%Y-%m-%d__%H') + '.xls'
         elif self.model == 2:
             self.file_name = self.username + '_cart_' + datetime.datetime.today().strftime('%Y-%m-%d__%H') + '.xls'
         elif self.model == 3:
-            self.file_name = self.username + '_apply_history_' + datetime.datetime.today().strftime('%Y-%m-%d__%H') + '.xls'
+            self.file_name = self.username + '_apply_history_' + \
+                datetime.datetime.today().strftime('%Y-%m-%d__%H') + '.xls '
         # 规定文件夹名
         if self.model == 1:
             self.dir_path = os.path.join(settings.MEDIA_ROOT, 'personal_goods')

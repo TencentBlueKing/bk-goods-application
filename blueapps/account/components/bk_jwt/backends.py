@@ -20,12 +20,11 @@ BK JWT - settings option
 
 import logging
 
+from blueapps.account import get_user_model
+from blueapps.utils.jwt_client import JWTClient
 from django.conf import settings
 from django.contrib.auth.backends import ModelBackend
 from django.utils.translation import ugettext_lazy as _
-
-from blueapps.account import get_user_model
-from blueapps.utils.jwt_client import JWTClient
 
 logger = logging.getLogger("component")  # pylint: disable=invalid-name
 

@@ -22,7 +22,6 @@ class StatusEnums(Enum):
     AUTHORITY_ERROR = (4009, '权限不足')
     USER_NOT_EXIST_ERROR = (4010, '用户不存在')
 
-
     # 服务端错误
     STOCK_ERROR = (5001, "库存不足")
     CREATE_ERROR = (5002, "创建失败")

@@ -2,9 +2,8 @@
 import json
 import logging
 
-from .exceptions import ComponentAPIException
 from .conf import COMPONENT_SYSTEM_HOST
-
+from .exceptions import ComponentAPIException
 
 logger = logging.getLogger("component")
 

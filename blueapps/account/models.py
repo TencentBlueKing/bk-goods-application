@@ -18,19 +18,15 @@ import logging
 import random
 import traceback
 
+from blueapps.account import conf
+from blueapps.account.utils import sms
 from django.conf import settings
-from django.contrib.auth.models import (
-    AbstractBaseUser,
-    BaseUserManager,
-    PermissionsMixin,
-)
+from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
+                                        PermissionsMixin)
 from django.core import validators
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-
-from blueapps.account import conf
-from blueapps.account.utils import sms
 
 ConfFixture = conf.ConfFixture
 
@@ -215,7 +211,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             user=self,
             code=code,
             updated_at__gt=timezone.now()
-                           - datetime.timedelta(minutes=SV_CONF["VALID_MINUTES"]),
+            - datetime.timedelta(minutes=SV_CONF["VALID_MINUTES"]),
         ).count()
         if check == 1:
             # 一个验证码只能用一次 用完删除

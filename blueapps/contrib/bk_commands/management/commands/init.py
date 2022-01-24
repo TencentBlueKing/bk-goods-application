@@ -12,14 +12,14 @@ specific language governing permissions and limitations under the License.
 """
 
 import os
-from os import path
-from importlib import import_module
 from collections import OrderedDict
-
-from django.core.management.base import CommandError
+from importlib import import_module
+from os import path
 
 import blueapps
-from blueapps.contrib.bk_commands.management.templates import BlueTemplateCommand
+from blueapps.contrib.bk_commands.management.templates import \
+    BlueTemplateCommand
+from django.core.management.base import CommandError
 
 platform_esb_minimum_version_map = OrderedDict(
     [

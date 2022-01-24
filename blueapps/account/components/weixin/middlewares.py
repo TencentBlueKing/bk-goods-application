@@ -15,13 +15,12 @@ import logging
 import random
 import time
 
-from django.conf import settings
-from django.contrib import auth
-from django.utils.deprecation import MiddlewareMixin
-
 from blueapps.account.components.weixin.forms import WeixinAuthenticationForm
 from blueapps.account.conf import ConfFixture
 from blueapps.account.handlers.response import ResponseHandler
+from django.conf import settings
+from django.contrib import auth
+from django.utils.deprecation import MiddlewareMixin
 
 logger = logging.getLogger("component")
 
