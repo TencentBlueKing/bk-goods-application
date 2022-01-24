@@ -463,7 +463,7 @@ def add_withdraw_apply(request):
     position = check_withdraws_seralizers.validated_data.get("position")
     remark = check_withdraws_seralizers.validated_data.get("remark", '')
     good_ids = GroupApply.objects.filter(id__in=ids, status=2, username=username).values_list("id", flat=True)
-    if not set(good_ids).issubset(ids):
+    if not set(ids).issubset(good_ids):
         return get_result({"code": 1, "result": False, "message": "个人物资不存在，或商品不是正在使用状态"})
     if not WithdrawReason.objects.filter(id=reason_id).exists():
         return get_result({"code": 1, "result": False, "message": "退回原因不存在"})
