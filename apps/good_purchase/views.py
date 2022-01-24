@@ -18,14 +18,18 @@ from datetime import datetime
 from apps.good_purchase.models import (Cart, Good, GoodType, GroupApply,
                                        UserInfo, Withdraw, WithdrawReason)
 from apps.good_purchase.serializers import (CheckWithdrawsSeralizers,
+                                            ConfirmReceiptSerializer,
                                             GoodSerializers,
                                             GoodTypeSerializers,
+                                            UserInfoSerializer,
                                             personalFormSerializer,
                                             personalSerializer)
 from apps.tools.param_check import (check_apply_update_param, check_param_id,
                                     check_param_page, check_param_size,
                                     check_param_str, get_error_message)
 from apps.tools.response import get_cart_result, get_result
+from apps.utils.enums import StatusEnums
+from apps.utils.exceptions import BusinessException
 from config.default import os
 from django.conf import settings
 from django.core.paginator import Paginator
@@ -459,7 +463,7 @@ def add_withdraw_apply(request):
     position = check_withdraws_seralizers.validated_data.get("position")
     remark = check_withdraws_seralizers.validated_data.get("remark", '')
     good_ids = GroupApply.objects.filter(id__in=ids, status=2, username=username).values_list("id", flat=True)
-    if not set(ids).issubset(good_ids):
+    if not set(good_ids).issubset(ids):
         return get_result({"code": 1, "result": False, "message": "个人物资不存在，或商品不是正在使用状态"})
     if not WithdrawReason.objects.filter(id=reason_id).exists():
         return get_result({"code": 1, "result": False, "message": "退回原因不存在"})
@@ -483,3 +487,53 @@ def get_withdraw_reason(request):
     withdraw_reasons = WithdrawReason.objects.all()
     withdraw_reason_list = [reason.to_json() for reason in withdraw_reasons]
     return get_result({"data": withdraw_reason_list})
+
+
+@require_POST
+def get_user_info(request):
+    username = request.user.__str__()  # 获取用户名
+    user = UserInfo.objects.filter(username=username).first()  # 获取用户对象
+    if not user:  # 用户不存在则报错
+        raise BusinessException(StatusEnums.USER_NOT_EXIST_ERROR)
+    user_info = {
+        'phone': user.phone,
+        'position': user.position
+    }
+    return get_result({'code': 200, 'data': user_info})
+
+
+@require_POST
+def edit_user_info(request):
+    username = request.user.__str__()  # 获取用户名
+    phone = request.POST.get('phone')
+    position = request.POST.get('position')
+    user_info = {
+        'username': username,
+        'phone': phone,
+        'position': position
+    }
+    user_info_serializer = UserInfoSerializer(data=user_info)
+    if user_info_serializer.is_valid():  # 参数校验
+        UserInfo.objects.filter(username=username).update(
+            phone=user_info.get('phone'), position=user_info.get('position'))
+        return get_result({'code': 200, 'message': '修改成功'})
+    err_msg = get_error_message(user_info_serializer)
+    return get_result({'result': False, 'message': err_msg})
+
+
+@require_POST
+def confirm_receipt(request):
+    body = request.body
+    body = json.loads(body)
+    id_list = body.get('idList')
+    serializer = ConfirmReceiptSerializer(data={"id_list": id_list})
+    if not serializer.is_valid():  # 校验参数
+        err_msg = get_error_message(serializer)
+        return get_result({'result': False, 'message': err_msg})
+    queryset = GroupApply.objects.filter(id__in=id_list, status=5)  # 获取查询集
+    if len(queryset) != len(id_list):  # 列表id中存在状态为非待收货的物品
+        raise BusinessException(StatusEnums.PARAMS_ERROR)
+    with transaction.atomic():
+        queryset.update(status=2)
+
+    return get_result({'message': '收货完成'})

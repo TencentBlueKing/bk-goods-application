@@ -2,20 +2,20 @@
     <div class="itemManagement-wrapper">
         <div class="title-wapper">
             <bk-breadcrumb>
-                <bk-breadcrumb-item :key="1" :to="itemManagement">商品管理</bk-breadcrumb-item>
+                <bk-breadcrumb-item :key="1" :to="itemManagement">物品管理</bk-breadcrumb-item>
             </bk-breadcrumb>
         </div>
         <div class="header-wrapper">
             <div class="fun-bar">
-                <span>商品编号：</span>
+                <span>物品编号：</span>
                 <bk-input :clearable="true" v-model="unSubmitSearch.goodCode"></bk-input>
             </div>
             <div class="fun-bar">
-                <span>商品名称：</span>
+                <span>物品名称：</span>
                 <bk-input :clearable="true" v-model="unSubmitSearch.goodName"></bk-input>
             </div>
             <div class="fun-bar">
-                <span style="width:72px;">商品类别：</span>
+                <span style="width:72px;">物品类别：</span>
                 <bk-select :disabled="false" v-model="unSubmitSearch.goodTypeId" style="width:200px;"
                     searchable
                 >
@@ -43,18 +43,18 @@
             theme="primary"
             :header-position="goodDialog.headerPosition"
             :z-index="1100"
-            :title="goodDialog.typeList[goodDialog.typeIndex] + '商品'"
+            :title="goodDialog.typeList[goodDialog.typeIndex] + '物品'"
             class="good-dialog"
         >
             <div class="form-wrapper">
                 <bk-form :model="goodFormData" :rules="rules" :ext-cls="'good-form'" ref="checkForm">
-                    <bk-form-item :label-width="80" label="商品编码" :required="true" :property="'good_code'">
+                    <bk-form-item :label-width="80" label="物品编码" :required="true" :property="'good_code'">
                         <bk-input v-model="goodFormData.good_code" placeholder="请输入1到30个以内的字符"></bk-input>
                     </bk-form-item>
-                    <bk-form-item :label-width="80" label="商品名称" :required="true" :property="'good_name'">
-                        <bk-input v-model="goodFormData.good_name" placeholder="请输入商品名称（50字以内）"></bk-input>
+                    <bk-form-item :label-width="80" label="物品名称" :required="true" :property="'good_name'">
+                        <bk-input v-model="goodFormData.good_name" placeholder="请输入物品名称（50字以内）"></bk-input>
                     </bk-form-item>
-                    <bk-form-item :label-width="80" label="商品类型" :required="true" :property="'good_type_id'">
+                    <bk-form-item :label-width="80" label="物品类型" :required="true" :property="'good_type_id'">
                         <bk-select :disabled="false" v-model="goodFormData.good_type_id"
                             searchable
                         >
@@ -72,7 +72,7 @@
                         v-model="addGoodTypeDialog.visiable"
                         theme="primary"
                         :mask-close="false"
-                        title="添加商品类型"
+                        title="添加物品类型"
                     >
                         <div class="add-type-wrapper">
                             <span>类型名称：</span>
@@ -101,7 +101,7 @@
                 </bk-form>
                 <div class="remark-wrapper">
                     <span>备注</span>
-                    <bk-input type="textarea" v-model="goodFormData.remark" placeholder="请输入商品备注"></bk-input>
+                    <bk-input type="textarea" v-model="goodFormData.remark" placeholder="请输入物品备注"></bk-input>
                 </div>
             </div>
 
@@ -118,7 +118,7 @@
                 ></bk-upload>
             </div>
             <div class="text-wrapper">
-                <span>商品介绍</span>
+                <span>物品介绍</span>
                 <v-md-editor
                     v-model="goodFormData.introduce"
                     left-toolbar="undo redo | image"
@@ -128,7 +128,7 @@
                 />
             </div>
             <div class="text-wrapper">
-                <span>商品规格</span>
+                <span>物品规格</span>
                 <v-md-editor
                     v-model="goodFormData.specifications"
                     left-toolbar="undo redo | image"
@@ -158,9 +158,9 @@
                 @page-change="handlePageChange"
                 @page-limit-change="handlePageLimitChange">
                 <bk-table-column type="index" label="序列" width="60"></bk-table-column>
-                <bk-table-column label="商品编号" prop="good_code"></bk-table-column>
-                <bk-table-column label="商品名称" prop="good_name"></bk-table-column>
-                <bk-table-column label="商品类型" prop="good_tye_name"></bk-table-column>
+                <bk-table-column label="物品编号" prop="good_code"></bk-table-column>
+                <bk-table-column label="物品名称" prop="good_name"></bk-table-column>
+                <bk-table-column label="物品类型" prop="good_tye_name"></bk-table-column>
                 <bk-table-column label="参考价" prop="price"></bk-table-column>
                 <bk-table-column label="操作" width="150">
                     <template slot-scope="props">
@@ -202,11 +202,11 @@
                         limit: 20
                     }
                 },
-                // 商品类型信息
+                // 物品类型信息
                 getGoodsFlag: true,
                 goodTypeList: [],
                 isGoodTypesLoad: true,
-                // 商品添加/编辑dialog
+                // 物品添加/编辑dialog
                 goodDialog: {
                     visiable: false,
                     typeIndex: 0,
@@ -214,7 +214,7 @@
                     headerPosition: 'center'
                 },
                 currentGoodId: 0,
-                // 商品添加/编辑form
+                // 物品添加/编辑form
                 goodFormData: {
                     good_code: '',
                     good_name: '',
@@ -229,7 +229,7 @@
                     good_code: [
                         {
                             required: true,
-                            message: '商品编码必填项',
+                            message: '物品编码必填项',
                             trigger: 'blur'
                         }, {
                             min: 3,
@@ -259,14 +259,14 @@
                     good_type_id: [
                         {
                             required: true,
-                            message: '请选择商品类型',
+                            message: '请选择物品类型',
                             trigger: 'blur'
                         }
                     ],
                     price: [
                         {
                             required: true,
-                            message: '请选择商品参考价',
+                            message: '请选择物品参考价',
                             trigger: 'blur'
                         }
                     ]
@@ -370,7 +370,7 @@
                     }
                     if (res.result) {
                         config.theme = 'success'
-                        config.message = '添加商品成功'
+                        config.message = '添加物品成功'
                         this.$bkMessage(config)
                         // 添加成功，重新初始化页面
                         this.getGoods()
@@ -405,7 +405,7 @@
                     }
                     if (res.result) {
                         config.theme = 'success'
-                        config.message = '编辑商品信息成功'
+                        config.message = '编辑物品信息成功'
                         this.$bkMessage(config)
                         // 编辑成功，重新初始化页面
                         this.getGoods()
@@ -417,7 +417,7 @@
                     }
                 })
             },
-            // 下架商品
+            // 下架物品
             downGood (goodId) {
                 this.$http.get('/purchase/down_good?id=' + goodId).then(res => {
                     const config = {
@@ -426,7 +426,7 @@
                     }
                     if (res.result) {
                         config.theme = 'success'
-                        config.message = '下架商品成功'
+                        config.message = '下架物品成功'
                         this.$bkMessage(config)
                         // 下架成功，重新初始化页面
                         this.getGoods()
@@ -500,9 +500,9 @@
                     }
                     if (res.result) {
                         config.theme = 'success'
-                        config.message = '添加商品类型成功'
+                        config.message = '添加物品类型成功'
                         this.$bkMessage(config)
-                        // 重新获取商品类型
+                        // 重新获取物品类型
                         this.getGoodTypes()
                         // 清空输入栏
                         this.addGoodTypeDialog.typeName = ''
@@ -530,7 +530,7 @@
             },
             clickAddGood () {
                 this.goodDialog.visiable = true
-                // 如果刚才是编辑，去掉商品信息；同时避免上一次为新增时的商品信息被抹去
+                // 如果刚才是编辑，去掉物品信息；同时避免上一次为新增时的物品信息被抹去
                 if (this.goodDialog.typeIndex === 1) {
                     this.goodFormData = {
                         good_code: '',
@@ -543,20 +543,20 @@
                         specifications: ''
                     }
                 }
-                // 选定为新增商品
+                // 选定为新增物品
                 this.goodDialog.typeIndex = 0
             },
             clickEditGood (row) {
                 this.goodDialog.visiable = true
-                // 选定为编辑商品
+                // 选定为编辑物品
                 this.goodDialog.typeIndex = 1
-                // 获取商品信息
+                // 获取物品信息
                 this.getGoodInfo(row.id)
                 this.currentGoodId = row.id
             },
             clickDownGood (row) {
                 this.$bkInfo({
-                    title: '确认下架商品',
+                    title: '确认下架物品',
                     subTitle: row.good_code + '（' + row.good_name + '）',
                     showFooter: true,
                     extCls: 'down-good-dialog',
@@ -568,11 +568,11 @@
             submitAddOrUpdateGood () {
                 // 校验表单
                 this.$refs.checkForm.validate().then(validator => {
-                    // 添加商品点击确认
+                    // 添加物品点击确认
                     if (this.goodDialog.typeIndex === 0) {
                         this.addGood()
                     } else {
-                        // 编辑商品点击确认
+                        // 编辑物品点击确认
                         this.updateGood()
                     }
                 }, validator => {

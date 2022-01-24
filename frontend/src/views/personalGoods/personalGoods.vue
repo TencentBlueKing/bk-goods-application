@@ -90,10 +90,30 @@
                         </bk-col>
                     </bk-row>
                     <bk-row style="margin-bottom: 10px; text-align: right">
-                        <bk-col :span="10">
+                        <bk-col :span="9">
                             <div class="search">
                                 <bk-form-item class="mt20">
                                     <bk-button style="margin-right: 15px;" :theme="'primary'" title="查询" :outline="true" @click="search">查询</bk-button>
+                                </bk-form-item>
+                            </div>
+                        </bk-col>
+                        <bk-col :span="1">
+                            <div class="output">
+                                <bk-form-item class="mt20">
+                                    <bk-button :theme="'warning'" title="确认收货" :outline="true" style="margin-right: 40px;width: 90%;padding: 0" @click="confirmReceiptDialog">
+                                        确认收货
+                                    </bk-button>
+                                    <bk-dialog v-model="confirmReceiptDialogVisible"
+                                        theme="primary"
+                                        width="600"
+                                        :render-directive="'if'"
+                                        :mask-close="false"
+                                        :header-position="left"
+                                        @confirm="confirmReceipt"
+                                        :esc-close="false"
+                                        title="">
+                                        确认收货?
+                                    </bk-dialog>
                                 </bk-form-item>
                             </div>
                         </bk-col>
@@ -151,14 +171,12 @@
     const getPositionsUrl = '/apply/get_position_list' // 获取所有地区接口
     const deriveExcelUrl = '/purchase/derive_excel' // 生成excel文件并导出接口
     const delFilesUrl = '/purchase/del_excel' // 删除已生成的excel文件接口
+    const confirmReceiptUrl = '/purchase/confirm_receipt'
     export default {
         data () {
             return {
                 username: '',
                 navList: [ // 面包屑列表
-                    {
-                        title: '个人中心', link: { name: 'purchaseHome' }
-                    },
                     {
                         title: '个人物资查询', link: { name: 'personalGoods' }
                     }
@@ -169,9 +187,9 @@
                 formData: { // 条件搜索表单数据
                     name: '',
                     code: '',
-                    location: '',
-                    status: '',
-                    type: ''
+                    location: 0,
+                    status: 0,
+                    type: 0
                 },
                 data: [], // 表格数据
                 pagination: { // 分页器数据
@@ -193,7 +211,8 @@
                 selected: {
                     selectedRows: []
                 }, // 存放被选中行数
-                fileCache: [] // 存放待删除excel文件名以及文件夹名,
+                fileCache: [], // 存放待删除excel文件名以及文件夹名,
+                confirmReceiptDialogVisible: false
             }
         },
         created () {
@@ -212,6 +231,24 @@
             },
             sleep (time) { // 定时器
                 return new Promise((resolve) => setTimeout(resolve, time * 1000))
+            },
+            confirmReceiptDialog () {
+                if (this.selected.selectedRows.length === 0) {
+                    this.handleError({ theme: 'warning' }, '未选择任何数据')
+                    return
+                }
+                this.confirmReceiptDialogVisible = true
+            },
+            confirmReceipt () {
+                this.$http.post(confirmReceiptUrl, { idList: this.selected.selectedRows }).then(res => {
+                    if (res && res.result === true) {
+                        this.handleError({ theme: 'success' }, res.message)
+                        this.selected.selectedRows = []
+                        this.getPersonalGoods()
+                    } else if (res && res.result === false) {
+                        this.handleError({ theme: 'error' }, '状态为非待收货的物品不可确认收货')
+                    }
+                })
             },
             returnGoods () { // 物资退库
                 if (this.selected.selectedRows.length === 0) {
@@ -232,7 +269,7 @@
                     return
                 }
                 try {
-                    this.$http.post(deriveExcelUrl, { model: 1, dataList: this.selected, username: this.username }).then(res => {
+                    this.$http.post(deriveExcelUrl, { model: 1, dataList: this.selected }).then(res => {
                         if (res && res.result === true) {
                             const link = document.createElement('a') // 生成a元素，用以实现下载功能
                             link.href = res.data.file_url
@@ -243,7 +280,7 @@
                             const dirName = res.data.file_url.split('/').slice(-2, -1)[0] // 获取文件夹名
                             this.fileCache.push([fileName, dirName])
                             this.sleep(30 * 60).then(() => { // 半小时后删除excel文件
-                                this.$http.post(delFilesUrl, { dirName: this.fileCache[0][1], fileName: this.fileCache[0][0], username: this.username }).then(() => {
+                                this.$http.post(delFilesUrl, { dirName: this.fileCache[0][1], fileName: this.fileCache[0][0] }).then(() => {
                                     this.fileCache.shift()
                                 })
                             })
@@ -344,6 +381,7 @@
                 this.pagination.current = 1
                 this.get_params.page = this.pagination.current
                 this.getPersonalGoods()
+                this.selected.selectedRows = []
             },
             handlePageLimitChange () { // 修改每页多少条数据触发函数
                 this.pagination.limit = arguments[0]
