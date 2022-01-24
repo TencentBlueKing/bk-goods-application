@@ -191,8 +191,6 @@ def add_cart_goods(request):
     good_info = req.get("goodInfo")
     username = request.user
     if isinstance(good_info['num'], int) and good_info['num'] > 0:
-        if not UserInfo.objects.filter(username=username).exists():
-            return get_result({"code": 4005, "result": False, "message": "用户名验证失败"})
         temp_good = Cart.objects.filter(good_id=good_info["id"], username=username)
     else:
         return get_result({"code": 4005, "result": False, "message": "物资数量参数错误"})
