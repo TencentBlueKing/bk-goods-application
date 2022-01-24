@@ -25,7 +25,7 @@
                             <path d="M64 409l227.038-152.906A24 24 0 0 1 304.444 252h417.194a24 24 0 0 1 13.492 4.151L960 409v339c0 13.255-10.745 24-24 24H88c-13.255 0-24-10.745-24-24V409z" fill="#9F9F9F" fill-opacity=".5" p-id="5517"></path>
                             <path d="M64 409h283.136c13.255 0 24 10.745 24 24v44.68c0 13.254 10.745 24 24 24h233.136c13.255 0 24-10.746 24-24V433c0-13.255 10.745-24 24-24H960v355a8 8 0 0 1-8 8H72a8 8 0 0 1-8-8V409z" fill="#FFFFFF" fill-opacity=".4" p-id="5518"></path>
                         </svg>
-                        <div>空购物车</div>
+                        <div>暂无物资信息</div>
                     </div>
                 </div>
                 <div v-else class="goods-type-list" v-for="(item,index) in cartList" :key="index">
@@ -685,7 +685,7 @@
                             const delDirPath = 'import_excel' // 后台存放导入文件路径
                             this.$http.post(delFilesUrl, { dirName: delDirPath, fileName: fileName, username: this.cartUsername }).then(() => { // 导入后删除文件
                                 this.excelFiles.pop() // 如果你不想用下面的刷新页面就用这个pop 把下面的refresh删掉就行
-                                // this.refresh()
+                                this.refresh()
                             })
                         })
                     })

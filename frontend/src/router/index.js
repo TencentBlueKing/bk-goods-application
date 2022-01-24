@@ -13,11 +13,11 @@ import preload from '@/common/preload'
 Vue.use(VueRouter)
 
 const MainEntry = () => import(/* webpackChunkName: 'entry' */'@/views')
-const PurchaseHome = () => import(/* webpackChunkName: 'example1' */'@/views/purchaseHome')
-const ItemManagement = () => import(/* webpackChunkName: 'example2' */'@/views/itemManagement')
-const ItemDetail = () => import(/* webpackChunkName: 'example3' */'@/views/itemDetail')
+const PurchaseHome = () => import(/* webpackChunkName: 'purchaseHome' */'@/views/purchaseHome')
+const ItemManagement = () => import(/* webpackChunkName: 'itemManagement' */'@/views/itemManagement')
+const ItemDetail = () => import(/* webpackChunkName: 'itemDetail' */'@/views/itemDetail')
 const NotFound = () => import(/* webpackChunkName: 'none' */'@/views/404')
-const ShoppingCart = () => import(/* webpackChunkName: 'example3' */'@/views/shoppingCart')
+const ShoppingCart = () => import(/* webpackChunkName: 'shoppingCart' */'@/views/shoppingCart')
 const personalGoods = () => import(/* webpackChunkName: 'personalGoods' */'@/views/personalGoods/personalGoods.vue')
 const returnGoods = () => import(/* webpackChunkName: 'returnGoods' */'@/views/returnGoods/returnGoods.vue')
 
