@@ -11,27 +11,23 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import base64
-import collections
 import json
+import uuid
 from datetime import datetime
 
-from django.core.paginator import Paginator
-from django.db.models import Q
-
-from apps.good_purchase.models import Good, GoodType, Cart, UserInfo, GroupApply
-from apps.tools.param_check import check_param_id, check_param_str, check_apply_update_param
-
-from apps.good_purchase.models import (Good, GoodType, GroupApply, Withdraw,
-                                       WithdrawReason)
+from apps.good_purchase.models import (Cart, Good, GoodType, GroupApply,
+                                       UserInfo, Withdraw, WithdrawReason)
 from apps.good_purchase.serializers import (CheckWithdrawsSeralizers,
+                                            ConfirmReceiptSerializer,
                                             GoodSerializers,
-                                            GoodTypeSerializers, personalFormSerializer, personalSerializer,
-                                            UserInfoSerializer, ConfirmReceiptSerializer)
-import uuid
-from apps.tools.param_check import (check_param_id, check_param_page,
-                                    check_param_size, check_param_str,
-                                    get_error_message)
-from apps.tools.response import get_result, get_cart_result
+                                            GoodTypeSerializers,
+                                            UserInfoSerializer,
+                                            personalFormSerializer,
+                                            personalSerializer)
+from apps.tools.param_check import (check_apply_update_param, check_param_id,
+                                    check_param_page, check_param_size,
+                                    check_param_str, get_error_message)
+from apps.tools.response import get_cart_result, get_result
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
 from config.default import os
@@ -39,7 +35,6 @@ from django.conf import settings
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
-from django.utils.datetime_safe import datetime
 # 开发框架中通过中间件默认是需要登录态的，如有不需要登录的，可添加装饰器login_exempt
 # 装饰器引入 from blueapps.account.decorators import login_exempt
 from django.views.decorators.http import require_GET, require_POST
@@ -519,7 +514,8 @@ def edit_user_info(request):
     }
     user_info_serializer = UserInfoSerializer(data=user_info)
     if user_info_serializer.is_valid():  # 参数校验
-        UserInfo.objects.filter(username=username).update(phone=user_info.get('phone'), position=user_info.get('position'))
+        UserInfo.objects.filter(username=username).update(
+            phone=user_info.get('phone'), position=user_info.get('position'))
         return get_result({'code': 200, 'message': '修改成功'})
     err_msg = get_error_message(user_info_serializer)
     return get_result({'result': False, 'message': err_msg})

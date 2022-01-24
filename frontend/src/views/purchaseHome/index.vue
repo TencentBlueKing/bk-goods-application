@@ -28,9 +28,9 @@
                 </template>
             </bk-input>
         </div>
-        <div class="banner" v-if="!showReturn">
+        <!-- <div class="banner" v-if="!showReturn">
             <bk-swiper :pics="bannerPics" height="270" width="900" :is-loop="true" class="swiper"></bk-swiper>
-        </div>
+        </div> -->
         <div class="exception-wrap" v-if="showEmpty">
             <bk-exception class="exception-wrap-item exception-part" type="search-empty" scene="page" :class="{ 'exception-gray': isGray }"> </bk-exception>
         </div>
@@ -137,7 +137,7 @@
                 //     this.paramPage = 1
                 // }
                 if (this.showReturn === 0) {
-                    this.pageSize = 4
+                    this.pageSize = 8
                 } else {
                     this.pageSize = 8
                 }

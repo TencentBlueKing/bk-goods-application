@@ -11,15 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from apps.good_apply.models import Position, Secretary
+from apps.tools.response import get_result
 from django.shortcuts import render
-
-
 # 开发框架中通过中间件默认是需要登录态的，如有不需要登录的，可添加装饰器login_exempt
 # 装饰器引入 from blueapps.account.decorators import login_exempt
 from django.views.decorators.http import require_GET
-
-from apps.good_apply.models import Position, Secretary
-from apps.tools.response import get_result
 
 
 def home(request):
@@ -28,11 +25,13 @@ def home(request):
     """
     return render(request, "index.html")
 
+
 @require_GET
 def get_position_list(request):
     positions = Position.objects.all()
     position_list = [position.to_json() for position in positions]
     return get_result({"data": position_list})
+
 
 @require_GET
 def if_admin(request):

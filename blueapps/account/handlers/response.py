@@ -11,12 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from blueapps.account.utils.http import build_redirect_url
+from blueapps.core.exceptions import BkJwtVerifyError, RioVerifyError
 from django.conf import settings
 from django.http import HttpResponseRedirect, JsonResponse
 from django.utils.translation import ugettext_lazy as _
-
-from blueapps.account.utils.http import build_redirect_url
-from blueapps.core.exceptions import BkJwtVerifyError, RioVerifyError
 
 try:
     from django.urls import reverse

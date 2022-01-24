@@ -11,10 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from blueapps.conf import settings
 from django.http.request import split_domain_port, validate_host
 from django.utils.module_loading import import_module
-
-from blueapps.conf import settings
 
 
 class UserAgentMiddleware(object):

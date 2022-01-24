@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from bkoauth import get_access_token_by_user
-
 from blueapps.account import get_user_model
 
 logger = logging.getLogger("blueapps")

@@ -13,10 +13,9 @@ specific language governing permissions and limitations under the License.
 
 import os
 
-from config import default, get_env_or_raise
-
 from blueapps.conf import get_settings_from_module
 from blueapps.patch.log import get_paas_v2_logging_config_dict
+from config import default, get_env_or_raise
 
 locals().update(get_settings_from_module(default))
 

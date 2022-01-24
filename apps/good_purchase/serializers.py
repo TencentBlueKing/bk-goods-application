@@ -1,10 +1,9 @@
 import re
 
-from apps.good_purchase.models import Good, GoodType, UserInfo, GroupApply
-from rest_framework import serializers
-
+from apps.good_purchase.models import Good, GoodType, GroupApply, UserInfo
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
+from rest_framework import serializers
 
 
 class GoodSerializers(serializers.Serializer):
@@ -60,6 +59,7 @@ class CheckWithdrawsSeralizers(serializers.Serializer):
                                                      'blank': '退货地址不可为空'})
     remark = serializers.CharField(allow_blank=True)
 
+
 class GroupApplySerializers(serializers.Serializer):
     good_code = serializers.CharField(max_length=30, required=True,
                                       error_messages={'max_length': '商品编码过长',
@@ -67,15 +67,14 @@ class GroupApplySerializers(serializers.Serializer):
                                                       'blank': '商品编码不可为空'}
                                       )
     username = serializers.CharField(max_length=30, required=True,
-                                      error_messages={'max_length': '用户名过长',
-                                                      'required': '用户名不可为空',
-                                                      'blank': '用户名不可为空'})
+                                     error_messages={'max_length': '用户名过长',
+                                                     'required': '用户名不可为空',
+                                                     'blank': '用户名不可为空'})
     position = serializers.CharField(max_length=100, required=True,
                                      error_messages={'max_length': '地区名过长',
                                                      'required': '地区名不可为空',
                                                      'blank': '地区名不可为空'})
     num = serializers.IntegerField()
-
 
     def validate_good_code(self, value):
         if not Good.objects.filter(good_code=value, status=1).exists():
@@ -107,8 +106,10 @@ class personalSerializer(serializers.Serializer):
 
 
 class personalFormSerializer(serializers.Serializer):
-    good_name = serializers.CharField(max_length=50, allow_null=True, allow_blank=True, required=False, error_messages={'max_length': '商品名过长'})
-    good_code = serializers.CharField(max_length=30, allow_null=True, allow_blank=True, required=False, error_messages={'max_length': '商品编码过长'})
+    good_name = serializers.CharField(max_length=50, allow_null=True, allow_blank=True,
+                                      required=False, error_messages={'max_length': '商品名过长'})
+    good_code = serializers.CharField(max_length=30, allow_null=True, allow_blank=True,
+                                      required=False, error_messages={'max_length': '商品编码过长'})
 
 
 class delExcelSerializer(serializers.Serializer):
@@ -127,9 +128,9 @@ class UserInfoSerializer(serializers.Serializer):
                                                      'required': '必须传入用户名',
                                                      'blank': '用户名不可为空'})
     phone = serializers.CharField(max_length=30, required=True,
-                                     error_messages={'max_length': '号码过长',
-                                                     'required': '必须传入手机号码',
-                                                     'blank': '手机号码不可为空'})
+                                  error_messages={'max_length': '号码过长',
+                                                  'required': '必须传入手机号码',
+                                                  'blank': '手机号码不可为空'})
     position = serializers.CharField(max_length=30, required=True,
                                      error_messages={'max_length': '地区名过长',
                                                      'required': '必须传入地区名',
@@ -144,9 +145,9 @@ class UserInfoSerializer(serializers.Serializer):
 
 class ConfirmReceiptSerializer(serializers.Serializer):
     id_list = serializers.ListField(required=True,
-                                     error_messages={'required': '个人物资id列表不可为空',
-                                                     'invalid': '物资id列表参数不合法'},
-                                     child=serializers.IntegerField(min_value=1,
-                                                                    error_messages={'min_value': '个人物资存在不合法id',
-                                                                                    'invalid': '物资id类型不合法'}),
-                                     )
+                                    error_messages={'required': '个人物资id列表不可为空',
+                                                    'invalid': '物资id列表参数不合法'},
+                                    child=serializers.IntegerField(min_value=1,
+                                                                   error_messages={'min_value': '个人物资存在不合法id',
+                                                                                   'invalid': '物资id类型不合法'}),
+                                    )

@@ -14,12 +14,11 @@ specific language governing permissions and limitations under the License.
 import collections
 import logging
 
-from django.contrib.auth import get_user_model
-from django.utils.module_loading import import_string
-
 from blueapps.conf import settings
 from blueapps.core.exceptions import AccessForbidden, MethodError
 from blueapps.utils.request_provider import get_request
+from django.contrib.auth import get_user_model
+from django.utils.module_loading import import_string
 
 """
 全平台 esb-sdk 封装，依赖于 esb-sdk 包，但不依赖 sdk 的版本。

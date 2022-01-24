@@ -13,6 +13,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='groupapply',
             name='status',
-            field=models.IntegerField(choices=[(1, '已退回'), (2, '在使用'), (3, '退回中'), (4, '购买中'), (5, '待收货')], verbose_name='物资状态'),
+            field=models.IntegerField(choices=[(1, '已退回'), (2, '在使用'), (3, '退回中'),
+                                               (4, '购买中'), (5, '待收货')], verbose_name='物资状态'),
         ),
     ]

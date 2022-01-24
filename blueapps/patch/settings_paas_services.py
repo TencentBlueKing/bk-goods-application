@@ -13,9 +13,8 @@ specific language governing permissions and limitations under the License.
 
 import os
 
-from config import default
-
 from blueapps.conf import get_settings_from_module
+from config import default
 
 locals().update(get_settings_from_module(default))
 

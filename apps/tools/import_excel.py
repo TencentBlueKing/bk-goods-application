@@ -3,18 +3,15 @@ import json
 import os.path
 
 import xlrd
-from openpyxl import load_workbook
-from django.http import HttpResponse
-from django.views.decorators.http import require_POST
-
 from apps.good_apply.models import Position
-from apps.good_purchase.models import UserInfo, Good, GroupApply
+from apps.good_purchase.models import Good, GroupApply, UserInfo
 # from apps.good_purchase.serializers import GroupApplySerializers
-from apps.tools.param_check import get_error_message
 from apps.tools.response import get_result
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
 from django.conf import settings
+from django.views.decorators.http import require_POST
+from openpyxl import load_workbook
 
 
 @require_POST
@@ -53,11 +50,11 @@ def import_excel(request):
                 CANNOT_ADD.append(good_code)
                 continue
 
-            get_date = gapply_item[4]
+            # get_date = gapply_item[4]
             remarks = gapply_item[5]
-            good_name = gapply_item[6]
-            group_apply_create_list.append(GroupApply(good_code=good_code, num=num, username=username, position=position,
-                                      phone=phone, status=4, remarks=remarks))
+            # good_name = gapply_item[6]
+            group_apply_create_list.append(GroupApply(good_code=good_code, num=num, username=username, position=position
+                                                      , phone=phone, status=4, remarks=remarks))
 
         # 若无问题数据
         if not CANNOT_ADD:
@@ -140,4 +137,3 @@ def import_excel(request):
             }
         }
         return get_result(result)
-
