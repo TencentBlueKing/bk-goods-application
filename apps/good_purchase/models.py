@@ -116,7 +116,8 @@ class GroupApply(TimeBasic):
         (1, "已退回"),
         (2, "在使用"),
         (3, "退回中"),
-        (4, "购买中")
+        (4, "购买中"),
+        (5, "待收货")
     )
     good_code = models.CharField(max_length=30, verbose_name="商品编码")
     num = models.IntegerField(verbose_name="商品数量")

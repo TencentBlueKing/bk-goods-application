@@ -111,9 +111,6 @@
             return {
                 navList: [ // 面包屑列表
                     {
-                        title: '个人中心', link: { name: 'purchaseHome' }
-                    },
-                    {
                         title: '个人物资查询', link: { name: 'personalGoods' }
                     },
                     {
