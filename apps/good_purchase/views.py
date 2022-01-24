@@ -62,7 +62,7 @@ def get_personal_goods(request):
     获取个人物资
     """
     # 获取params
-    username = request.GET.get('username', None)
+    username = request.user.username
     form = request.GET.get('form', None)
     page_limit = int(request.GET.get('pageLimit', 10))
     page = int(request.GET.get('page', 1))
@@ -72,7 +72,6 @@ def get_personal_goods(request):
 
     personal_serializer = personalSerializer(data={
         "username": username
-        # "id_list": id_list
     })
     if not personal_serializer.is_valid():
         raise ValueError(get_error_message(personal_serializer))
@@ -491,10 +490,11 @@ def get_withdraw_reason(request):
 
 @require_POST
 def get_user_info(request):
-    username = request.user.__str__()  # 获取用户名
+    username = request.user.username  # 获取用户名
     user = UserInfo.objects.filter(username=username).first()  # 获取用户对象
-    if not user:  # 用户不存在则报错
-        raise BusinessException(StatusEnums.USER_NOT_EXIST_ERROR)
+    if not user:  # 用户不存在则创建
+        user = UserInfo(username=username)
+        user.save()
     user_info = {
         'phone': user.phone,
         'position': user.position
@@ -504,7 +504,9 @@ def get_user_info(request):
 
 @require_POST
 def edit_user_info(request):
-    username = request.user.__str__()  # 获取用户名
+    username = request.user.username  # 获取用户名
+    if not UserInfo.objects.filter(username=username).exists():
+        raise BusinessException(StatusEnums.USER_NOT_EXIST_ERROR)
     phone = request.POST.get('phone')
     position = request.POST.get('position')
     user_info = {

@@ -36,7 +36,7 @@
                                 :esc-close="false"
                                 :show-footer="false">
                                 <div style="width: 99%; margin: 0 auto">
-                                    <user-center></user-center>
+                                    <user-center ref="userCenter"></user-center>
                                 </div>
                             </bk-dialog>
                         </template>
@@ -191,6 +191,9 @@
             PUSH (item) {
                 if (item.name === '个人中心') {
                     this.userCenterDialogVisible = true
+                    this.$refs.userCenter.userInfo.phone = ''
+                    this.$refs.userCenter.userInfo.position = 0
+                    this.$refs.userCenter.loadData()
                     this.header.active = -1
                 } else {
                     this.$router.push(item.path)

@@ -43,7 +43,7 @@
                     <div class="goodPrice">￥<div style="color: orange">{{ item.price }}</div></div>
                     <p>{{ item.cn_status }}</p>
                     <div class="addButton">
-                        <bk-button theme="primary" title="search" :outline="true" class="group-text" :text="true" @click.stop="add2cart(item.id)">
+                        <bk-button theme="primary" title="search" :outline="true" class="group-text" :text="true" @click.stop="addToCart(item.id)">
                             加入购物车
                         </bk-button>
                     </div>
@@ -66,7 +66,7 @@
     const goodsUrl = '/purchase/get_good_list' // 获取物品信息接口
     const typesUrl = '/purchase/get_good_type_list' // 获取商品种类
     const detailUrl = '/itemDetail' // 物品详情跳转链接
-    const add2cartUrl = '/purchase/add_cart_goods' // 添加到购物车接口
+    const addToCartUrl = '/purchase/add_cart_goods' // 添加到购物车接口
 
     export default {
         data () {
@@ -188,17 +188,17 @@
             toDetail (id) { // 点击商品卡片跳转到商品详情页
                 this.$router.push({ path: detailUrl, query: { goodId: id } })
             },
-            add2cart (id) { // 点击加入购物车按钮将商品加入购物车
+            addToCart (id) { // 点击加入购物车按钮将商品加入购物车
                 this.goodInfo.id = id
                 const updateInfo = {
                     id: this.goodInfo.id,
                     num: 1
                 }
                 if (this.goodInfo.id) {
-                    this.$http.post(add2cartUrl, { goodInfo: updateInfo }).then(res => {
+                    this.$http.post(addToCartUrl, { goodInfo: updateInfo }).then(res => {
                         // eslint-disable-next-line no-empty
                         if (res && res.result === true) {
-                            
+                            this.handleError({ theme: 'success' }, res.message)
                         } else if (res && res.result === false) {
                             this.handleError({ theme: 'error' }, res.message)
                         }

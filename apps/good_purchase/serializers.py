@@ -127,14 +127,10 @@ class UserInfoSerializer(serializers.Serializer):
                                      error_messages={'max_length': '用户名过长',
                                                      'required': '必须传入用户名',
                                                      'blank': '用户名不可为空'})
-    phone = serializers.CharField(max_length=30, required=True,
-                                  error_messages={'max_length': '号码过长',
-                                                  'required': '必须传入手机号码',
-                                                  'blank': '手机号码不可为空'})
-    position = serializers.CharField(max_length=30, required=True,
-                                     error_messages={'max_length': '地区名过长',
-                                                     'required': '必须传入地区名',
-                                                     'blank': '地区名不可为空'})
+    phone = serializers.CharField(max_length=30, allow_null=True, allow_blank=True,
+                                  error_messages={'max_length': '号码过长'})
+    position = serializers.CharField(max_length=30, allow_null=True, allow_blank=True,
+                                     error_messages={'max_length': '地区名过长'})
 
     def validate_phone(self, value):
         if value:
