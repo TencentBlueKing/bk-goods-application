@@ -18,6 +18,7 @@ class GoodType(models.Model):
 
     class Meta:
         verbose_name = "商品类型表"
+        verbose_name_plural = "商品类型表"
 
     def __str__(self):
         return self.type_name
@@ -47,6 +48,7 @@ class Good(TimeBasic):
 
     class Meta:
         verbose_name = "商品表",
+        verbose_name_plural = "商品表"
         ordering = ["-update_time"]
 
     def __str__(self):
@@ -74,6 +76,10 @@ class UserInfo(models.Model):
     position = models.CharField(max_length=100, verbose_name="所在地区", null=True, blank=True)
     phone = models.CharField(max_length=30, verbose_name="联系电话", null=True, blank=True)
 
+    class Meta:
+        verbose_name = "个人信息表"
+        verbose_name_plural = "个人信息表"
+
     def to_json(self) -> dict:
         return {
             "id": self.id,
@@ -88,6 +94,10 @@ class Cart(TimeBasic):
     username = models.CharField(max_length=30, verbose_name="用户名")
     good_id = models.IntegerField(verbose_name="商品id")
     num = models.IntegerField(verbose_name="数量")
+
+    class Meta:
+        verbose_name = "购物车表"
+        verbose_name_plural = "购物车表"
 
     def to_json(self) -> dict:
         res_good = Good.objects.get(id=self.good_id)
@@ -125,6 +135,10 @@ class GroupApply(TimeBasic):
     phone = models.CharField(max_length=30, verbose_name="联系电话")
     status = models.IntegerField(choices=STATUS_TYPE, verbose_name="物资状态")
     remarks = models.CharField(max_length=255, verbose_name="备注")
+
+    class Meta:
+        verbose_name = "部门所需物资表"
+        verbose_name_plural = "部门所需物资表"
 
     def to_json(self) -> dict:
         good_name = Good.objects.get(good_code=self.good_code).good_name
@@ -168,10 +182,18 @@ class Withdraw(TimeBasic):
     remark = models.CharField(max_length=255, verbose_name="备注")
     status = models.BooleanField(default=0, verbose_name="退库状态")
 
+    class Meta:
+        verbose_name = "物资退回表"
+        verbose_name_plural = "物资退回表"
+
 
 # 退库原因表
 class WithdrawReason(models.Model):
     reason_type = models.CharField(max_length=20, verbose_name="退货原因")
+
+    class Meta:
+        verbose_name = "退库原因表"
+        verbose_name_plural = "退库原因表"
 
     def to_json(self):
         return {
