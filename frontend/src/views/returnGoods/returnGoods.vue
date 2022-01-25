@@ -133,7 +133,9 @@
                         location: '',
                         status: 2,
                         type: ''
-                    }
+                    },
+                    page: 1,
+                    pageLimit: 10
                 },
                 pagination: { // 分页器数据
                     current: 1,
@@ -235,6 +237,8 @@
                         }
                         this.idList = JSON.stringify(this.idList) // 转回字符串
                         this.selected.selectedRows = []
+                        this.pagination.current = 1
+                        this.get_params.page = this.pagination.current
                         this.getPersonalGoods()
                     } else if (res && res.result === false) {
                         this.handleError({ theme: 'error' }, res.message)

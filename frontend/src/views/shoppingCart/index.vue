@@ -683,6 +683,7 @@
                         this.excelFiles.push({ // 给上传组件绑定列表添加文件信息
                             name: fileName
                         })
+                        this.excelFiles = []
                         this.sleep(2).then(() => {
                             const delDirPath = 'import_excel' // 后台存放导入文件路径
                             this.$http.post(delFilesUrl, { dirName: delDirPath, fileName: fileName, username: this.cartUsername }).then(() => { // 导入后删除文件
