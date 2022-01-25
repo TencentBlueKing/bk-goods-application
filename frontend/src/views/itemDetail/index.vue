@@ -62,14 +62,14 @@
 
 <script>
     import { bkZoomImage, bkInput, bkButton, bkTab, bkTabPanel } from 'bk-magic-vue'
-    import mainIamge from '../../../static/images/nopic.png'
+    // import mainIamge from
     export default {
         components: {
             bkZoomImage, bkInput, bkButton, bkTab, bkTabPanel
         },
         data () {
             return {
-                mainIamge,
+                mainIamge: '/static/images/nopic.png',
                 defaultPicNum: 4,
                 picSize: 108,
                 slideIndex: {
@@ -136,13 +136,13 @@
                         this.infoDetailList[3].value = res.data.remark
                         if (res.data.pics.length !== 0) {
                             if (res.data.pics[0] === '') {
-                                this.mainIamge = '../../../static/images/nopic.png'
+                                this.mainIamge = '/static/images/nopic.png'
                             } else {
                                 this.goodPicList = res.data.pics
                                 this.mainIamge = this.goodPicList[0]
                             }
                         } else {
-                            this.mainIamge = '../../../static/images/nopic.png'
+                            this.mainIamge = '/static/images/nopic.png'
                         }
                         this.markDownInfo.goodDetail = res.data.introduce.replace(/\\n/g, '\n')
                         this.markDownInfo.goodParams = res.data.specifications.replace(/\\n/g, '\n')

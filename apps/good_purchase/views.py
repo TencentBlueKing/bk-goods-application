@@ -545,5 +545,5 @@ def confirm_receipt(request):
 def get_good_code_list(request):
     """获取商品编码列表"""
     good_list = Good.objects.all()
-    good_type_list = [good_item.to_json()['good_code'] for good_item in good_list]
+    good_type_list = [good_item.good_code for good_item in good_list]
     return get_result({"data": good_type_list})
