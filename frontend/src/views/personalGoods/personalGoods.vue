@@ -219,7 +219,7 @@
             this.username = this.$store.state.user.username // 从state中获取用户名
             this.loadData() // 向后台请求数据
             if (this.$route.params.isFromReturnGoods) { // 判断是否来自退库的跳转
-                this.handleError({ theme: 'warning' }, '无在使用商品')
+                this.handleError({ theme: 'warning' }, '无在使用商品, 已自动跳转回个人物资查询页')
             }
         },
         methods: {
@@ -244,6 +244,8 @@
                     if (res && res.result === true) {
                         this.handleError({ theme: 'success' }, res.message)
                         this.selected.selectedRows = []
+                        this.pagination.current = 1
+                        this.get_params.page = this.pagination.current
                         this.getPersonalGoods()
                     } else if (res && res.result === false) {
                         this.handleError({ theme: 'error' }, '状态为非待收货的物品不可确认收货')

@@ -67,8 +67,6 @@ def get_personal_goods(request):
     page_limit = int(request.GET.get('pageLimit', 10))
     page = int(request.GET.get('page', 1))
     id_list = request.GET.get('idList', None)
-    if id_list:
-        id_list = json.loads(id_list)
 
     personal_serializer = personalSerializer(data={
         "username": username
@@ -129,6 +127,7 @@ def get_personal_goods(request):
 
     # 序列化查询集
     if id_list:
+        id_list = json.loads(id_list)
         for item in queryset:
             if item.good_code not in unnecessary_goods and item.id in id_list:
                 serializer_data.append(item.to_json())
