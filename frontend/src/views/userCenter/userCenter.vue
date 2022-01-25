@@ -11,30 +11,25 @@
                         </bk-col>
                     </bk-row>
                     <bk-row style="margin-bottom: 20px;">
-                        <bk-col :span="11">
-                            <bk-form-item label="手机号码" :property="'phone'" :error-display-type="'normal'">
-                                <bk-input v-model="userInfo.phone" placeholder="号码为空" :disabled="editable"></bk-input>
-                            </bk-form-item>
-                        </bk-col>
-                    </bk-row>
-                    <bk-row style="margin-bottom: 20px;">
                         <bk-col :span="12">
-                            <bk-form-item label="所在地区" :error-display-type="'normal'">
+                            <bk-form-item label="所在地区" :error-display-type="'normal'" :required="true" :property="'position'">
                                 <bk-select :disabled="editable" v-model="userInfo.position" style="width: 80%"
                                     ext-cls="select-custom"
                                     ext-popover-cls="select-popover-custom"
                                     searchable>
-                                    <bk-option
-                                        key="0"
-                                        id="0"
-                                        name="无">
-                                    </bk-option>
                                     <bk-option v-for="option in locationList"
                                         :key="option.id"
                                         :id="option.name"
                                         :name="option.name">
                                     </bk-option>
                                 </bk-select>
+                            </bk-form-item>
+                        </bk-col>
+                    </bk-row>
+                    <bk-row style="margin-bottom: 20px;">
+                        <bk-col :span="11">
+                            <bk-form-item label="手机号码" :property="'phone'" :error-display-type="'normal'">
+                                <bk-input v-model="userInfo.phone" placeholder="号码为空" :disabled="editable"></bk-input>
                             </bk-form-item>
                         </bk-col>
                     </bk-row>
@@ -113,6 +108,13 @@
                             message: '号码格式错误',
                             trigger: 'blur'
                         }
+                    ],
+                    position: [
+                        {
+                            required: true,
+                            message: '请选择地区',
+                            trigger: 'blur'
+                        }
                     ]
                 }
             }
@@ -141,7 +143,9 @@
                     if (res) {
                         if (res && res.result === true) {
                             this.userInfo.phone = res.data.phone
-                            this.userInfo.position = res.data.position || 0
+                            console.log('res.data.position', res.data.position)
+                            this.userInfo.position = res.data.position || ''
+                            console.log('this.userInfo.position', this.userInfo.position)
                         } else if (res && res.result === false) {
                             this.handleError({ theme: 'error' }, res.message)
                         }
