@@ -5,6 +5,7 @@ import os.path
 import xlrd
 from apps.good_purchase.models import Good, GroupApply, UserInfo
 # from apps.good_purchase.serializers import GroupApplySerializers
+from apps.tools.generate_can_not_add_excel import generate_can_not_add_excel
 from apps.tools.response import get_result
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
@@ -58,6 +59,7 @@ def import_excel(request):
             GroupApply.objects.bulk_create(group_apply_create_list)
 
     body = request.body
+    username = request.user.username
 
     # 判空
     body = json.loads(body)
@@ -125,12 +127,14 @@ def import_excel(request):
         }
         return get_result(result)
     else:
+        can_not_add_file_url = generate_can_not_add_excel(CANNOT_ADD, username)
         result = {
             "code": StatusEnums.IMPORT_ERROR.code,
             "result": True,
             "message": "部分/全部excel数据" + StatusEnums.IMPORT_ERROR.errmsg,
             "data": {
-                'created_fail_list': CANNOT_ADD
+                'created_fail_list': CANNOT_ADD,
+                'file_url': can_not_add_file_url
             }
         }
         return get_result(result)
