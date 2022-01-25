@@ -296,7 +296,6 @@
             getPersonalGoods () { // 获得个人物资
                 this.$http.get(getPersonalGoodsUrl, {
                     params: {
-                        username: this.username,
                         form: this.get_params.form,
                         page: this.get_params.page,
                         pageLimit: this.get_params.pageLimit

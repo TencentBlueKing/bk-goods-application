@@ -12,8 +12,8 @@
                     </bk-row>
                     <bk-row style="margin-bottom: 20px;">
                         <bk-col :span="11">
-                            <bk-form-item label="手机号码" :property="'phone'" :required="true" :error-display-type="'normal'">
-                                <bk-input v-model="userInfo.phone" placeholder="请输入手机号码" :disabled="editable"></bk-input>
+                            <bk-form-item label="手机号码" :property="'phone'" :error-display-type="'normal'">
+                                <bk-input v-model="userInfo.phone" placeholder="号码为空" :disabled="editable"></bk-input>
                             </bk-form-item>
                         </bk-col>
                     </bk-row>
@@ -118,7 +118,6 @@
             }
         },
         created () {
-            this.loadData()
         },
         methods: {
             loadData () {
@@ -142,7 +141,7 @@
                     if (res) {
                         if (res && res.result === true) {
                             this.userInfo.phone = res.data.phone
-                            this.userInfo.position = res.data.position
+                            this.userInfo.position = res.data.position || 0
                         } else if (res && res.result === false) {
                             this.handleError({ theme: 'error' }, res.message)
                         }

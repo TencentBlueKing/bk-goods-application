@@ -1,5 +1,6 @@
 import json
 
+from apps.good_purchase.models import UserInfo
 from apps.tools.response import get_result
 from apps.utils.deriveClass import DeriveModel
 from apps.utils.enums import StatusEnums
@@ -16,8 +17,10 @@ def derive_excel(request):
     body = json.loads(body)
     model = body.get('model')
     goods = body.get('dataList')
-    username = request.user.__str__()
+    username = request.user.username
 
+    if not UserInfo.objects.filter(username=username).exists():
+        raise BusinessException(StatusEnums.USER_NOT_EXIST_ERROR)
     if not model or not goods or not username:  # 判空
         raise BusinessException(StatusEnums.PARAMS_ERROR)
 

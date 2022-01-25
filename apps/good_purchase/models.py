@@ -71,8 +71,8 @@ class Good(TimeBasic):
 # 个人信息表
 class UserInfo(models.Model):
     username = models.CharField(max_length=30, unique=True, verbose_name="用户名")
-    position = models.CharField(max_length=100, verbose_name="所在地区")
-    phone = models.CharField(max_length=30, verbose_name="联系电话")
+    position = models.CharField(max_length=100, verbose_name="所在地区", null=True, blank=True)
+    phone = models.CharField(max_length=30, verbose_name="联系电话", null=True, blank=True)
 
     def to_json(self) -> dict:
         return {
