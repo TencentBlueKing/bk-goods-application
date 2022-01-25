@@ -10,7 +10,7 @@
             <template slot="header">
                 <div class="monitor-navigation-header">
                     <ol class="header-nav">
-                        <div v-for="(item,index) in header.list" :key="item.id" theme="light navigation-message" :arrow="false" offset="0, -5" placement="bottom">
+                        <div v-show="index !== 0 || curIsAdmin" v-for="(item,index) in header.list" :key="item.id" theme="light navigation-message" :arrow="false" offset="0, -5" placement="bottom">
                             <router-link :to="item.path">
                                 <li v-show="item.show" class="header-nav-item"
                                     :class="{ 'item-active': index === header.active }"
@@ -125,6 +125,10 @@
             ...mapGetters(['mainContentLoading']),
             curHeaderNav () {
                 return this.header.list[this.header.active] || {}
+            },
+            curIsAdmin () {
+                console.log('this.$store.getters.isAdmin', this.$store.getters.isAdmin)
+                return this.$store.getters.isAdmin === undefined ? false : this.$store.getters.isAdmin
             }
         },
         created () {

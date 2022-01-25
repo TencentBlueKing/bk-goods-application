@@ -155,8 +155,6 @@ def get_shopping_cart(request):
     获取购物车信息
     """
     username = request.user
-    if not UserInfo.objects.filter(username=username).exists():
-        return get_result({"code": 4004, "result": False, "message": "用户不存在"})
     good_list = Cart.objects.filter(username=username)
     if not good_list.exists():
         return get_result({"code": 200, "data": [], "message": "购物车为空"})
@@ -536,3 +534,11 @@ def confirm_receipt(request):
         queryset.update(status=2)
 
     return get_result({'message': '收货完成'})
+
+
+@require_GET
+def get_good_code_list(request):
+    """获取商品编码列表"""
+    good_list = Good.objects.all()
+    good_type_list = [good_item.to_json()['good_code'] for good_item in good_list]
+    return get_result({"data": good_type_list})
