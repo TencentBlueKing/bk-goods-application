@@ -85,6 +85,9 @@ let canceling = true
 let pageMethodExecuting = true
 
 router.beforeEach(async (to, from, next) => {
+    if (store.state.isAdmin !== true && to.name === 'itemManagement') {
+        router.push({ name: 'purchaseHome' })
+    }
     canceling = true
     await cancelRequest()
     canceling = false
