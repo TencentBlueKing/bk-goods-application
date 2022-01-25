@@ -17,6 +17,9 @@
                         :limit="1"
                     ></bk-upload>
                 </div>
+                <bk-button v-if="!curIsAdmin" theme="primary" title="导出" class="mr10" @click="exportCart()">
+                    导出
+                </bk-button>
             </div>
             <div class="content-wapper">
                 <div class="goods-type-list" v-if="cartList.length === 0">
@@ -32,8 +35,8 @@
                     <div class="type-item-wapper">
                         <div class="type-title">
                             <bk-tag theme="info">{{item.goods_type_name}}</bk-tag>
-                            <bk-button theme="primary" :title="curIsAdmin ? '申请' : '导出'" class="mr10" @click="curIsAdmin ? submitApply(item,index) : exportCart()">
-                                {{curIsAdmin ? '申请' : '导出'}}
+                            <bk-button v-if="curIsAdmin" theme="primary" title="申请" class="mr10" @click="submitApply(item,index)">
+                                申请
                             </bk-button>
                         </div>
                         <div v-if="curIsAdmin">
@@ -398,7 +401,7 @@
             },
             rowSelectChange (selection, row) {
                 this.selectGoodsList.forEach((good) => {
-                    if (row.good_code === good.good_code) {
+                    if (row.id === good.id) {
                         good.selected = !good.selected
                     }
                 })
@@ -536,8 +539,7 @@
                     })
                     return
                 }
-                this.$http.post('/purchase/derive_excel',
-                                { model: 2, dataList: submitGoods })
+                this.$http.post('/purchase/derive_excel', { model: 2, dataList: submitGoods })
                     .then((res) => {
                         if (res.result) {
                             const link = document.createElement('a') // 生成a元素，用以实现下载功能
@@ -566,11 +568,11 @@
                             })
                         }
                     }).catch(() => {
-                        this.$bkMessage({
-                            message: 'derive_excel接口报错',
-                            offsetY: 80,
-                            theme: 'error'
-                        })
+                        // this.$bkMessage({
+                        //     message: 'derive_excel接口报错',
+                        //     offsetY: 80,
+                        //     theme: 'error'
+                        // })
                     })
             },
             getGroupApplyList () {
