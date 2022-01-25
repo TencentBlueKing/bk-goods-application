@@ -198,8 +198,6 @@
             PUSH (item) {
                 if (item.name === '个人中心') {
                     this.userCenterDialogVisible = true
-                    this.$refs.userCenter.userInfo.phone = ''
-                    this.$refs.userCenter.userInfo.position = 0
                     this.$refs.userCenter.loadData()
                     this.header.active = -1
                 } else {

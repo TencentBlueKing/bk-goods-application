@@ -3,7 +3,6 @@ import json
 import os.path
 
 import xlrd
-from apps.good_apply.models import Position
 from apps.good_purchase.models import Good, GroupApply, UserInfo
 # from apps.good_purchase.serializers import GroupApplySerializers
 from apps.tools.response import get_result
@@ -34,7 +33,10 @@ def import_excel(request):
             if not UserInfo.objects.filter(username=username).exists():
                 CANNOT_ADD.append(good_code)
                 continue
-            phone = UserInfo.objects.filter(username=username).first().phone
+
+            phone = ''
+            if UserInfo.objects.filter(username=username).first().phone:
+                phone = UserInfo.objects.filter(username=username).first().phone
 
             num = gapply_item[2]
 
@@ -44,11 +46,6 @@ def import_excel(request):
                 continue
 
             position = gapply_item[3]
-
-            # 判断地区是否存在于地区表中
-            if not Position.objects.filter(name=position).exists():
-                CANNOT_ADD.append(good_code)
-                continue
 
             # get_date = gapply_item[4]
             remarks = gapply_item[5]
