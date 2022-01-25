@@ -8,6 +8,7 @@ from apps.utils.exceptions import BusinessException
 from django.views.decorators.http import require_POST
 
 
+# TODO: 导出后要用celery定时删除
 @require_POST
 def derive_excel(request):
     """
