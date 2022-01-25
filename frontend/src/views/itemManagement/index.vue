@@ -277,12 +277,14 @@
                         showOnInit: true,
                         placements: ['top']
                     } },
-                picsLimit: 6
+                picsLimit: 6,
+                goodsCodeList: []
             }
         },
         created () {
             this.getGoods()
             this.getGoodTypes()
+            this.getGoodCodeList()
         },
         methods: {
 
@@ -323,6 +325,27 @@
                 }).finally(() => {
                     this.isGoodTypesLoad = false
                 })
+            },
+            getGoodCodeList () {
+                this.$http.get('/purchase/get_good_code_list').then(res => {
+                    if (res.result) {
+                        res.data.forEach((item, index) => {
+                            this.goodsCodeList.push({
+                                id: index,
+                                name: item
+                            })
+                        })
+                    }
+                }).catch(() => {
+                    this.$$bkMessage({
+                        message: 'get_good_code_list接口报错',
+                        theme: 'error'
+                    })
+                })
+            },
+            searchCodeSelect (value, option) {
+                this.unSubmitSearch.goodCode = this.goodsCodeList[value].name
+                console.log('this.unSubmitSearch.goodCode == ', this.unSubmitSearch.goodCode)
             },
             getGoodInfo (goodId) {
                 this.$http.get('/purchase/get_good_detail?good_id=' + goodId).then(res => {

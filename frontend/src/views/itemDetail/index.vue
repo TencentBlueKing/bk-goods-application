@@ -243,7 +243,7 @@
                 })
             },
             toShoppingCar () {
-                this.$router.push({ path: '/shoppingcart' })
+                this.$router.push({ path: 'shoppingcart' })
             }
         }
     }
