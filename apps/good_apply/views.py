@@ -33,11 +33,14 @@ def get_position_list(request):
     return get_result({"data": position_list})
 
 
+def is_secretary(username):
+    if Secretary.objects.filter(username=username).exists():
+        return True
+    return False
+
+
 @require_GET
 def if_admin(request):
-    if_secretary = False
-    username = request.GET.get('username', None)
-    if username:
-        if Secretary.objects.filter(username=username).exists():
-            if_secretary = True
-    return get_result({"result": if_secretary})
+    """检验是否为秘书"""
+    username = request.user.username
+    return get_result({"result": is_secretary(username)})

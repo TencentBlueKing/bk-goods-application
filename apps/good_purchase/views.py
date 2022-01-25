@@ -24,6 +24,7 @@ from apps.good_purchase.serializers import (CheckWithdrawsSeralizers,
                                             UserInfoSerializer,
                                             personalFormSerializer,
                                             personalSerializer)
+from apps.tools.decorators import check_secretary_permission
 from apps.tools.param_check import (check_apply_update_param, check_param_id,
                                     check_param_page, check_param_size,
                                     check_param_str, get_error_message)
@@ -341,6 +342,7 @@ def get_good_status_list(request):
     return get_result({"data": good_status_list})
 
 
+@check_secretary_permission
 @require_POST
 def add_good(request):
     """添加商品"""
@@ -363,6 +365,7 @@ def add_good(request):
     return get_result({"message": "新增商品成功"})
 
 
+@check_secretary_permission
 @require_POST
 def update_good(request):
     """修改商品信息"""
@@ -392,6 +395,7 @@ def update_good(request):
     return get_result({"message": "修改商品信息成功"})
 
 
+@check_secretary_permission
 @require_GET
 def down_good(request):
     """商品下架"""
@@ -406,6 +410,7 @@ def down_good(request):
     return get_result({"message": "下架商品成功"})
 
 
+@check_secretary_permission
 @require_POST
 def add_good_type(request):
     """新增商品类型"""
