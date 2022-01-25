@@ -226,7 +226,7 @@
                 this.$router.go(0)
             },
             toShoppingCar () {
-                this.$router.push({ path: '/shoppingcart' })
+                this.$router.push({ path: 'shoppingcart' })
             }
         }
     }
