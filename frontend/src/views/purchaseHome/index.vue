@@ -38,7 +38,6 @@
             <div class="goodCard" v-for="(item, index) in goodsList" :key="index" @click="toDetail(item.id)">
                 <bk-card :show-head="false" class="bkCard">
                     <img :src="item.pics" alt="" style="width: 200px; height: 180px; margin: 10px 10px 0 10px" v-if="item.pics">
-                    <img src="../../../static/images/nopic.png" alt="" style="width: 200px; height: 180px; margin: 10px 10px 0 10px" v-if="!item.pics">
                     <p class="goodName">{{ item.good_name }}</p>
                     <div class="goodPrice">￥<div style="color: orange">{{ item.price }}</div></div>
                     <p>{{ item.cn_status }}</p>
@@ -158,7 +157,7 @@
                             for (let i = 0; i < res.data.good_list.length; i++) {
                                 if (i < this.bannerNum) { // 给轮播图列表赋值，逻辑是将前六个商品图片赋值给轮播图列表
                                     const bannerObject = Object()
-                                    bannerObject.url = this.goodsList[i].pics[0] ? this.goodsList[i].pics[0] : '../../../static/images/nopic.png'
+                                    bannerObject.url = this.goodsList[i].pics[0]
                                     bannerObject.link = detailUrl + '?goodId=' + this.goodsList[i].id
                                     this.bannerPics.push(bannerObject)
                                 }
