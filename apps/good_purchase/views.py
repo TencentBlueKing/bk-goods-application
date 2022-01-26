@@ -554,10 +554,10 @@ def get_good_code_list(request):
 def del_pics(request):
     body = request.body
     file_paths = json.loads(body)
-    print('file_paths', file_paths)
     if file_paths:
         for file_path in file_paths:
             file_path = os.path.join(settings.MEDIA_ROOT, file_path)
-            os.remove(file_path)
+            if os.path.exists(file_path):
+                os.remove(file_path)
         return get_result({'message': '删除成功'})
     return get_result({'message': '删除失败'})

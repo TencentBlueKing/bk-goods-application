@@ -35,7 +35,8 @@ def del_excel(request):
     file_path = os.path.join(settings.MEDIA_ROOT, dir_name, file_name)
 
     # 删除文件
-    os.remove(file_path)
+    if os.path.exists(file_path):
+        os.remove(file_path)
     result = {
         "code": 200,
         "result": True,
