@@ -65,7 +65,7 @@
 
     const goodsUrl = '/purchase/get_good_list' // 获取物品信息接口
     const typesUrl = '/purchase/get_good_type_list' // 获取商品种类
-    const detailUrl = '/itemDetail' // 物品详情跳转链接
+    const detailUrl = 'itemDetail' // 物品详情跳转链接
     const addToCartUrl = '/purchase/add_cart_goods' // 添加到购物车接口
 
     export default {
