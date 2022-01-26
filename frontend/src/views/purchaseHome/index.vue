@@ -38,6 +38,7 @@
             <div class="goodCard" v-for="(item, index) in goodsList" :key="index" @click="toDetail(item.id)">
                 <bk-card :show-head="false" class="bkCard">
                     <img :src="item.pics" alt="" style="width: 200px; height: 180px; margin: 10px 10px 0 10px" v-if="item.pics">
+                    <div class="replacePic" v-if="!item.pics" style="width: 200px; height: 180px; margin: 10px 10px 0 10px"></div>
                     <p class="goodName">{{ item.good_name }}</p>
                     <div class="goodPrice">￥<div style="color: orange">{{ item.price }}</div></div>
                     <p>{{ item.cn_status }}</p>
