@@ -10,7 +10,7 @@
             <div class="returnIndex" v-if="showReturn">
                 <bk-link theme="default" icon="bk-icon icon-angle-double-left" @click="toIndex" style="display: inline">返回初始页面</bk-link>
             </div>
-            <bk-input v-model="searchContent" :clearable="false" :font-size="'medium'" size="large">
+            <bk-input v-model="searchContent" :clearable="false" :font-size="'medium'" size="large" @keypress.native.enter="search">
                 <bk-dropdown-menu class="group-text" @show="dropdownShow" @hide="dropdownHide" ref="dropdown" slot="prepend" :font-size="'medium'">
                     <bk-button type="primary" slot="dropdown-trigger" class="selectType">
                         <span>{{ type.type_name }}</span>
@@ -22,7 +22,7 @@
                     </ul>
                 </bk-dropdown-menu>
                 <template slot="append">
-                    <bk-button theme="primary" title="search" :outline="true" class="group-text" :text="true" @click="search()">
+                    <bk-button theme="primary" title="search" :outline="true" class="group-text" :text="true" @click="search">
                         <bk-icon type="search" />
                     </bk-button>
                 </template>
