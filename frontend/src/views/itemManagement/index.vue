@@ -98,6 +98,17 @@
                             </template>
                         </bk-input>
                     </bk-form-item>
+                    <bk-form-item :label-width="80" label="参考图" ext-cls="pics-wrapper" :required="true" :property="'pics'">
+                        <bk-upload
+                            :theme="'picture'"
+                            :with-credentials="true"
+                            :handle-res-code="handleRes"
+                            :limit="picsLimit"
+                            :custom-request="uploadImg"
+                            :files="goodFormData.pics"
+                            @on-delete="deleteImg"
+                        ></bk-upload>
+                    </bk-form-item>
                 </bk-form>
                 <div class="remark-wrapper">
                     <span>备注</span>
@@ -105,7 +116,7 @@
                 </div>
             </div>
 
-            <div class="pic-wrapper">
+            <!-- <div class="pic-wrapper">
                 <span>参考图</span>
                 <bk-upload
                     :theme="'picture'"
@@ -116,7 +127,7 @@
                     :files="goodFormData.pics"
                     @on-delete="deleteImg"
                 ></bk-upload>
-            </div>
+            </div> -->
             <div class="text-wrapper">
                 <span>物品介绍</span>
                 <v-md-editor
@@ -267,6 +278,13 @@
                         {
                             required: true,
                             message: '请选择物品参考价',
+                            trigger: 'blur'
+                        }
+                    ],
+                    pics: [
+                        {
+                            required: true,
+                            message: '商品参考图不可为空',
                             trigger: 'blur'
                         }
                     ]
@@ -552,6 +570,7 @@
                 this.getGoods()
             },
             clickAddGood () {
+                this.$refs.checkForm.clearError()
                 this.goodDialog.visiable = true
                 // 如果刚才是编辑，去掉物品信息；同时避免上一次为新增时的物品信息被抹去
                 if (this.goodDialog.typeIndex === 1) {
@@ -570,6 +589,7 @@
                 this.goodDialog.typeIndex = 0
             },
             clickEditGood (row) {
+                this.$refs.checkForm.clearError()
                 this.goodDialog.visiable = true
                 // 选定为编辑物品
                 this.goodDialog.typeIndex = 1
@@ -603,6 +623,7 @@
                     this.$bkMessage({
                         offsetY: 100,
                         theme: 'error',
+                        delay: 2000,
                         message: validator.content
                     })
                 })
