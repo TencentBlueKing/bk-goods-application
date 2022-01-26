@@ -165,7 +165,8 @@
                 selectedPrice: 0,
                 timer: null,
                 changeGoodsList: [],
-                excelFiles: [] // 导入组件绑定列表
+                excelFiles: [], // 导入组件绑定列表
+                fileCache: []
             }
         },
         computed: {
@@ -677,6 +678,11 @@
                             this.handleError({ theme: 'success' }, res.message)
                         } else if (res && res.result === true && res.code === 5003) { // 存在导入失败物品
                             this.handleError({ theme: 'warning' }, '物资' + res.data.created_fail_list + '导入失败')
+                            const link = document.createElement('a') // 生成a元素，用以实现下载功能
+                            link.href = res.data.file_url
+                            document.body.appendChild(link)
+                            link.click()
+                            document.body.removeChild(link)
                         } else if (res && res.result === false) { // 有错误
                             this.handleError({ theme: 'error' }, res.message)
                         }
