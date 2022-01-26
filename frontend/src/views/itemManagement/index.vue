@@ -139,7 +139,7 @@
                 <bk-button :theme="'primary'" :title="'确认'" class="mr10" @click="submitAddOrUpdateGood">
                     确认
                 </bk-button>
-                <bk-button :theme="'default'" :title="'取消'" class="mr10" @click="goodDialog.visiable = false">
+                <bk-button :theme="'default'" :title="'取消'" class="mr10" @click="cancelGoodDialog">
                     取消
                 </bk-button>
             </div>
@@ -172,6 +172,7 @@
 </template>
 
 <script>
+    const delPicsUrl = '/purchase/del_pics'
     export default {
         components: {},
         data () {
@@ -283,7 +284,8 @@
                         placements: ['top']
                     } },
                 picsLimit: 6,
-                goodsCodeList: []
+                goodsCodeList: [],
+                del_pics: []
             }
         },
         created () {
@@ -548,6 +550,12 @@
             },
             deleteImg (file, fileList) {
                 this.goodFormData.pics = fileList
+                const picUrl = file.url
+                this.del_pics.push(picUrl.split('/')[picUrl.split('/').length - 2] + '\\' + picUrl.split('/')[picUrl.split('/').length - 1])
+            },
+            cancelGoodDialog () {
+                this.goodDialog.visiable = false
+                this.del_pics = []
             },
             // 操作事件
             searchGoodsInfo () {
@@ -605,6 +613,13 @@
                         // 编辑物品点击确认
                         this.updateGood()
                     }
+                    const delForm = this.del_pics
+                    if (this.del_pics.length !== 0) {
+                        this.$http.post(delPicsUrl, delForm).then(res => {
+
+                        })
+                    }
+                    this.del_pics = []
                 }, validator => {
                     // 验证失败
                     this.$bkMessage({

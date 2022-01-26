@@ -547,3 +547,17 @@ def get_good_code_list(request):
     good_list = Good.objects.all()
     good_type_list = [good_item.good_code for good_item in good_list]
     return get_result({"data": good_type_list})
+
+
+@check_secretary_permission
+@require_POST
+def del_pics(request):
+    body = request.body
+    file_paths = json.loads(body)
+    print('file_paths', file_paths)
+    if file_paths:
+        for file_path in file_paths:
+            file_path = os.path.join(settings.MEDIA_ROOT, file_path)
+            os.remove(file_path)
+        return get_result({'message': '删除成功'})
+    return get_result({'message': '删除失败'})
