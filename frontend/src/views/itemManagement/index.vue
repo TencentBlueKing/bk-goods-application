@@ -115,19 +115,6 @@
                     <bk-input type="textarea" v-model="goodFormData.remark" placeholder="请输入物品备注"></bk-input>
                 </div>
             </div>
-
-            <!-- <div class="pic-wrapper">
-                <span>参考图</span>
-                <bk-upload
-                    :theme="'picture'"
-                    :with-credentials="true"
-                    :handle-res-code="handleRes"
-                    :limit="picsLimit"
-                    :custom-request="uploadImg"
-                    :files="goodFormData.pics"
-                    @on-delete="deleteImg"
-                ></bk-upload>
-            </div> -->
             <div class="text-wrapper">
                 <span>物品介绍</span>
                 <v-md-editor
