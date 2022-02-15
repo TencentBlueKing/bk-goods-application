@@ -691,7 +691,7 @@
                         })
                         this.excelFiles = []
                         this.sleep(2).then(() => {
-                            const delDirPath = 'import_excel' // 后台存放导入文件路径
+                            const delDirPath = 'import_cart_excel' // 后台存放导入文件路径
                             this.$http.post(delFilesUrl, { dirName: delDirPath, fileName: fileName, username: this.cartUsername }).then(() => { // 导入后删除文件
                                 this.excelFiles.pop() // 如果你不想用下面的刷新页面就用这个pop 把下面的refresh删掉就行
                                 this.refresh()

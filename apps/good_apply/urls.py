@@ -14,10 +14,14 @@ specific language governing permissions and limitations under the License.
 from django.conf.urls import url
 from django.urls import path
 
+from ..tools import analysis_apply_excel
 from . import views
 
 urlpatterns = (
     url(r"^$", views.home),
+    path("get_position_list", views.get_position_list),  # 获取地区列表
+    path("if_admin", views.if_admin),
+    path("analysis_apply_excel", analysis_apply_excel.analysis_apply_excel),  # 解析excel数据
     path("get_root_position_list", views.get_root_position_list),  # 获取一级地区列表
     path("get_sub_position_list", views.get_sub_position_list),  # 获取下一级地区列表
     path("get_leader", views.get_leader),  # 获取用户的组长

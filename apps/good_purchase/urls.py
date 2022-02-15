@@ -14,7 +14,7 @@ from django.conf.urls import url
 from django.urls import path
 
 # from apps.tools.derive_excel import derive_excel
-from ..tools import del_excel, derive_excel, import_excel
+from ..tools import del_excel, derive_excel, import_cart_excel
 # from apps.tools.del_excel import del_excel
 # from apps.tools.import_excel import import_excel
 from . import views
@@ -28,7 +28,7 @@ urlpatterns = (
     path("get_group_apply", views.get_group_apply),  # 获取组内物资表数据
     path("delete_group_apply", views.delete_group_apply),  # 删除组内物资表数据
     path("update_group_apply", views.update_group_apply),  # 更新组内物资表数据
-    path("import_excel", import_excel.import_excel),  # 通过excel导入数据到部门所需物资
+    path("import_excel", import_cart_excel.import_cart_excel),  # 通过excel导入数据到部门所需物资
     path("derive_excel", derive_excel.derive_excel),  # 导出部门所需物资数据
     path("del_excel", del_excel.del_excel),  # 删除excel文件
     path("get_good_list", views.get_good_list),  # 获取商品列表

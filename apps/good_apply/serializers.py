@@ -3,6 +3,27 @@ import datetime
 from rest_framework import serializers
 
 
+class PreApplySerializers(serializers.Serializer):
+    good_code = serializers.CharField(max_length=30, required=True,
+                                      error_messages={'max_length': '物品编码过长',
+                                                      'required': '物品编码不可为空',
+                                                      'blank': '物品编码不可为空'})
+    good_name = serializers.CharField(max_length=50, required=True,
+                                      error_messages={'max_length': '物品名称过长',
+                                                      'required': '物品名称不可为空',
+                                                      'blank': '物品名称不可为空'})
+    num = serializers.IntegerField(required=True, min_value=1, error_messages={'min_value': '申请最少数量为1',
+                                                                               'required': '申请数量不可为空',
+                                                                               'invalid': '申请数量不是合法数字'})
+    require_date = serializers.DateField(default=datetime.datetime.now() + datetime.timedelta(days=7),
+                                         error_messages={'invalid': '期望领用日期不合法'})
+    # 申请人
+    apply_user = serializers.CharField(max_length=30, required=True,
+                                       error_messages={'max_length': '申请人username过长',
+                                                       'required': '申请人不可为空',
+                                                       'blank': '申请人不可为空'})
+
+
 class ApplySerializers(serializers.Serializer):
     good_code = serializers.CharField(max_length=30, required=True,
                                       error_messages={'max_length': '物品编码过长',
