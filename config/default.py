@@ -71,7 +71,7 @@ MIDDLEWARE += (
 )
 
 # 添加首页搜索范围
-TEMPLATES[0]["DIRS"] += (os.path.join(BASE_DIR, "static", "dist"),)
+TEMPLATES[0]["DIRS"] += (os.path.join(BASE_DIR, "static", "dist"), os.path.join(BASE_DIR, "static", "apply_dist"))
 
 # 所有环境的日志级别可以在这里配置
 # LOG_LEVEL = 'INFO'

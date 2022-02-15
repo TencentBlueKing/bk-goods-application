@@ -34,7 +34,7 @@ class Position(models.Model):
     def to_json(self):
         return {
             "id": self.id,
-            "name": self.name
+            "name": self.name,
         }
 
 
