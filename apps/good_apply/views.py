@@ -31,6 +31,13 @@ def home(request):
 
 
 @require_GET
+def get_position_list(request):
+    positions = Position.objects.all()
+    position_list = [position.to_json() for position in positions]
+    return get_result({"data": position_list})
+
+
+@require_GET
 def get_root_position_list(request):
     """获取一级地区"""
     positions = Position.objects.filter(parent_code__isnull=True)
