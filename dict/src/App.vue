@@ -65,6 +65,8 @@
 
     import userCenter from './views/userCenter/userCenter.vue'
 
+    const judgeIdentityUrl = '/apply/if_leader_or_secretary'
+
     export default {
         name: 'monitor-navigation',
         components: { userCenter },
@@ -123,6 +125,9 @@
             },
             curIsAdmin () {
                 return this.$store.getters.isAdmin === undefined ? false : this.$store.getters.isAdmin
+            },
+            curIsLeader () {
+                return this.$store.getters.isLeader === undefined ? false : this.$store.getters.isLeader
             }
         },
         created () {
@@ -154,6 +159,7 @@
             getUserIdentity () {
                 const username = this.$store.state.user.username
                 let isAdmin = false
+                let isLeader = false
                 if (username === undefined) {
                     this.$bkMessage({
                         message: '用户身份信息获取失败',
@@ -162,12 +168,20 @@
                     })
                     return
                 }
-                this.$http.get('/apply/if_admin?username=' + username).then((res) => {
+                this.$http.get(judgeIdentityUrl).then((res) => {
                     if (res.result !== null) {
-                        isAdmin = res.result
-                        this.$store.dispatch('setUserIdentity', isAdmin)
-                        if (isAdmin === true) {
-                            this.header.list.find(this.findApplyManagement).show = true
+                        if (res.data.identity === 0) {
+                            isAdmin = true
+                            this.$store.dispatch('setUserIdentity', isAdmin)
+                            if (isAdmin === true) {
+                                this.header.list.find(this.findApplyManagement).show = true
+                            }
+                        } else if (res.data.identity === 1) {
+                            isLeader = true
+                            this.$store.dispatch('setUserIdentity', isLeader)
+                            if (isLeader === true) {
+                                this.header.list.find(this.findApplyManagement).show = true
+                            }
                         }
                     } else {
                         this.$bkMessage({

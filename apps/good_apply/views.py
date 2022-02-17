@@ -10,16 +10,21 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import datetime
 import json
 
 from apps.good_apply.models import Apply, Position, Review
 from apps.good_apply.serializers import ApplySerializers, IDListSeralizers
-from apps.tools.auth_check import is_secretary
-from apps.tools.decorators import check_secretary_permission
-from apps.tools.param_check import check_param_str, get_error_message
+from apps.tools.auth_check import (get_users_in_group, is_leader_or_secretary,
+                                   is_secretary, sub_users_in_group)
+from apps.tools.decorators import check_leader_or_secretary_permission
+from apps.tools.param_check import (check_param_page, check_param_size,
+                                    check_param_str, get_error_message)
 from apps.tools.response import get_result
 from blueapps.utils import get_client_by_request
+from django.core.paginator import Paginator
 from django.db import transaction
+from django.db.models import Q
 from django.shortcuts import render
 # 开发框架中通过中间件默认是需要登录态的，如有不需要登录的，可添加装饰器login_exempt
 # 装饰器引入 from blueapps.account.decorators import login_exempt
@@ -44,7 +49,7 @@ def get_position_list(request):
 def get_root_position_list(request):
     """获取一级地区"""
     # positions = Position.objects.filter(parent_code__isnull=True)
-    positions = Position.objects.filter(parent_code='000')
+    positions = Position.objects.filter(parent_code__isnull=True)
     position_list = [position.to_json() for position in positions]
     return get_result({"data": position_list})
 
@@ -64,6 +69,7 @@ def get_sub_position_list(request):
 def get_leader(request):
     """根据用户username获取组长"""
     username = request.user.username
+    # 查询蓝鲸平台，单个用户信息-返回组长信息
     client = get_client_by_request(request=request)
     response = client.usermanage.retrieve_user(lookup_field="username",
                                                id=username,
@@ -113,15 +119,17 @@ def if_admin(request):
     return get_result({"result": is_secretary(username)})
 
 
-@check_secretary_permission
+@check_leader_or_secretary_permission
 @require_POST
-def examine_apply(request):
+def examine_apply(request, leader_or_secretary):
     username = request.user.username
     body = request.body
     body = json.loads(body)
     apply_id_list = body.get('apply_id_list')
     model = body.get('model')
     remark = body.get('remark')
+
+    # 校验数据
     if not check_param_str(remark):
         result = {
             "code": 400,
@@ -142,14 +150,23 @@ def examine_apply(request):
             "data": {}
         }
         return get_result(result)
+
+    # 根据不同身份设置不同的审核结果以及身份标识
+    if leader_or_secretary == 0:  # 秘书
+        reviewer_identity = 1
+        review_result = 3
+    else:
+        reviewer_identity = 0
+        review_result = 2
     if model == 'reject':  # 拒绝申请：
         review_list = []
         with transaction.atomic():
             for apply_id in apply_id_list:
                 apply_obj = Apply.objects.filter(id=apply_id).first()
-                apply_obj.status = 3
+                apply_obj.status = review_result
                 apply_obj.save()
-                review_obj = Review(apply_id=apply_id, reviewer=username, reviewer_identity=1, result=2, reason=remark)
+                review_obj = Review(apply_id=apply_id, reviewer=username,
+                                    reviewer_identity=reviewer_identity, result=2, reason=remark)
                 review_list.append(review_obj)
             Review.objects.bulk_create(review_list)
     elif model == 'agree':  # 同意申请
@@ -157,9 +174,10 @@ def examine_apply(request):
         with transaction.atomic():
             for apply_id in apply_id_list:
                 apply_obj = Apply.objects.filter(id=apply_id).first()
-                apply_obj.status = 3
+                apply_obj.status = review_result
                 apply_obj.save()
-                review_obj = Review(apply_id=apply_id, reviewer=username, reviewer_identity=1, result=1, reason=remark)
+                review_obj = Review(apply_id=apply_id, reviewer=username,
+                                    reviewer_identity=reviewer_identity, result=1, reason=remark)
                 review_list.append(review_obj)
             Review.objects.bulk_create(review_list)
 
@@ -171,3 +189,82 @@ def examine_apply(request):
             "data": {}
         }
         return get_result(result)
+
+
+@require_GET
+def if_leader_or_secretary(request):
+    """是否是秘书/管理员"""
+    flag, leader_or_secretary = is_leader_or_secretary(request)
+    print('flag={}, leader_or_secretary={}'.format(type(flag), type(leader_or_secretary)))
+    return get_result({"result": flag, "data": {'identity': leader_or_secretary}})
+
+
+@check_leader_or_secretary_permission
+def get_apply_users(request, leader_or_secretary):
+    """审批页面，获取申请人列表：秘书获取所有/组长获取本组的申请人"""
+    if leader_or_secretary == 0:  # 秘书
+        users = [{'id': user.get('id'),
+                  'username': user.get('username'),
+                  'display_name': user.get('display_name')}
+                 for user in get_users_in_group(request, group_id=6)]
+    else:  # 组长
+        users = sub_users_in_group(request, username=request.user.username, group_id=6)
+    return get_result({"result": users})
+
+
+@check_leader_or_secretary_permission
+@require_GET
+def get_goods_apply(request, leader_or_secretary):
+    """
+    获取需要审核的物资列表
+    """
+    if leader_or_secretary == 0:
+        # 秘书, 查询审核中
+        query = Q(status=2)
+        # 可查询的所有人
+        user_usernames = [user.get('username') for user in get_users_in_group(request, group_id=6)]
+    else:
+        # 组长，查询未审核
+        query = Q(status=1)
+        users = sub_users_in_group(request, username=request.user.username, group_id=6)
+        user_usernames = [user.get('username') for user in users]
+
+    # 申请人-查询条件
+    apply_user = request.GET.get('apply_user', None)
+    if check_param_str(apply_user):
+        if apply_user in user_usernames:
+            query = query & Q(apply_user=apply_user)
+        else:
+            return get_result({"code": 1, "result": False, "message": u"您对-{}没有查询权限".format(apply_user)})
+    else:
+        # 没有选择要查询的申请人
+        query = query & Q(apply_user__in=user_usernames)
+
+    # 地点-模糊查询
+    position = request.GET.get('position', None)
+    if check_param_str(position):
+        query = query & Q(position__contains=position)
+
+    # 时间-范围查询
+    start_time = request.GET.get('start_time')
+    if not start_time:
+        start_time = '1970-1-1'
+    end_time = request.GET.get('end_time')
+    if not end_time:
+        end_time = datetime.datetime.now().strftime('%Y-%m-%d')
+    query = query & Q(create_time__range=(start_time, end_time))
+
+    # 分页
+    page = request.GET.get('page', 1)
+    page = check_param_page(page)
+    size = request.GET.get('size', 10)
+    size = check_param_size(size)
+
+    # 查询
+    applys = Apply.objects.filter(query).order_by("-update_time")
+    paginator = Paginator(applys, size)
+    cur_applys = paginator.get_page(page)
+
+    data = {"total_num": applys.count(),
+            "apply_list": [apply.to_json() for apply in cur_applys]}
+    return get_result({'data': data})

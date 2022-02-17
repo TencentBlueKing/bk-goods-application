@@ -85,7 +85,7 @@ let canceling = true
 let pageMethodExecuting = true
 
 router.beforeEach(async (to, from, next) => {
-    if (store.state.isAdmin !== true && to.name === 'itemManagement') {
+    if (store.state.isAdmin !== true && store.state.isLeader !== true && to.name === 'itemManagement') {
         router.push({ name: 'purchaseHome' })
     }
     canceling = true

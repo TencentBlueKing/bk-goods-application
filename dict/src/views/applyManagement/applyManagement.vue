@@ -6,7 +6,7 @@
         <div class="condition-form">
             <bk-form :label-width="130" :model="formData" ref="infoForm">
                 <bk-container :col="12" :margin="6">
-                    <bk-row class="condition-form-row">
+                    <bk-row>
                         <bk-col :span="9">
                             <bk-row class="condition-form-row">
                                 <bk-col :span="3">
@@ -23,8 +23,8 @@
                                                 </bk-option>
                                                 <bk-option v-for="option in applicantList"
                                                     :key="option.id"
-                                                    :id="option.id"
-                                                    :name="option.name">
+                                                    :id="option.username"
+                                                    :name="option.username">
                                                 </bk-option>
                                             </bk-select>
                                         </bk-form-item>
@@ -97,7 +97,7 @@
                             </bk-row>
                         </bk-col>
                         <bk-col :span="3">
-                            <div class="commit">
+                            <div style="text-align: center;line-height: 90px;">
                                 <bk-button size="large" :outline="true" theme="primary" title="查询" @click.stop.prevent="search">查询</bk-button>
                             </div>
                         </bk-col>
@@ -119,7 +119,7 @@
                 </bk-dropdown-menu>
             </div>
             <bk-table
-                height="400"
+                height="430"
                 :data="apply"
                 :size="medium"
                 :pagination="pagination"
@@ -130,14 +130,14 @@
                 @page-change="handlePageChange"
                 @page-limit-change="handlePageLimitChange">
                 <bk-table-column type="selection" width="60"></bk-table-column>
-                <bk-table-column label="使用人" prop="applicant"></bk-table-column>
-                <bk-table-column label="物品编码" prop="goodCode"></bk-table-column>
-                <bk-table-column label="物品名称" prop="goodName"></bk-table-column>
+                <bk-table-column label="使用人" prop="apply_user"></bk-table-column>
+                <bk-table-column label="物品编码" prop="good_code"></bk-table-column>
+                <bk-table-column label="物品名称" prop="good_name"></bk-table-column>
                 <bk-table-column label="物品类型" prop="goodType"></bk-table-column>
                 <bk-table-column label="数量" prop="num"></bk-table-column>
-                <bk-table-column label="申请时间" prop="applyDate"></bk-table-column>
-                <bk-table-column label="地址" prop="location"></bk-table-column>
-                <bk-table-column label="申请原因" prop="applyReason"></bk-table-column>
+                <bk-table-column label="申请时间" prop="apply_time"></bk-table-column>
+                <bk-table-column label="地址" prop="position"></bk-table-column>
+                <bk-table-column label="申请原因" prop="reason"></bk-table-column>
                 <bk-table-column label="操作" width="150">
                     <template slot-scope="props">
                         <bk-button class="mr10" theme="primary" text @click="singleAgree(props.row)">同意</bk-button>
@@ -172,20 +172,22 @@
     const getRootPositionListUrl = '/apply/get_root_position_list' // 获取根地点接口
     const getSubPositionListUrl = '/apply/get_sub_position_list' // 获取子地点接口
     const examineApplyUrl = '/apply/examine_apply' // 审核申请
-    // const searchUrl = 'xxx' // 获取查询集接口
+    const getApplyUrl = '/apply/get_goods_apply' // 获取查询集接口
+    const getApplyUserUrl = '/apply/get_apply_users' // 获取组员接口
+
     export default {
         data () {
             return {
                 dialogVisible: false,
-                remark: '无',
-                formData: {
+                remark: '无', // 审核备注
+                formData: { // 查询条件表单数据
                     applicant: 0,
                     startDate: '',
                     endDate: '',
                     campus: 0,
                     college: 0
                 },
-                get_params: {
+                get_params: { // 获取申请时提交的参数
                     size: 10,
                     page: 1,
                     start_time: '',
@@ -202,50 +204,9 @@
                         }
                     ]
                 },
-                campusList: [],
-                collegeList: [],
-                apply: [
-                    {
-                        id: 1,
-                        applicant: '790795324Q'
-                    },
-                    {
-                        id: 2,
-                        applicant: '790795324Q'
-                    },
-                    {
-                        id: 3,
-                        applicant: '790795324Q'
-                    },
-                    {
-                        id: 4,
-                        applicant: '790795324Q'
-                    },
-                    {
-                        id: 5,
-                        applicant: '790795324Q'
-                    },
-                    {
-                        id: 6,
-                        applicant: '790795324Q'
-                    },
-                    {
-                        id: 7,
-                        applicant: '790795324Q'
-                    },
-                    {
-                        id: 8,
-                        applicant: '790795324Q'
-                    },
-                    {
-                        id: 9,
-                        applicant: '790795324Q'
-                    },
-                    {
-                        id: 10,
-                        applicant: '790795324Q'
-                    }
-                ],
+                campusList: [], // 校区列表
+                collegeList: [], // 学院列表
+                apply: [],
                 pagination: { // 分页器数据
                     current: 1,
                     count: 10,
@@ -259,10 +220,11 @@
             }
         },
         watch: {
-            'formData.campus': function (val) {
+            'formData.campus': function (val) { // 监听查询表格的校区变量
                 if (val === 0) {
                     return
                 }
+                this.formData.college = 0
                 const parentCode = this.getParentCode(val)
                 this.$http.get(getSubPositionListUrl, { params: { parent_code: parentCode } }).then(res => {
                     this.collegeList = res.data
@@ -271,12 +233,37 @@
         },
         created () {
             this.username = this.$store.state.user.username
+            this.get_params.apply_user = this.username
             this.loadData()
         },
         mounted () {},
         methods: {
             loadData () {
                 this.getRootPositionList()
+                this.getApplyUser()
+                this.getApply()
+            },
+            getApplyUser () { // 获取小组成员
+                this.$http.get(getApplyUserUrl).then(res => {
+                    if (res) {
+                        this.applicantList = res.result
+                    }
+                })
+            },
+            getApply () { // 获取申请列表
+                this.$http.get(getApplyUrl, { params: {
+                    apply_user: this.get_params.apply_user,
+                    position: this.get_params.position,
+                    start_time: this.get_params.start_time,
+                    end_time: this.get_params.end_time,
+                    page: this.get_params.page,
+                    size: this.get_params.size
+                } }).then(res => {
+                    if (res) {
+                        this.apply = res.data.apply_list
+                        this.pagination.count = res.data.total_num
+                    }
+                })
             },
             getOkText () {
                 return this.okText
@@ -284,15 +271,19 @@
             getDialogTitle () {
                 return this.dialogTitle
             },
-            singleAgree (row) {
-                this.selected.selectedRows.push(row.id)
+            singleAgree (row) { // 单个审核时触发
+                if (this.selected.selectedRows.indexOf(row.id) === -1) {
+                    this.selected.selectedRows.push(row.id)
+                }
                 this.agree()
             },
-            singleDisagree (row) {
-                this.selected.selectedRows.push(row.id)
+            singleDisagree (row) { // 单个审核时触发
+                if (this.selected.selectedRows.indexOf(row.id) === -1) {
+                    this.selected.selectedRows.push(row.id)
+                }
                 this.disagree()
             },
-            agree () {
+            agree () { // 批量审核时触发
                 if (this.selected.selectedRows.length === 0) {
                     this.handleError({ theme: 'warning' }, '未选择任何数据')
                     return
@@ -304,20 +295,20 @@
             },
             confirmAgree () {
                 this.$refs.remark.validate().then(validator => {
-                    console.log('this.selected.selectedRows', this.selected.selectedRows)
                     const examineApplyParamsIdList = this.selected.selectedRows
                     const remark = this.remark
                     this.$http.post(examineApplyUrl, { apply_id_list: examineApplyParamsIdList, model: 'agree', remark: remark }).then(res => {
-                        console.log('apply res', res)
+                        
                     })
                     this.selected.selectedRows = []
                     this.dialogVisible = false
+                    this.getApply()
                 }, validator => {
                     // 显示第一个出错位置
                     // alert(`${validator.field}：${validator.content}`)
                 })
             },
-            disagree () {
+            disagree () { // 批量审核时触发
                 if (this.selected.selectedRows.length === 0) {
                     this.handleError({ theme: 'warning' }, '未选择任何数据')
                     return
@@ -329,14 +320,14 @@
             },
             confirmDisagree () {
                 this.$refs.remark.validate().then(validator => {
-                    console.log('this.selected.selectedRows', this.selected.selectedRows)
                     const examineApplyParamsIdList = this.selected.selectedRows
                     const remark = this.remark
                     this.$http.post(examineApplyUrl, { apply_id_list: examineApplyParamsIdList, model: 'reject', remark: remark }).then(res => {
-                        console.log('apply res', res)
+                        
                     })
                     this.selected.selectedRows = []
                     this.dialogVisible = false
+                    this.getApply()
                 }, validator => {
                     // 显示第一个出错位置
                     // alert(`${validator.field}：${validator.content}`)
@@ -349,28 +340,46 @@
                     return this.confirmDisagree
                 }
             },
-            search () {
+            search () { // 按下查询按钮时触发
                 if (this.formData.startDate) {
                     this.get_params.start_time = this.dateFormat('YYYY-mm-dd', this.formData.startDate)
                 }
                 if (this.formData.endDate) {
                     this.get_params.end_time = this.dateFormat('YYYY-mm-dd', this.formData.endDate)
                 }
-                this.get_params.apply_user = this.formData.applicant
+                if (this.formData.applicant === 0 || this.formData.applicant === '0') {
+                    this.get_params.apply_user = ''
+                } else {
+                    this.get_params.apply_user = this.formData.applicant
+                }
                 let campus = ''
                 let college = ''
-                if (this.formData.campus !== 0) {
-                    campus = this.campusList.find(this.formDataCampusLocationIdToName).name
+                if (this.formData.campus === 0 || this.formData.campus === '0') {
+                    campus = ''
+                } else {
+                    const campusObj = this.campusList.find(this.formDataCampusLocationIdToName)
+                    if (campusObj) {
+                        campus = campusObj.name
+                    } else {
+                        campus = ''
+                    }
                 }
-                if (this.formData.college !== 0) {
-                    college = this.collegeList.find(this.formDataCollegeLocationIdToName).name
+                if (this.formData.college === 0 || this.formData.college === '0') {
+                    college = ''
+                } else {
+                    const collegeObj = this.collegeList.find(this.formDataCollegeLocationIdToName)
+                    if (collegeObj) {
+                        college = collegeObj.name
+                    } else {
+                        college = ''
+                    }
                 }
                 this.get_params.position = (!campus && !college) ? '' : campus + ',' + college
-                // this.$http.get(searchUrl, { params: {
-                //     get_params: this.get_params
-                // } })
+                this.pagination.current = 1
+                this.get_params.page = this.pagination.current
+                this.getApply()
             },
-            getParentCode (val) {
+            getParentCode (val) { // 获取校区的编码
                 let parentCode = ''
                 for (let index = 0; index < this.campusList.length; index++) {
                     if (this.campusList[index].id === val) {
@@ -380,7 +389,7 @@
                 }
                 return parentCode
             },
-            getRootPositionList () {
+            getRootPositionList () { // 获取校区列表
                 this.$http.get(getRootPositionListUrl).then(res => {
                     this.campusList = res.data
                 })
@@ -431,11 +440,13 @@
                 this.get_params.size = this.pagination.limit
                 this.pagination.current = 1
                 this.get_params.page = this.pagination.current
-                this.selectedRows = []
+                this.selected.selectedRows = []
+                this.getApply()
             },
             handlePageChange (page) { // 修改当前页触发函数
                 this.pagination.current = page
                 this.get_params.page = this.pagination.current
+                this.getApply()
             },
             formDataCampusLocationIdToName (obj) {
                 return obj.id === this.formData.campus

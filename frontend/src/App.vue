@@ -128,6 +128,9 @@
             },
             curIsAdmin () {
                 return this.$store.getters.isAdmin === undefined ? false : this.$store.getters.isAdmin
+            },
+            curIsLeader () {
+                return this.$store.getters.isLeader === undefined ? false : this.$store.getters.isLeader
             }
         },
         created () {
@@ -167,6 +170,7 @@
             getUserIdentity () {
                 const username = this.$store.state.user.username
                 let isAdmin = false
+                let isLeader = false
                 if (username === undefined) {
                     this.$bkMessage({
                         message: '用户身份信息获取失败',
@@ -177,8 +181,13 @@
                 }
                 this.$http.get('/apply/if_admin?username=' + username).then((res) => {
                     if (res.result !== null) {
-                        isAdmin = res.result
-                        this.$store.dispatch('setUserIdentity', isAdmin)
+                        if (res.data.identity === 0) {
+                            isAdmin = true
+                            this.$store.dispatch('setUserIdentity', isAdmin)
+                        } else if (res.data.identity === 1) {
+                            isLeader = true
+                            this.$store.dispatch('setUserIdentity', isLeader)
+                        }
                     } else {
                         this.$bkMessage({
                             message: res.message,
