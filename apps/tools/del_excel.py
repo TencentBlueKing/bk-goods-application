@@ -27,7 +27,6 @@ def del_excel(request):
 
     if not dir_name or not file_name:  # 判空
         raise BusinessException(StatusEnums.PARAMS_ERROR)
-
     if file_name.split('_')[0] != username:
         raise BusinessException(StatusEnums.AUTHORITY_ERROR)
 

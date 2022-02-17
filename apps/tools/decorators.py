@@ -1,4 +1,4 @@
-from apps.good_apply.views import is_secretary
+from apps.tools.auth_check import is_secretary
 from apps.tools.response import get_result
 
 

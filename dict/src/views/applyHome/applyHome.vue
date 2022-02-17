@@ -4,7 +4,7 @@
             <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span @click="refresh" style="cursor: pointer">首页</span></bk-tag></bk-divider>
         </div>
         <div class="switcher">
-            <bk-tag style="margin-right: 10px">批量导入</bk-tag>
+            <bk-tag style="margin-right: 10px">批量申请</bk-tag>
             <bk-switcher v-model="showMultiImport" theme="primary"></bk-switcher>
         </div>
         <div class="info-table" v-if="showInfoForm">

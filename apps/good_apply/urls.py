@@ -26,5 +26,6 @@ urlpatterns = (
     path("get_sub_position_list", views.get_sub_position_list),  # 获取下一级地区列表
     path("get_leader", views.get_leader),  # 获取用户的组长
     path("submit_apply_list", views.submit_apply_list),  # 提交物资申请
-    path("if_admin", views.if_admin)
+    path("if_admin", views.if_admin),
+    path("examine_apply", views.examine_apply)
 )

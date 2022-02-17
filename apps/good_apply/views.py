@@ -12,11 +12,14 @@ specific language governing permissions and limitations under the License.
 """
 import json
 
-from apps.good_apply.models import Apply, Position, Secretary
-from apps.good_apply.serializers import ApplySerializers
+from apps.good_apply.models import Apply, Position, Review
+from apps.good_apply.serializers import ApplySerializers, IDListSeralizers
+from apps.tools.auth_check import is_secretary
+from apps.tools.decorators import check_secretary_permission
 from apps.tools.param_check import check_param_str, get_error_message
 from apps.tools.response import get_result
 from blueapps.utils import get_client_by_request
+from django.db import transaction
 from django.shortcuts import render
 # 开发框架中通过中间件默认是需要登录态的，如有不需要登录的，可添加装饰器login_exempt
 # 装饰器引入 from blueapps.account.decorators import login_exempt
@@ -40,7 +43,8 @@ def get_position_list(request):
 @require_GET
 def get_root_position_list(request):
     """获取一级地区"""
-    positions = Position.objects.filter(parent_code__isnull=True)
+    # positions = Position.objects.filter(parent_code__isnull=True)
+    positions = Position.objects.filter(parent_code='000')
     position_list = [position.to_json() for position in positions]
     return get_result({"data": position_list})
 
@@ -102,14 +106,68 @@ def submit_apply_list(request):
     return get_result({"message": "物资申请提交成功"})
 
 
-def is_secretary(username):
-    if Secretary.objects.filter(username=username).exists():
-        return True
-    return False
-
-
 @require_GET
 def if_admin(request):
     """检验是否为秘书"""
     username = request.user.username
     return get_result({"result": is_secretary(username)})
+
+
+@check_secretary_permission
+@require_POST
+def examine_apply(request):
+    username = request.user.username
+    body = request.body
+    body = json.loads(body)
+    apply_id_list = body.get('apply_id_list')
+    model = body.get('model')
+    remark = body.get('remark')
+    if not check_param_str(remark):
+        result = {
+            "code": 400,
+            "result": False,
+            "message": "备注必须为字符串",
+            "data": {}
+        }
+        return get_result(result)
+
+    apply_id_list_serializer = IDListSeralizers(data={'apply_id_list': apply_id_list})
+
+    if not apply_id_list_serializer.is_valid():
+        message = get_error_message(apply_id_list_serializer)
+        result = {
+            "code": 400,
+            "result": False,
+            "message": message,
+            "data": {}
+        }
+        return get_result(result)
+    if model == 'reject':  # 拒绝申请：
+        review_list = []
+        with transaction.atomic():
+            for apply_id in apply_id_list:
+                apply_obj = Apply.objects.filter(id=apply_id).first()
+                apply_obj.status = 3
+                apply_obj.save()
+                review_obj = Review(apply_id=apply_id, reviewer=username, reviewer_identity=1, result=2, reason=remark)
+                review_list.append(review_obj)
+            Review.objects.bulk_create(review_list)
+    elif model == 'agree':  # 同意申请
+        review_list = []
+        with transaction.atomic():
+            for apply_id in apply_id_list:
+                apply_obj = Apply.objects.filter(id=apply_id).first()
+                apply_obj.status = 3
+                apply_obj.save()
+                review_obj = Review(apply_id=apply_id, reviewer=username, reviewer_identity=1, result=1, reason=remark)
+                review_list.append(review_obj)
+            Review.objects.bulk_create(review_list)
+
+    if model == 'reject' or model == 'agree':
+        result = {
+            "code": 200,
+            "result": True,
+            "message": '审核成功',
+            "data": {}
+        }
+        return get_result(result)
