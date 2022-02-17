@@ -70,7 +70,8 @@ class Apply(TimeBasic):
             "reason": self.reason,
             "position": self.position,
             "status": self.get_status_display(),
-            "apply_user": self.apply_user
+            "apply_user": self.apply_user,
+            "apply_time": self.create_time
         }
 
 

@@ -173,3 +173,13 @@ if locals().get("DISABLED_APPS"):
 # 存放媒体数据的路径
 MEDIA_ROOT = os.path.join(BASE_DIR, "USERRES")
 BK_BACK_URL = os.getenv('BKAPP_BACK_URL')
+
+CACHES.update({
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/0",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+})
