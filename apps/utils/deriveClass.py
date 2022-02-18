@@ -107,13 +107,12 @@ class DeriveModel(object):
                             '期望领用日期', '标准领用日期', '备注', '配送方式', '验收人', '收货信息']  # excel标题
 
     def init_history_data(self):  # 初始化历史记录数据
-
+        print("self.goods['selectedRows']", self.goods['selectedRows'])
         for apply_id in self.goods['selectedRows']:  # 遍历获取单个物品id
             unit = []  # 存放一行excel数据
 
             apply = Apply.objects.filter(id=apply_id).first()  # 根据申请表id查询对应申请表
             good_code = apply.good_code
-            good = Good.objects.filter(good_code=good_code, status=1).first()  # 根据申请表id查询编码，再根据编码查询对应物品
 
             apply_user = apply.apply_user  # 使用人
             unit.append(apply_user)
@@ -131,14 +130,12 @@ class DeriveModel(object):
             apply_reason = apply.reason  # 申请原因
             unit.append(apply_reason)
 
-            good_name = good.good_name  # 物品名称
+            good_name = apply.good_name  # 物品名称
             unit.append(good_name)
 
             self.excel_data.append(unit)
 
-        work_book = xlwt.Workbook(encoding='utf-8')
-
-        self.work_sheet = work_book.add_sheet("物资申请历史记录表")
+        self.work_sheet = self.work_book.add_sheet("物资申请历史记录表")
         self.excel_title = ['使用人', '物品编码', '申请数量', '需求地点', '期望领用日期', '备注', '物品名称']  # excel标题
 
     def init_excel(self):  # 初始化excel表格

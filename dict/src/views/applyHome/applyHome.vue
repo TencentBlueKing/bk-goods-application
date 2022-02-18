@@ -286,6 +286,7 @@
     export default {
         data () {
             return {
+                isDropdownShow: false,
                 username: '',
                 showInfoForm: true,
                 showMultiImport: false,
@@ -606,9 +607,10 @@
                     const excelFile = res.split(',')[1] // 获取文件信息
                     const fileName = this.username + '_' + file.fileObj.name // 获取文件名
                     this.$http.post(analysisExcelUrl, { file: excelFile, fileName: fileName }).then(res => {
-                        if (res && res.result === true && res.code === 200) { // 全部导入成功
+                        if (res && res.result === true) { // 全部导入成功
                             this.handleError({ theme: 'success' }, res.message)
                             const data = res.data
+                            console.log(res.data)
                             for (let rowIndex = 0; rowIndex < data.success_list.length; rowIndex++) {
                                 // eslint-disable-next-line no-new-object
                                 const oneOfAllObj = new Object()
@@ -625,15 +627,16 @@
                                 // oneOfAllObj.applyReason = ''
                                 this.allSuccessApply.push(oneOfAllObj)
                             }
-                        } else if (res && res.result === true && res.code === 5003) { // 存在导入失败物品
-                            this.handleError({ theme: 'warning' }, '存在物资导入失败')
+                        } else if (res && res.result === false) { // 有错误
+                            this.handleError({ theme: 'error' }, res.message)
+                        }
+                        if (res && res.result === true && res.code === 5003) { // 存在导入失败物品
+                            this.handleError({ theme: 'warning' }, '存在申请导入失败')
                             const link = document.createElement('a') // 生成a元素，用以实现下载功能
                             link.href = res.data.file_url
                             document.body.appendChild(link)
                             link.click()
                             document.body.removeChild(link)
-                        } else if (res && res.result === false) { // 有错误
-                            this.handleError({ theme: 'error' }, res.message)
                         }
                         this.excelFiles.push({ // 给上传组件绑定列表添加文件信息
                             name: fileName

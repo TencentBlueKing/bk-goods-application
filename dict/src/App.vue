@@ -112,6 +112,11 @@
                             name: '个人中心',
                             id: '',
                             path: ''
+                        },
+                        {
+                            name: '历史记录',
+                            id: '',
+                            path: 'applyHistory'
                         }
                     ]
                 },

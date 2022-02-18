@@ -157,14 +157,19 @@ def examine_apply(request, leader_or_secretary):
         review_result = 3
     else:
         reviewer_identity = 0
-        review_result = 2
+        if model == 'reject':
+            review_result = 3
+        elif model == 'agree':
+            review_result = 2
     if model == 'reject':  # 拒绝申请：
         review_list = []
         with transaction.atomic():
+            applies = Apply.objects.filter(id__in=apply_id_list)
+            applies.update(status=review_result)
             for apply_id in apply_id_list:
-                apply_obj = Apply.objects.filter(id=apply_id).first()
-                apply_obj.status = review_result
-                apply_obj.save()
+                # apply_obj = Apply.objects.filter(id=apply_id).first()
+                # apply_obj.status = review_result
+                # apply_obj.save()
                 review_obj = Review(apply_id=apply_id, reviewer=username,
                                     reviewer_identity=reviewer_identity, result=2, reason=remark)
                 review_list.append(review_obj)
@@ -172,10 +177,12 @@ def examine_apply(request, leader_or_secretary):
     elif model == 'agree':  # 同意申请
         review_list = []
         with transaction.atomic():
+            applies = Apply.objects.filter(id__in=apply_id_list)
+            applies.update(status=review_result)
             for apply_id in apply_id_list:
-                apply_obj = Apply.objects.filter(id=apply_id).first()
-                apply_obj.status = review_result
-                apply_obj.save()
+                # apply_obj = Apply.objects.filter(id=apply_id).first()
+                # apply_obj.status = review_result
+                # apply_obj.save()
                 review_obj = Review(apply_id=apply_id, reviewer=username,
                                     reviewer_identity=reviewer_identity, result=1, reason=remark)
                 review_list.append(review_obj)
