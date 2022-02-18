@@ -4,7 +4,7 @@
             <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span @click="refresh" style="cursor: pointer">首页</span></bk-tag></bk-divider>
         </div>
         <div class="switcher">
-            <bk-tag style="margin-right: 10px">批量导入</bk-tag>
+            <bk-tag style="margin-right: 10px">批量申请</bk-tag>
             <bk-switcher v-model="showMultiImport" theme="primary"></bk-switcher>
         </div>
         <div class="info-table" v-if="showInfoForm">
@@ -291,14 +291,14 @@
                 showMultiImport: false,
                 excelFiles: [],
                 inputVisible: false,
-                multiInput: {
+                multiInput: { // 批量导入时所需填写的表格数据
                     leaders: '无',
                     campus: '',
                     college: '',
                     specificLocation: '',
                     applyReason: ''
                 },
-                formData: {
+                formData: { // 单个导入时所需填写的表格数据
                     applicant: '',
                     leaders: '无',
                     goodName: '',
@@ -311,8 +311,8 @@
                     applyReason: ''
                 },
                 precision: 0,
-                successApply: [],
-                allSuccessApply: [],
+                successApply: [], // 页面展示数据
+                allSuccessApply: [], // 所有数据
                 selected: {
                     selectedRows: []
                 }, // 存放被选中行数
@@ -321,8 +321,8 @@
                     count: 50,
                     limit: 10
                 },
-                campusList: [],
-                collegeList: [],
+                campusList: [], // 校区列表
+                collegeList: [], // 学院列表
                 rules: {
                     goodName: [
                         {
@@ -377,18 +377,17 @@
             }
         },
         watch: {
-            showMultiImport: function (val) {
+            showMultiImport: function (val) { // 监听批量导入页面是否展示
                 this.changUploadName()
                 this.showInfoForm = !val
             },
-            'formData.campus': function (val) {
+            'formData.campus': function (val) { // 监听单个导入时的页面表格的校区变量
                 const parentCode = this.getParentCode(val)
                 this.$http.get(getSubPositionListUrl, { params: { parent_code: parentCode } }).then(res => {
                     this.collegeList = res.data
-                    console.log('this.collegeList', this.collegeList)
                 })
             },
-            'multiInput.campus': function (val) {
+            'multiInput.campus': function (val) { // 监听批量导入时的页面表格的校区变量
                 const parentCode = this.getParentCode(val)
                 this.$http.get(getSubPositionListUrl, { params: { parent_code: parentCode } }).then(res => {
                     this.collegeList = res.data
@@ -414,7 +413,7 @@
                     this.multiInput.leaders = res.data
                 })
             },
-            getParentCode (val) {
+            getParentCode (val) { // 获取校区的编码
                 let parentCode = ''
                 for (let index = 0; index < this.campusList.length; index++) {
                     if (this.campusList[index].id === val) {
@@ -424,18 +423,18 @@
                 }
                 return parentCode
             },
-            getRootPositionList () {
+            getRootPositionList () { // 获取校区列表
                 this.$http.get(getRootPositionListUrl).then(res => {
                     this.campusList = res.data
                 })
             },
-            changUploadName () {
+            changUploadName () { // 改变上传文件组件显示文本
                 const importDom = document.querySelector('.file-wrapper')
                 if (importDom !== undefined && importDom !== null) {
                     document.querySelector('.file-wrapper').setAttribute('bk-lablename', '选择文件')
                 }
             },
-            commitMultiApply () {
+            commitMultiApply () { // 批量申请触发
                 if (this.selected.selectedRows.length === 0) {
                     this.handleError({ theme: 'warning' }, '未选择任何数据')
                     return
@@ -494,7 +493,7 @@
             multiInputCollegeLocationIdToName (obj) {
                 return obj.id === this.multiInput.college
             },
-            commitApply () {
+            commitApply () { // 单个申请触发
                 this.$refs.infoForm.validate().then(validator => {
                     const applyList = []
                     // eslint-disable-next-line no-new-object
@@ -548,12 +547,12 @@
                 }
                 return fmt
             },
-            multiImport () {
+            multiImport () { // 批量导入触发
                 this.showInfoForm = false
                 this.showMultiImport = true
                 this.getSuccessApply(this.pagination.current)
             },
-            getSuccessApply (page) {
+            getSuccessApply (page) { // 获取批量导入后校验成功的数据
                 this.successApply = []
                 for (let i = (page - 1) * this.pagination.limit; this.successApply.length < this.pagination.limit && i < this.allSuccessApply.length; i++) {
                     this.successApply.push(this.allSuccessApply[i])
@@ -573,7 +572,6 @@
                 } else {
                     this.selected.selectedRows.push(row.id)
                 }
-                console.log('this.selected.selectedRows', this.selected.selectedRows)
             },
             selectAll () { // 全选时触发函数
                 let ifFullPage = true
@@ -602,7 +600,6 @@
                         this.selected.selectedRows.push(this.successApply[index].id)
                     }
                 }
-                console.log('this.selected.selectedRows', this.selected.selectedRows)
             },
             upload (file) { // 上传文件函数
                 this.getBase64(file.fileObj.origin).then(res => {

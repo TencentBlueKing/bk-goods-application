@@ -20,6 +20,27 @@
                             </router-link>
                         </div>
                     </ol>
+                    <bk-popover theme="light navigation-message" :arrow="false" offset="-20, 10" placement="bottom-start" :tippy-options="{ 'hideOnClick': false }">
+                        <div class="header-user">
+                            admin
+                            <i class="bk-icon icon-down-shape"></i>
+                        </div>
+                        <template slot="content">
+                            <ul class="monitor-navigation-admin">
+                                <li class="nav-item" v-for="userItem in user.list" :key="userItem" @click="PUSH(userItem)">
+                                    {{userItem.name}}
+                                </li>
+                            </ul>
+                            <bk-dialog v-model="userCenterDialogVisible" title="个人信息"
+                                :width="700"
+                                :esc-close="false"
+                                :show-footer="false">
+                                <div style="width: 99%; margin: 0 auto">
+                                    <user-center ref="userCenter"></user-center>
+                                </div>
+                            </bk-dialog>
+                        </template>
+                    </bk-popover>
                 </div>
             </template>
             <div class="monitor-navigation-content">
@@ -42,8 +63,13 @@
 
     import { bus } from '@/common/bus'
 
+    import userCenter from './views/userCenter/userCenter.vue'
+
+    const judgeIdentityUrl = '/apply/if_leader_or_secretary'
+
     export default {
         name: 'monitor-navigation',
+        components: { userCenter },
         data () {
             return {
                 routerKey: +new Date(),
@@ -69,10 +95,25 @@
                             id: 1,
                             path: 'applyHome',
                             show: true
+                        },
+                        {
+                            name: '申请管理',
+                            id: 2,
+                            path: 'applyManagement',
+                            show: false
                         }
                     ],
                     active: 0,
                     bizId: 1
+                },
+                user: {
+                    list: [
+                        {
+                            name: '个人中心',
+                            id: '',
+                            path: ''
+                        }
+                    ]
                 },
                 userCenterDialogVisible: false
             }
@@ -84,6 +125,9 @@
             },
             curIsAdmin () {
                 return this.$store.getters.isAdmin === undefined ? false : this.$store.getters.isAdmin
+            },
+            curIsLeader () {
+                return this.$store.getters.isLeader === undefined ? false : this.$store.getters.isLeader
             }
         },
         created () {
@@ -109,9 +153,13 @@
             handleToggle (v) {
                 this.nav.toggle = v
             },
+            findApplyManagement (obj) {
+                return obj.id === 2
+            },
             getUserIdentity () {
                 const username = this.$store.state.user.username
                 let isAdmin = false
+                let isLeader = false
                 if (username === undefined) {
                     this.$bkMessage({
                         message: '用户身份信息获取失败',
@@ -120,10 +168,21 @@
                     })
                     return
                 }
-                this.$http.get('/apply/if_admin?username=' + username).then((res) => {
+                this.$http.get(judgeIdentityUrl).then((res) => {
                     if (res.result !== null) {
-                        isAdmin = res.result
-                        this.$store.dispatch('setUserIdentity', isAdmin)
+                        if (res.data.identity === 0) {
+                            isAdmin = true
+                            this.$store.dispatch('setUserIdentity', isAdmin)
+                            if (isAdmin === true) {
+                                this.header.list.find(this.findApplyManagement).show = true
+                            }
+                        } else if (res.data.identity === 1) {
+                            isLeader = true
+                            this.$store.dispatch('setUserIdentity', isLeader)
+                            if (isLeader === true) {
+                                this.header.list.find(this.findApplyManagement).show = true
+                            }
+                        }
                     } else {
                         this.$bkMessage({
                             message: res.message,
@@ -138,6 +197,16 @@
                         theme: 'error'
                     })
                 })
+            },
+            PUSH (item) {
+                if (item.name === '个人中心') {
+                    this.userCenterDialogVisible = true
+                    this.$refs.userCenter.loadData()
+                    this.header.active = -1
+                } else {
+                    this.$router.push(item.path)
+                    this.header.active = -1
+                }
             }
         }
     }

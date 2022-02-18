@@ -14,6 +14,7 @@ Vue.use(VueRouter)
 
 const MainEntry = () => import(/* webpackChunkName: 'entry' */'@/views')
 const applyHome = () => import(/* webpackChunkName: 'applyHome' */'@/views/applyHome/applyHome.vue')
+const applyManagement = () => import(/* webpackChunkName: 'applyManagement' */'@/views/applyManagement/applyManagement.vue')
 const NotFound = () => import(/* webpackChunkName: 'none' */'@/views/404')
 
 const routes = [
@@ -28,6 +29,12 @@ const routes = [
                 alias: '',
                 name: 'applyHome',
                 component: applyHome
+            },
+            {
+                path: 'applyManagement',
+                alias: '',
+                name: 'applyManagement',
+                component: applyManagement
             }
         ]
     },
@@ -55,8 +62,8 @@ let canceling = true
 let pageMethodExecuting = true
 
 router.beforeEach(async (to, from, next) => {
-    if (store.state.isAdmin !== true && to.name === 'itemManagement') {
-        router.push({ name: 'purchaseHome' })
+    if (store.state.isAdmin !== true && store.state.isLeader !== true && to.name === 'applyManagement') {
+        router.push({ name: 'applyHome' })
     }
     canceling = true
     await cancelRequest()

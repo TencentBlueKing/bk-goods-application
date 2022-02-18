@@ -10,10 +10,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import datetime
 import json
 
-from apps.good_apply.models import Apply, Position
-from apps.good_apply.serializers import ApplySerializers
+from apps.good_apply.models import Apply, Position, Review
+from apps.good_apply.serializers import ApplySerializers, IDListSeralizers
 from apps.tools.auth_check import (get_users_in_group, is_leader_or_secretary,
                                    is_secretary, sub_users_in_group)
 from apps.tools.decorators import check_leader_or_secretary_permission
@@ -22,6 +23,7 @@ from apps.tools.param_check import (check_param_page, check_param_size,
 from apps.tools.response import get_result
 from blueapps.utils import get_client_by_request
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import render
 # 开发框架中通过中间件默认是需要登录态的，如有不需要登录的，可添加装饰器login_exempt
@@ -46,6 +48,7 @@ def get_position_list(request):
 @require_GET
 def get_root_position_list(request):
     """获取一级地区"""
+    # positions = Position.objects.filter(parent_code__isnull=True)
     positions = Position.objects.filter(parent_code__isnull=True)
     position_list = [position.to_json() for position in positions]
     return get_result({"data": position_list})
@@ -116,11 +119,84 @@ def if_admin(request):
     return get_result({"result": is_secretary(username)})
 
 
+@check_leader_or_secretary_permission
+@require_POST
+def examine_apply(request, leader_or_secretary):
+    username = request.user.username
+    body = request.body
+    body = json.loads(body)
+    apply_id_list = body.get('apply_id_list')
+    model = body.get('model')
+    remark = body.get('remark')
+
+    # 校验数据
+    if not check_param_str(remark):
+        result = {
+            "code": 400,
+            "result": False,
+            "message": "备注必须为字符串",
+            "data": {}
+        }
+        return get_result(result)
+
+    apply_id_list_serializer = IDListSeralizers(data={'apply_id_list': apply_id_list})
+
+    if not apply_id_list_serializer.is_valid():
+        message = get_error_message(apply_id_list_serializer)
+        result = {
+            "code": 400,
+            "result": False,
+            "message": message,
+            "data": {}
+        }
+        return get_result(result)
+
+    # 根据不同身份设置不同的审核结果以及身份标识
+    if leader_or_secretary == 0:  # 秘书
+        reviewer_identity = 1
+        review_result = 3
+    else:
+        reviewer_identity = 0
+        review_result = 2
+    if model == 'reject':  # 拒绝申请：
+        review_list = []
+        with transaction.atomic():
+            for apply_id in apply_id_list:
+                apply_obj = Apply.objects.filter(id=apply_id).first()
+                apply_obj.status = review_result
+                apply_obj.save()
+                review_obj = Review(apply_id=apply_id, reviewer=username,
+                                    reviewer_identity=reviewer_identity, result=2, reason=remark)
+                review_list.append(review_obj)
+            Review.objects.bulk_create(review_list)
+    elif model == 'agree':  # 同意申请
+        review_list = []
+        with transaction.atomic():
+            for apply_id in apply_id_list:
+                apply_obj = Apply.objects.filter(id=apply_id).first()
+                apply_obj.status = review_result
+                apply_obj.save()
+                review_obj = Review(apply_id=apply_id, reviewer=username,
+                                    reviewer_identity=reviewer_identity, result=1, reason=remark)
+                review_list.append(review_obj)
+            Review.objects.bulk_create(review_list)
+
+    if model == 'reject' or model == 'agree':
+        result = {
+            "code": 200,
+            "result": True,
+            "message": '审核成功',
+            "data": {}
+        }
+        return get_result(result)
+
+
 @require_GET
 def if_leader_or_secretary(request):
     """是否是秘书/管理员"""
     flag, leader_or_secretary = is_leader_or_secretary(request)
-    return get_result({"result": flag, "data": leader_or_secretary})
+    print('flag={}, leader_or_secretary={}'.format(type(flag), type(leader_or_secretary)))
+    return get_result({"result": flag, "data": {'identity': leader_or_secretary}})
 
 
 @check_leader_or_secretary_permission
@@ -171,7 +247,11 @@ def get_goods_apply(request, leader_or_secretary):
 
     # 时间-范围查询
     start_time = request.GET.get('start_time')
+    if not start_time:
+        start_time = '1970-1-1'
     end_time = request.GET.get('end_time')
+    if not end_time:
+        end_time = datetime.datetime.now().strftime('%Y-%m-%d')
     query = query & Q(create_time__range=(start_time, end_time))
 
     # 分页

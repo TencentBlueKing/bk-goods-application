@@ -62,3 +62,13 @@ class ApplySerializers(serializers.Serializer):
                                        error_messages={'max_length': '申请人username过长',
                                                        'required': '申请人不可为空',
                                                        'blank': '申请人不可为空'})
+
+
+class IDListSeralizers(serializers.Serializer):
+    apply_id_list = serializers.ListField(required=True,
+                                          error_messages={'required': '个人物资id列表不可为空',
+                                                          'invalid': '物资id列表参数不合法'},
+                                          child=serializers.IntegerField(min_value=1,
+                                                                         error_messages={'min_value': '个人物资存在不合法id',
+                                                                                         'invalid': '物资id类型不合法'}),
+                                          )

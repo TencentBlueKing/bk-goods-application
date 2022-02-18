@@ -22,13 +22,15 @@ const store = new Vuex.Store({
         mainContentLoading: false,
         // 系统当前登录用户
         user: {},
-        isAdmin: -1
+        isAdmin: -1,
+        isLeader: -1
     },
     // 公共 getters
     getters: {
         mainContentLoading: state => state.mainContentLoading,
         user: state => state.user,
-        isAdmin: state => state.isAdmin
+        isAdmin: state => state.isAdmin,
+        isLeader: state => state.isLeader
     },
     // 公共 mutations
     mutations: {
@@ -52,8 +54,12 @@ const store = new Vuex.Store({
             state.user = Object.assign({}, user)
         },
 
-        setIdentity (state, status) {
+        setIdentity (state, status) { // 秘书
             state.isAdmin = status
+        },
+
+        setLeaderIdentity (state, status) { // 组长
+            state.isLeader = status
         }
     },
     actions: {
