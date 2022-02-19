@@ -11,7 +11,7 @@
                             <bk-row class="condition-form-row">
                                 <bk-col :span="3">
                                     <div class="goodName">
-                                        <bk-form-item label="物品名" :property="'goodName'">
+                                        <bk-form-item label="物品名称" :property="'goodName'">
                                             <bk-input v-model="formData.good_name" placeholder="请输入"></bk-input>
                                         </bk-form-item>
                                     </div>
@@ -120,8 +120,8 @@
                 <bk-table-column label="备注" prop="apply_time"></bk-table-column>
                 <bk-table-column label="操作" width="150">
                     <template slot-scope="props">
-                        <bk-button class="mr10" theme="primary" text @click="editHistory(props.row)" v-if="props.row.status === '管理员审核中' || props.row.status === '组长审核中'">编辑</bk-button>
-                        <bk-button class="mr10" theme="primary" text @click="deleteHistory(props.row)" v-if="props.row.status !== '审核完成'">删除</bk-button>
+                        <bk-button class="mr10" theme="primary" text @click="editHistory(props.row)" :disabled="props.row.status !== '组长审核中'">编辑</bk-button>
+                        <bk-button class="mr10" theme="primary" text @click="deleteHistory(props.row)" :disabled="props.row.status === '管理员审核中'">删除</bk-button>
                     </template>
                 </bk-table-column>
             </bk-table>
@@ -135,11 +135,43 @@
                     :confirm-fn="confirmEdit"
                     ok-text="确定修改"
                     title="编辑申请记录">
-                    <div class="input-remark">
+                    <div>
                         <bk-form :label-width="100" :model="remark" :rules="rules" ref="remark">
-                            <bk-form-item label="备注" :required="true" :property="'inputRemark'">
-                                <bk-input type="textarea" v-model="remark" placeholder="请输入"></bk-input>
-                            </bk-form-item>
+                            <bk-container :col="12" :margin="6">
+                                <bk-row style="margin: 0 0 30px 0;">
+                                    <bk-col :span="6">
+                                        <div>
+                                            <bk-form-item label="物品名称" :property="'goodName'">
+                                                <bk-input v-model="editFormData.good_name" placeholder="请输入"></bk-input>
+                                            </bk-form-item>
+                                        </div>
+                                    </bk-col>
+                                    <bk-col :span="6">
+                                        <div>
+                                            <bk-form-item label="物品编号" :property="'goodCode'">
+                                                <bk-input v-model="editFormData.good_code" placeholder="请输入"></bk-input>
+                                            </bk-form-item>
+                                        </div>
+                                    </bk-col>
+                                </bk-row>
+                                <bk-row style="margin: 0 0 30px 0;">
+                                    <bk-col :span="6">
+                                        <div>
+                                            <bk-form-item label="申请原因" :property="'applyReason'">
+                                                <bk-input v-model="editFormData.reason" placeholder="请输入"></bk-input>
+                                            </bk-form-item>
+                                        </div>
+                                    </bk-col>
+                                    <bk-col :span="6">
+                                        <div class="apply-num">
+                                            <bk-form-item
+                                                label="申请数量">
+                                                <bk-input type="number" :min="1" :precision="precision" v-model="editFormData.num"></bk-input>
+                                            </bk-form-item>
+                                        </div>
+                                    </bk-col>
+                                </bk-row>
+                            </bk-container>
                         </bk-form>
                     </div>
                 </bk-dialog>
@@ -153,14 +185,7 @@
                     :header-position="'center'"
                     :confirm-fn="confirmDelete"
                     ok-text="确定删除"
-                    title="删除申请记录">
-                    <div class="input-remark">
-                        <bk-form :label-width="100" :model="remark" :rules="rules" ref="remark">
-                            <bk-form-item label="备注" :required="true" :property="'inputRemark'">
-                                <bk-input type="textarea" v-model="remark" placeholder="请输入"></bk-input>
-                            </bk-form-item>
-                        </bk-form>
-                    </div>
+                    title="确定删除记录？">
                 </bk-dialog>
             </div>
         </div>
@@ -191,6 +216,13 @@
                     size: 10,
                     page: 1
                 },
+                editFormData: {
+                    good_name: '',
+                    good_code: '',
+                    reason: '',
+                    num: 1
+                },
+                precision: 0,
                 editDialogVisible: false,
                 deleteDialogVisible: false,
                 isDropdownShow: false,
@@ -399,6 +431,11 @@
             margin: 0 20px 10px 0;
             .multi-export:hover {
 
+            }
+        }
+        .edit-history-dialog {
+            .edit-table-row {
+                
             }
         }
     }
