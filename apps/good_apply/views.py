@@ -18,8 +18,9 @@ from apps.good_apply.serializers import ApplySerializers, IDListSeralizers
 from apps.tools.auth_check import (get_users_in_group, is_leader_or_secretary,
                                    is_secretary, sub_users_in_group)
 from apps.tools.decorators import check_leader_or_secretary_permission
-from apps.tools.param_check import (check_param_page, check_param_size,
-                                    check_param_str, get_error_message)
+from apps.tools.param_check import (check_param_id, check_param_page,
+                                    check_param_size, check_param_str,
+                                    get_error_message)
 from apps.tools.response import get_result
 from blueapps.utils import get_client_by_request
 from django.core.paginator import Paginator
@@ -209,7 +210,7 @@ def get_apply_users(request, leader_or_secretary):
                  for user in get_users_in_group(request, group_id=6)]
     else:  # 组长
         users = sub_users_in_group(request, username=request.user.username, group_id=6)
-    return get_result({"result": users})
+    return get_result({"data": users})
 
 
 @check_leader_or_secretary_permission
@@ -268,3 +269,158 @@ def get_goods_apply(request, leader_or_secretary):
     data = {"total_num": applys.count(),
             "apply_list": [apply.to_json() for apply in cur_applys]}
     return get_result({'data': data})
+
+
+@require_GET
+def get_self_good_apply_list(request):
+    """
+    查询自己的物资申请
+    """
+    sql_str = (
+        "select apply.id, apply.good_code, apply.good_name, "
+        "apply.create_time as create_time, apply.num, apply.reason, "
+        "(case apply.`status` "
+        "when 0 then '申请终止' "
+        "when 1 then '组长审核中' "
+        "when 2 then '管理员审核中' "
+        "when 3 then '审核完成' "
+        "end) as `status`,"
+        "review.reviewer, review.result, "
+        "review.create_time as review_time, review.reason as review_reason "
+        "from good_apply_apply apply "
+        "left join (select apply_id, reviewer,"
+        "(case result "
+        "when 1 then '通过' "
+        "when 2 then '未通过' "
+        "end) as result,"
+        "create_time, reason from good_apply_review "
+        "order by create_time desc limit 1) as review "
+        "on review.apply_id = apply.id "
+        "where apply.apply_user = %s "
+        "and apply.create_time between %s and %s "
+    )
+    params = [request.user.username]
+    # 时间-范围查询
+    start_time = request.GET.get('start_time')
+    if not start_time:
+        start_time = '1970-1-1'
+    params.append(start_time)
+    end_time = request.GET.get('end_time')
+    if not end_time:
+        end_time = datetime.datetime.now().strftime('%Y-%m-%d')
+    params.append(end_time)
+
+    # 物品编码、物品名、申请原因模糊查询
+    conditions = ('good_code', 'good_name', 'reason')
+    for condition in conditions:
+        # 查询筛选值
+        condition_value = request.GET.get(condition, None)
+        if check_param_str(condition_value):
+            # 新建模糊查询筛选条件
+            sql_str = sql_str + u"and apply.{} like '%%s%'".format(condition)
+            # 参数拼接
+            params.append(condition_value)
+
+    # 审核状态查询
+    status = request.GET.get('status', None)
+    if status and isinstance(status, int):
+        sql_str = sql_str + 'and apply.status = %s'
+
+    # 分页
+    page = request.GET.get('page', 1)
+    page = check_param_page(page)
+    size = request.GET.get('size', 10)
+    size = check_param_size(size)
+
+    apply_infos = Apply.objects.raw(sql_str, params)
+    paginator = Paginator(apply_infos, size)
+    cur_applys = paginator.get_page(page)
+    apply_list = []
+    for apply_info in cur_applys:
+        apply_list.append({
+            "id": apply_info.id,
+            "good_code": apply_info.good_code,
+            "good_name": apply_info.good_name,
+            "create_time": apply_info.create_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "num": apply_info.num,
+            "reason": apply_info.reason,
+            "status": apply_info.status,
+            "reviewer": apply_info.reviewer,
+            "review_time": apply_info.review_time,
+            "review_result": apply_info.result,
+            "review_reason": apply_info.review_reason
+        })
+    return get_result({"data": {"total_num": len(apply_infos), "apply_list": apply_list}})
+
+
+@require_GET
+def get_good_apply(request):
+    """根据id获取物资申请信息"""
+    id = request.GET.get("id", None)
+    if not check_param_id(id):
+        return get_result({"code": 1, "result": False, "message": "物资申请id不合法"})
+    try:
+        apply = Apply.objects.get(id=id)
+    except Apply.DoesNotExist:
+        return get_result({"code": 1, "result": False, "message": "物资申请不存在"})
+    return get_result({"data": apply.to_json()})
+
+
+@require_POST
+def update_good_apply(request):
+    """编辑物资申请"""
+    apply = json.loads(request.body)
+    id = apply.get("id")
+    if not check_param_id(id):
+        return get_result({"code": 1, "result": False, "message": "物资申请id不合法"})
+    # 检查物资申请是否存在且该状态是否还可被修改
+    if not Apply.objects.filter(id=id, status=1).exists():
+        return get_result({"code": 1, "result": False,
+                           "message": "物资申请不存在或流程已被审核或已终止，信息不可修改"})   # ！ 被审核过的物资申请不不可以修改
+    # 修改参数校验
+    apply_serializers = ApplySerializers(data=apply)
+    if not apply_serializers.is_valid():
+        message = get_error_message(apply_serializers)
+        return get_result({"code": 1, "result": False, "message": message})
+    validated_data = apply_serializers.validated_data
+    positions = [validated_data.get('school'), validated_data.get('academy'), validated_data.get('detail_position')]
+    apply = {"good_code": validated_data.get('good_code'),
+             "good_name": validated_data.get('good_name'),
+             "num": validated_data.get('num'),
+             "require_date": validated_data.get('require_date'),
+             "reason": validated_data.get('reason'),
+             "position": ','.join(positions),
+             "apply_user": validated_data.get('apply_user')}
+    # 更新
+    Apply.objects.filter(id=id).update(**apply, update_time=datetime.datetime.now())
+    return get_result({"message": "修改物资申请信息成功"})
+
+
+@require_GET
+def stop_good_apply(request):
+    """终止物资申请"""
+    id = request.GET.get("id")
+    if not check_param_id(id):
+        return get_result({"code": 1, "result": False, "message": "物资申请id不合法"})
+    apply = Apply.objects.filter(id=id)
+    if not apply.exists():
+        return get_result({"code": 1, "result": False, "message": "物资申请不存在"})
+    if not (apply[0].status == 1 or apply[0].status == 2):
+        return get_result({"message": "物资申请不处于审核状态"})
+    apply.update(status=0, update_time=datetime.datetime.now())
+    return get_result({"message": "物资申请终止成功"})
+
+
+@require_GET
+def delete_good_apply(request):
+    """删除物资申请"""
+    id = request.GET.get("id")
+    if not check_param_id(id):
+        return get_result({"code": 1, "result": False, "message": "物资申请id不合法"})
+    apply = Apply.objects.filter(id=id)
+    if not apply.exists():
+        return get_result({"code": 1, "result": False, "message": "物资申请不存在"})
+    if apply[0].status == 2:
+        return get_result({"code": 1, "result": False, "message": "物资申请处于审核状态，不可删除"})
+    apply.delete()
+    return get_result({"message": "物资申请删除成功"})

@@ -29,5 +29,11 @@ urlpatterns = (
     path("get_apply_users", views.get_apply_users),  # 获取可管理的用户
     path("get_goods_apply", views.get_goods_apply),  # （筛选）获取需要需要审核的物资申请
     path("if_admin", views.if_admin),  # 判断是否秘书
-    path("examine_apply", views.examine_apply)  # 审核申请
+    path("examine_apply", views.examine_apply),  # 审核申请
+    path("get_self_good_apply_list", views.get_self_good_apply_list),  # 获取个人物资申请详情列表
+    path("get_good_apply", views.get_good_apply),  # 根据id获得物资申请信息
+    path("update_good_apply", views.update_good_apply),  # 修改物资审核信息
+    path("stop_good_apply", views.stop_good_apply),  # 终止物资申请
+    path("delete_good_apply", views.delete_good_apply),  # 删除物资申请
+
 )
