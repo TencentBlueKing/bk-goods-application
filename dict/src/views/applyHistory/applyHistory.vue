@@ -308,6 +308,10 @@
                 this.deleteDialogVisible = false
             },
             exportData () {
+                if (this.selected.selectedRows.length === 0) {
+                    this.handleError({ theme: 'warning' }, '未选择任何数据')
+                    return
+                }
                 this.$http.post(deriveExcelUrl, { model: 3, dataList: this.selected }).then(res => {
                     if (res && res.result === true) {
                         const link = document.createElement('a') // 生成a元素，用以实现下载功能
