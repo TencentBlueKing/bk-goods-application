@@ -107,7 +107,6 @@ class DeriveModel(object):
                             '期望领用日期', '标准领用日期', '备注', '配送方式', '验收人', '收货信息']  # excel标题
 
     def init_history_data(self):  # 初始化历史记录数据
-        print("self.goods['selectedRows']", self.goods['selectedRows'])
         for apply_id in self.goods['selectedRows']:  # 遍历获取单个物品id
             unit = []  # 存放一行excel数据
 

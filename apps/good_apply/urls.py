@@ -35,5 +35,6 @@ urlpatterns = (
     path("update_good_apply", views.update_good_apply),  # 修改物资审核信息
     path("stop_good_apply", views.stop_good_apply),  # 终止物资申请
     path("delete_good_apply", views.delete_good_apply),  # 删除物资申请
+    path("get_apply_status", views.get_apply_status)  # 获取所有申请的状态
 
 )

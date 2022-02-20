@@ -26,7 +26,7 @@
                                 <bk-col :span="3">
                                     <div class="applyReason">
                                         <bk-form-item label="申请原因" :property="'applyReason'">
-                                            <bk-input v-model="formData.reason" placeholder="请输入"></bk-input>
+                                            <bk-input v-model="formData.apply_reason" placeholder="请输入"></bk-input>
                                         </bk-form-item>
                                     </div>
                                 </bk-col>
@@ -193,7 +193,12 @@
 </template>
 
 <script>
-    const deriveExcelUrl = '/purchase/derive_excel'
+    const deriveExcelUrl = '/purchase/derive_excel' // 导出数据接口
+    const getGoodApplyListUrl = '/apply/get_self_good_apply_list' // 获取申请列表接口
+    const getGoodApplyByIdUrl = '/apply/get_good_apply' // 根据id查找单个apply
+    const editApplyUrl = '/apply/update_good_apply' // 更新apply信息
+    const deleteApplyUrl = '/apply/delete_good_apply' // 删除apply
+    const getApplyStatusUrl = '/apply/get_apply_status' // 获取所有申请状态
 
     export default {
         data () {
@@ -222,44 +227,13 @@
                     reason: '',
                     num: 1
                 },
+                deleteApplyId: 0,
                 precision: 0,
                 editDialogVisible: false,
                 deleteDialogVisible: false,
                 isDropdownShow: false,
                 statusList: [],
-                history: [
-                    {
-                        id: 1,
-                        good_name: 1,
-                        status: '组长审核中'
-                    },
-                    {
-                        id: 2,
-                        good_name: 2,
-                        status: '管理员审核中'
-                    },
-                    {
-                        id: 3,
-                        good_name: 3,
-                        status: '组长审核中'
-                    },
-                    {
-                        id: 4,
-                        good_name: 4,
-                        status: '审核完成'
-                    },
-                    {
-                        id: 5,
-                        good_name: 5,
-                        status: '组长审核中'
-                    },
-                    {
-                        id: 6,
-                        good_name: 6,
-                        status: '管理员审核中'
-                    }
-                    
-                ],
+                history: [],
                 pagination: { // 分页器数据
                     current: 1,
                     count: 10,
@@ -270,7 +244,36 @@
                 }
             }
         },
+        created () {
+            this.loadData()
+        },
         methods: {
+            loadData () {
+                this.getGoodApplyList()
+                this.getApplyStatus()
+            },
+            getApplyStatus () {
+                this.$http.get(getApplyStatusUrl).then(res => {
+                    if (res) {
+                        this.statusList = res.data
+                    }
+                })
+            },
+            getGoodApplyList () {
+                this.$http.get(getGoodApplyListUrl, { params: {
+                    start_time: this.get_params.start_time,
+                    end_time: this.get_params.end_time,
+                    good_code: this.get_params.good_code,
+                    good_name: this.get_params.good_name,
+                    reason: this.get_params.reason,
+                    status: this.get_params.status,
+                    page: this.get_params.page,
+                    size: this.get_params.size
+                } }).then(res => {
+                    this.history = res.data.apply_list
+                    this.pagination.count = res.data.total_num
+                })
+            },
             search () {
                 if (this.formData.start_date) {
                     this.get_params.start_time = this.dateFormat('YYYY-mm-dd', this.formData.start_date)
@@ -282,6 +285,7 @@
                 } else {
                     this.get_params.end_time = ''
                 }
+                this.get_params.status = this.formData.status
                 if (this.formData.status === 999 || this.formData.status === '999') {
                     this.get_params.status = ''
                 }
@@ -292,20 +296,74 @@
                 this.pagination.current = 1
                 this.get_params.page = this.pagination.current
                 console.log('this.get_params', this.get_params)
+                this.getGoodApplyList()
             },
-            editHistory () {
+            editHistory (row) {
                 this.editDialogVisible = true
+                this.$http.get(getGoodApplyByIdUrl, { params: {
+                    id: row.id
+                } }).then(res => {
+                    if (res) {
+                        console.log('id_apply', res)
+                        // this.editFormData.good_name = res.data.good_name
+                        // this.editFormData.good_code = res.data.good_code
+                        // this.editFormData.reason = res.data.reason
+                        // this.editFormData.num = res.data.num
+                        this.editFormData = res.data
+                    }
+                })
             },
-            deleteHistory () {
+            deleteHistory (row) {
                 this.deleteDialogVisible = true
+                this.deleteApplyId = row.id
             },
             confirmEdit () {
-                console.log('confirmEdit')
                 this.editDialogVisible = false
+                let school = ''
+                let academy = ''
+                let detailPosition = ''
+                if (this.editFormData.position) {
+                    const positionList = this.editFormData.position.split(',')
+                    console.log('positionList', positionList)
+                    school = positionList[0]
+                    academy = positionList[1]
+                    if (positionList.length > 2) {
+                        detailPosition = positionList[2]
+                    }
+                    console.log('school', school)
+                    console.log('academy', academy)
+                    console.log('detail_position', detailPosition)
+                }
+                this.$http.post(editApplyUrl, {
+                    apply_time: this.editFormData.apply_time,
+                    apply_user: this.editFormData.apply_user,
+                    good_code: this.editFormData.good_code,
+                    good_name: this.editFormData.good_name,
+                    id: this.editFormData.id,
+                    num: this.editFormData.num,
+                    school: school,
+                    academy: academy,
+                    detail_position: detailPosition,
+                    reason: this.editFormData.reason,
+                    require_date: this.editFormData.require_date,
+                    status: this.editFormData.status
+                }).then(res => {
+                    if (res.result === true) {
+                        this.handleError({ theme: 'success' }, res.message)
+                        this.getGoodApplyList()
+                    }
+                })
             },
             confirmDelete () {
-                console.log('confirmDelete')
                 this.deleteDialogVisible = false
+                this.$http.get(deleteApplyUrl, { params: {
+                    id: this.deleteApplyId
+                } }).then(res => {
+                    if (res.result === true) {
+                        this.handleError({ theme: 'success' }, res.message)
+                        this.getGoodApplyList()
+                    }
+                })
             },
             exportData () {
                 if (this.selected.selectedRows.length === 0) {
@@ -319,9 +377,11 @@
                         document.body.appendChild(link)
                         link.click()
                         document.body.removeChild(link)
-                        const fileName = res.data.file_url.split('/').slice(-1)[0] // 获取文件名
-                        const dirName = res.data.file_url.split('/').slice(-2, -1)[0] // 获取文件夹名
-                        this.fileCache.push([fileName, dirName])
+                        // const fileName = res.data.file_url.split('/').slice(-1)[0] // 获取文件名
+                        // const dirName = res.data.file_url.split('/').slice(-2, -1)[0] // 获取文件夹名
+                        // this.fileCache.push([fileName, dirName])
+                        this.getGoodApplyList()
+                        this.selected.selectedRows = []
                     } else if (res && res.result === false) {
                         this.handleError({ theme: 'error' }, res.message)
                     }
@@ -376,12 +436,12 @@
                 this.pagination.current = 1
                 this.get_params.page = this.pagination.current
                 this.selected.selectedRows = []
-                // this.getApply()
+                this.getGoodApplyList()
             },
             handlePageChange (page) { // 修改当前页触发函数
                 this.pagination.current = page
                 this.get_params.page = this.pagination.current
-                // this.getApply()
+                this.getGoodApplyList()
             },
             dateFormat (fmt, date) {
                 let ret
