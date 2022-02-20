@@ -71,7 +71,7 @@ class Apply(TimeBasic):
             "position": self.position,
             "status": self.get_status_display(),
             "apply_user": self.apply_user,
-            "apply_time": self.create_time
+            "apply_time": self.create_time.strftime("%Y-%m-%d %H:%M:%S")
         }
 
 
