@@ -176,14 +176,16 @@
                 this.$http.get(judgeIdentityUrl).then((res) => {
                     if (res.result !== null) {
                         if (res.data.identity === 0) {
+                            // console.log('res.data.identity', res.data.identity)
                             isAdmin = true
                             this.$store.dispatch('setUserIdentity', isAdmin)
                             if (isAdmin === true) {
                                 this.header.list.find(this.findApplyManagement).show = true
                             }
                         } else if (res.data.identity === 1) {
+                            // console.log('res.data.identity', res.data.identity)
                             isLeader = true
-                            this.$store.dispatch('setUserIdentity', isLeader)
+                            this.$store.dispatch('setUserLeaderIdentity', isLeader)
                             if (isLeader === true) {
                                 this.header.list.find(this.findApplyManagement).show = true
                             }

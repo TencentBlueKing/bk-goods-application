@@ -66,11 +66,7 @@ def get_sub_position_list(request):
     return get_result({"data": position_list})
 
 
-@require_GET
-def get_leader(request):
-    """根据用户username获取组长"""
-    username = request.user.username
-    # 查询蓝鲸平台，单个用户信息-返回组长信息
+def get_leaders_fun(request, username):
     client = get_client_by_request(request=request)
     response = client.usermanage.retrieve_user(lookup_field="username",
                                                id=username,
@@ -79,15 +75,43 @@ def get_leader(request):
     if not result:
         # 请求接口失败，返回请求结果，包括出错信息
         return response
-    leaders = [leader.get('username') for leader in response.get('data').get('leader')]  # !默认有一个admin组长
-    return get_result({"message": "上传图片成功", "data": ','.join(leaders)})
+    leaders = [leader.get('username') for leader in response.get('data').get('leader')]  # !默认有一个admin导员
+    return leaders
+
+
+@require_GET
+def get_leader(request):
+    """根据用户username获取导员"""
+    username = request.user.username
+    flag, leader_or_secretary = is_leader_or_secretary(request)
+    # 查询蓝鲸平台，单个用户信息-返回组长信息
+    leaders = []
+    if not flag:
+        leaders = get_leaders_fun(request, username)
+    elif leader_or_secretary == 1:
+        users = sub_users_in_group(request, username=username, group_id=6)
+        username = users[0]['username']
+        leaders = get_leaders_fun(request, username)
+    if leaders:
+        return get_result({"message": "获取成功", "data": ','.join(leaders)})
+    elif leader_or_secretary == 0:
+        return get_result({"message": "获取成功", "code": "220"})
+    else:
+        return get_result({"code": "400", "message": "获取失败"})
 
 
 @require_POST
 def submit_apply_list(request):
     """提交物资申请"""
     req = json.loads(request.body)
+    username = request.user.username
     apply_list = req.get('apply_list')
+    flag, leader_or_secretary = is_leader_or_secretary(request)
+    apply_status = 1
+    if leader_or_secretary == 0:
+        apply_status = 3
+    elif leader_or_secretary == 1:
+        apply_status = 2
     if not isinstance(apply_list, list):
         return get_result({'result': False, 'message': '物资申请列表参数不合法'})
     # 拼接新增数据
@@ -106,10 +130,29 @@ def submit_apply_list(request):
                       require_date=validated_data.get('require_date'),
                       reason=validated_data.get('reason'),
                       position=','.join(positions),
+                      status=apply_status,
                       apply_user=validated_data.get('apply_user'))
         applys.append(apply)
+
     # 批量添加物资申请表
+    old_apply_ids = list(Apply.objects.values_list('id', flat=True))
     Apply.objects.bulk_create(applys)
+    if flag:
+        reviews = []
+        new_create_apply_ids = Apply.objects.exclude(id__in=old_apply_ids).values_list('id', flat=True)
+        if leader_or_secretary == 0:  # 管理员
+            for new_create_apply_id in new_create_apply_ids:
+                review = Review(apply_id=new_create_apply_id, reviewer=username, reviewer_identity=2,
+                                result=1, reason="管理员自身提交的申请，无需审核")
+                reviews.append(review)
+        elif leader_or_secretary == 1:  # 导员
+            for new_create_apply_id in new_create_apply_ids:
+                review = Review(apply_id=new_create_apply_id, reviewer=username, reviewer_identity=1,
+                                result=1, reason="导员自身提交的申请，第一级无需审核")
+                reviews.append(review)
+        if reviews:
+            Review.objects.bulk_create(reviews)
+
     return get_result({"message": "物资申请提交成功"})
 
 
@@ -154,10 +197,10 @@ def examine_apply(request, leader_or_secretary):
 
     # 根据不同身份设置不同的审核结果以及身份标识
     if leader_or_secretary == 0:  # 秘书
-        reviewer_identity = 1
+        reviewer_identity = 2
         review_result = 3
     else:
-        reviewer_identity = 0
+        reviewer_identity = 1
         if model == 'reject':
             review_result = 3
         elif model == 'agree':
@@ -208,13 +251,13 @@ def if_leader_or_secretary(request):
 
 @check_leader_or_secretary_permission
 def get_apply_users(request, leader_or_secretary):
-    """审批页面，获取申请人列表：秘书获取所有/组长获取本组的申请人"""
+    """审批页面，获取申请人列表：秘书获取所有/导员获取本组的申请人"""
     if leader_or_secretary == 0:  # 秘书
         users = [{'id': user.get('id'),
                   'username': user.get('username'),
                   'display_name': user.get('display_name')}
                  for user in get_users_in_group(request, group_id=6)]
-    else:  # 组长
+    else:  # 导员
         users = sub_users_in_group(request, username=request.user.username, group_id=6)
     return get_result({"data": users})
 
@@ -231,7 +274,7 @@ def get_goods_apply(request, leader_or_secretary):
         # 可查询的所有人
         user_usernames = [user.get('username') for user in get_users_in_group(request, group_id=6)]
     else:
-        # 组长，查询未审核
+        # 导员，查询未审核
         query = Q(status=1)
         users = sub_users_in_group(request, username=request.user.username, group_id=6)
         user_usernames = [user.get('username') for user in users]
@@ -287,7 +330,7 @@ def get_self_good_apply_list(request):
         "apply.create_time as create_time, apply.num, apply.reason, "
         "(case apply.`status` "
         "when 0 then '申请终止' "
-        "when 1 then '组长审核中' "
+        "when 1 then '导员审核中' "
         "when 2 then '管理员审核中' "
         "when 3 then '审核完成' "
         "end) as `status`,"
@@ -331,10 +374,8 @@ def get_self_good_apply_list(request):
     status = request.GET.get('status', None)
     if status and not isinstance(status, int):
         status = int(status)
-        print('status', status)
         sql_str = sql_str + 'and apply.status = {}'.format(status)
     elif status and isinstance(status, int):
-        print('status', status)
         sql_str = sql_str + 'and apply.status = {}'.format(status)
 
     # 分页

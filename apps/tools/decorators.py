@@ -18,13 +18,13 @@ def check_secretary_permission(func):
 
 def check_leader_or_secretary_permission(func):
     """
-    判断是否有组长或秘书权限
+    判断是否有导员或秘书权限
     """
     def inner(request, *args, **kwargs):
         flag, leader_or_secretary = is_leader_or_secretary(request)
         if flag:
             return func(request, leader_or_secretary=leader_or_secretary, *args, **kwargs)
         else:
-            return get_result({"code": 1, "result": False, "message": "您不是秘书和组长，没有权限进行相关操作"})
+            return get_result({"code": 1, "result": False, "message": "您不是秘书和导员，没有权限进行相关操作"})
 
     return inner

@@ -23,7 +23,7 @@
                         <bk-col :span="3">
                             <div class="group-leaders">
                                 <bk-form-item
-                                    label="组长"
+                                    :label="getInfoTableLabel()"
                                     :property="'leaders'">
                                     <bk-tag>{{ formData.leaders }}</bk-tag>
                                 </bk-form-item>
@@ -109,8 +109,7 @@
                                 <bk-form-item
                                     label="期望领用日期"
                                     :property="'getDate'"
-                                    :required="true"
-                                    :icon-offset="35">
+                                    :required="true">
                                     <bk-date-picker placeholder="请选择" :timer="false" v-model="formData.getDate" :disabled="false" style="width: 100%">
                                     </bk-date-picker>
                                 </bk-form-item>
@@ -151,7 +150,7 @@
                     @page-limit-change="handlePageLimitChange">
                     <bk-table-column type="selection" width="60"></bk-table-column>
                     <bk-table-column label="使用人" prop="applicant"></bk-table-column>
-                    <!-- <bk-table-column label="组长" prop="leaders"></bk-table-column> -->
+                    <!-- <bk-table-column label="导员" prop="leaders"></bk-table-column> -->
                     <bk-table-column label="物品编码" prop="goodCode"></bk-table-column>
                     <bk-table-column label="物品名称" prop="goodName"></bk-table-column>
                     <bk-table-column label="数量" prop="num"></bk-table-column>
@@ -188,7 +187,6 @@
             <div class="input-more">
                 <bk-dialog v-model="inputVisible"
                     theme="primary"
-                    :fullscreen="true"
                     :width="700"
                     :mask-close="false"
                     :header-position="'center'"
@@ -197,17 +195,17 @@
                     title="请完善信息">
                     <bk-form :label-width="130" ref="inputForm">
                         <bk-container :col="12" :margin="6">
-                            <bk-row style="margin-bottom: 50px;">
+                            <bk-row style="margin: 25px;">
                                 <bk-col :span="12">
                                     <div class="leaders">
                                         <bk-form-item
-                                            label="组长">
+                                            label="导员">
                                             <bk-tag>{{ multiInput.leaders }}</bk-tag>
                                         </bk-form-item>
                                     </div>
                                 </bk-col>
                             </bk-row>
-                            <bk-row style="margin-bottom: 50px;">
+                            <bk-row style="margin: 25px;">
                                 <bk-col :span="12">
                                     <div class="campus">
                                         <bk-form-item
@@ -225,7 +223,7 @@
                                     </div>
                                 </bk-col>
                             </bk-row>
-                            <bk-row style="margin-bottom: 50px;">
+                            <bk-row style="margin: 25px;">
                                 <bk-col :span="12">
                                     <div class="college">
                                         <bk-form-item
@@ -243,7 +241,7 @@
                                     </div>
                                 </bk-col>
                             </bk-row>
-                            <bk-row style="margin-bottom: 50px;">
+                            <bk-row style="margin: 25px;">
                                 <bk-col :span="12">
                                     <div class="specificLocation">
                                         <bk-form-item
@@ -255,7 +253,7 @@
                                     </div>
                                 </bk-col>
                             </bk-row>
-                            <bk-row style="margin-bottom: 50px;">
+                            <bk-row style="margin: 25px;">
                                 <bk-col :span="12">
                                     <div class="apply-reason">
                                         <bk-form-item
@@ -280,13 +278,15 @@
     const analysisExcelUrl = '/apply/analysis_apply_excel' // 解析excel文件数据接口
     const getRootPositionListUrl = '/apply/get_root_position_list' // 获取根地点接口
     const getSubPositionListUrl = '/apply/get_sub_position_list' // 获取子地点接口
-    const getLeadersUrl = '/apply/get_leader' // 获取组长接口
+    const getLeadersUrl = '/apply/get_leader' // 获取导员接口
     const commitApplyUrl = '/apply/submit_apply_list' // 提交申请接口
 
     export default {
         data () {
             return {
                 isDropdownShow: false,
+                isLeader: false,
+                isAdmin: false,
                 username: '',
                 showInfoForm: true,
                 showMultiImport: false,
@@ -397,6 +397,8 @@
         },
         created () {
             this.username = this.$store.state.user.username
+            this.isLeader = this.$store.state.isLeader
+            this.isAdmin = this.$store.state.isAdmin
             this.formData.applicant = this.username
             this.loadData() // 创建实例时加载数据
         },
@@ -408,10 +410,17 @@
                 this.getRootPositionList()
                 this.getLeaders()
             },
+            getInfoTableLabel () {
+                return '导员'
+            },
             getLeaders () {
                 this.$http.get(getLeadersUrl).then(res => {
-                    this.formData.leaders = res.data
-                    this.multiInput.leaders = res.data
+                    if (res) {
+                        if (res.result === true && res.code !== '220') {
+                            this.formData.leaders = res.data
+                            this.multiInput.leaders = res.data
+                        }
+                    }
                 })
             },
             getParentCode (val) { // 获取校区的编码
@@ -707,6 +716,8 @@
     .info-table {
         width: 100%;
         padding: 30px 0;
+        overflow: hidden;
+        height:calc(100vh - 280px);
         .info-table-row {
             margin-bottom: 50px;
             .commit {

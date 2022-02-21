@@ -1,7 +1,7 @@
 <template>
     <div class="applyManagement-wrapper">
         <div class="header">
-            <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span @click="refresh" style="cursor: pointer">申请管理</span></bk-tag></bk-divider>
+            <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span>申请管理</span></bk-tag></bk-divider>
         </div>
         <div class="condition-form">
             <bk-form :label-width="130" :model="formData" ref="infoForm">
@@ -247,7 +247,7 @@
             getApplyUser () { // 获取小组成员
                 this.$http.get(getApplyUserUrl).then(res => {
                     if (res) {
-                        this.applicantList = res.result
+                        this.applicantList = res.data
                     }
                 })
             },
@@ -299,7 +299,11 @@
                     const examineApplyParamsIdList = this.selected.selectedRows
                     const remark = this.remark
                     this.$http.post(examineApplyUrl, { apply_id_list: examineApplyParamsIdList, model: 'agree', remark: remark }).then(res => {
-                        
+                        if (res.result === true) {
+                            this.handleError({ theme: 'success' }, res.message)
+                        } else if (res.result === false) {
+                            this.handleError({ theme: 'error' }, res.message)
+                        }
                     })
                     this.selected.selectedRows = []
                     this.dialogVisible = false
@@ -324,7 +328,11 @@
                     const examineApplyParamsIdList = this.selected.selectedRows
                     const remark = this.remark
                     this.$http.post(examineApplyUrl, { apply_id_list: examineApplyParamsIdList, model: 'reject', remark: remark }).then(res => {
-                        
+                        if (res.result === true) {
+                            this.handleError({ theme: 'success' }, res.message)
+                        } else if (res.result === false) {
+                            this.handleError({ theme: 'error' }, res.message)
+                        }
                     })
                     this.selected.selectedRows = []
                     this.dialogVisible = false

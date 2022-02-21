@@ -1,7 +1,7 @@
 <template>
     <div class="applyHistory-wrapper">
         <div class="header">
-            <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span @click="refresh" style="cursor: pointer">历史记录</span></bk-tag></bk-divider>
+            <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span>历史记录</span></bk-tag></bk-divider>
         </div>
         <div class="condition-form">
             <bk-form :label-width="130" :model="formData" ref="infoForm">
@@ -120,7 +120,7 @@
                 <bk-table-column label="备注" prop="apply_time"></bk-table-column>
                 <bk-table-column label="操作" width="150">
                     <template slot-scope="props">
-                        <bk-button class="mr10" theme="primary" text @click="editHistory(props.row)" :disabled="props.row.status !== '组长审核中'">编辑</bk-button>
+                        <bk-button class="mr10" theme="primary" text @click="editHistory(props.row)" :disabled="props.row.status !== '导员审核中'">编辑</bk-button>
                         <bk-button class="mr10" theme="primary" text @click="deleteHistory(props.row)" :disabled="props.row.status === '管理员审核中'">删除</bk-button>
                     </template>
                 </bk-table-column>
