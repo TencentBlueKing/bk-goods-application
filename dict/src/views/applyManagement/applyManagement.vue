@@ -133,7 +133,7 @@
                 <bk-table-column label="使用人" prop="apply_user"></bk-table-column>
                 <bk-table-column label="物品编码" prop="good_code"></bk-table-column>
                 <bk-table-column label="物品名称" prop="good_name"></bk-table-column>
-                <bk-table-column label="物品类型" prop="goodType"></bk-table-column>
+                <!-- <bk-table-column label="物品类型" prop="goodType"></bk-table-column> -->
                 <bk-table-column label="数量" prop="num"></bk-table-column>
                 <bk-table-column label="申请时间" prop="apply_time"></bk-table-column>
                 <bk-table-column label="地址" prop="position"></bk-table-column>
@@ -178,6 +178,7 @@
     export default {
         data () {
             return {
+                isDropdownShow: false,
                 dialogVisible: false,
                 remark: '无', // 审核备注
                 formData: { // 查询条件表单数据
@@ -343,9 +344,13 @@
             search () { // 按下查询按钮时触发
                 if (this.formData.startDate) {
                     this.get_params.start_time = this.dateFormat('YYYY-mm-dd', this.formData.startDate)
+                } else {
+                    this.get_params.start_time = ''
                 }
                 if (this.formData.endDate) {
                     this.get_params.end_time = this.dateFormat('YYYY-mm-dd', this.formData.endDate)
+                } else {
+                    this.get_params.end_time = ''
                 }
                 if (this.formData.applicant === 0 || this.formData.applicant === '0') {
                     this.get_params.apply_user = ''

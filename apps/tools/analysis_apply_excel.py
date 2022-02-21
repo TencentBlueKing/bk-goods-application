@@ -44,7 +44,7 @@ def analysis_apply_excel(request):
                 'require_date': require_date
             }
             pre_apply_serializer = PreApplySerializers(data=pre_apply)
-            if not pre_apply_serializer:
+            if not pre_apply_serializer.is_valid():
                 CANNOT_APPLY.append(row)
                 continue
             validated_list.append(row)

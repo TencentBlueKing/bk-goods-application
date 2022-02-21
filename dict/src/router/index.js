@@ -16,6 +16,7 @@ const MainEntry = () => import(/* webpackChunkName: 'entry' */'@/views')
 const applyHome = () => import(/* webpackChunkName: 'applyHome' */'@/views/applyHome/applyHome.vue')
 const applyManagement = () => import(/* webpackChunkName: 'applyManagement' */'@/views/applyManagement/applyManagement.vue')
 const NotFound = () => import(/* webpackChunkName: 'none' */'@/views/404')
+const applyHistory = () => import(/* webpackChunkName: 'applyHistory' */'@/views/applyHistory/applyHistory.vue')
 
 const routes = [
     {
@@ -35,6 +36,12 @@ const routes = [
                 alias: '',
                 name: 'applyManagement',
                 component: applyManagement
+            },
+            {
+                path: 'applyHistory',
+                alias: '',
+                name: 'applyHistory',
+                component: applyHistory
             }
         ]
     },

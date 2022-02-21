@@ -158,14 +158,19 @@ def examine_apply(request, leader_or_secretary):
         review_result = 3
     else:
         reviewer_identity = 0
-        review_result = 2
+        if model == 'reject':
+            review_result = 3
+        elif model == 'agree':
+            review_result = 2
     if model == 'reject':  # 拒绝申请：
         review_list = []
         with transaction.atomic():
+            applies = Apply.objects.filter(id__in=apply_id_list)
+            applies.update(status=review_result)
             for apply_id in apply_id_list:
-                apply_obj = Apply.objects.filter(id=apply_id).first()
-                apply_obj.status = review_result
-                apply_obj.save()
+                # apply_obj = Apply.objects.filter(id=apply_id).first()
+                # apply_obj.status = review_result
+                # apply_obj.save()
                 review_obj = Review(apply_id=apply_id, reviewer=username,
                                     reviewer_identity=reviewer_identity, result=2, reason=remark)
                 review_list.append(review_obj)
@@ -173,10 +178,12 @@ def examine_apply(request, leader_or_secretary):
     elif model == 'agree':  # 同意申请
         review_list = []
         with transaction.atomic():
+            applies = Apply.objects.filter(id__in=apply_id_list)
+            applies.update(status=review_result)
             for apply_id in apply_id_list:
-                apply_obj = Apply.objects.filter(id=apply_id).first()
-                apply_obj.status = review_result
-                apply_obj.save()
+                # apply_obj = Apply.objects.filter(id=apply_id).first()
+                # apply_obj.status = review_result
+                # apply_obj.save()
                 review_obj = Review(apply_id=apply_id, reviewer=username,
                                     reviewer_identity=reviewer_identity, result=1, reason=remark)
                 review_list.append(review_obj)
@@ -196,7 +203,6 @@ def examine_apply(request, leader_or_secretary):
 def if_leader_or_secretary(request):
     """是否是秘书/管理员"""
     flag, leader_or_secretary = is_leader_or_secretary(request)
-    print('flag={}, leader_or_secretary={}'.format(type(flag), type(leader_or_secretary)))
     return get_result({"result": flag, "data": {'identity': leader_or_secretary}})
 
 
@@ -317,14 +323,19 @@ def get_self_good_apply_list(request):
         condition_value = request.GET.get(condition, None)
         if check_param_str(condition_value):
             # 新建模糊查询筛选条件
-            sql_str = sql_str + u"and apply.{} like '%%s%'".format(condition)
-            # 参数拼接
-            params.append(condition_value)
+            sql_str = sql_str + u"and apply.{} like '%%{}%%'".format(condition, condition_value)
+            # # 参数拼接
+            # params.append(condition_value)
 
     # 审核状态查询
     status = request.GET.get('status', None)
-    if status and isinstance(status, int):
-        sql_str = sql_str + 'and apply.status = %s'
+    if status and not isinstance(status, int):
+        status = int(status)
+        print('status', status)
+        sql_str = sql_str + 'and apply.status = {}'.format(status)
+    elif status and isinstance(status, int):
+        print('status', status)
+        sql_str = sql_str + 'and apply.status = {}'.format(status)
 
     # 分页
     page = request.GET.get('page', 1)
@@ -424,3 +435,12 @@ def delete_good_apply(request):
         return get_result({"code": 1, "result": False, "message": "物资申请处于审核状态，不可删除"})
     apply.delete()
     return get_result({"message": "物资申请删除成功"})
+
+
+@require_GET
+def get_apply_status(request):
+    """获取所有申请状态"""
+    apply_status_list = []
+    for item in Apply.STATUS_TYPE:
+        apply_status_list.append({'id': item[0], 'name': item[1]})
+    return get_result({"data": apply_status_list})
