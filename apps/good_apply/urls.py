@@ -23,9 +23,9 @@ urlpatterns = (
     path("analysis_apply_excel", analysis_apply_excel.analysis_apply_excel),  # 解析excel数据
     path("get_root_position_list", views.get_root_position_list),  # 获取一级地区列表
     path("get_sub_position_list", views.get_sub_position_list),  # 获取下一级地区列表
-    path("get_leader", views.get_leader),  # 获取用户的组长
+    path("get_leader", views.get_leader),  # 获取用户的导员
     path("submit_apply_list", views.submit_apply_list),  # 提交物资申请
-    path("if_leader_or_secretary", views.if_leader_or_secretary),  # 是否是管理员（秘书）或组长
+    path("if_leader_or_secretary", views.if_leader_or_secretary),  # 是否是管理员（秘书）或导员
     path("get_apply_users", views.get_apply_users),  # 获取可管理的用户
     path("get_goods_apply", views.get_goods_apply),  # （筛选）获取需要需要审核的物资申请
     path("if_admin", views.if_admin),  # 判断是否秘书

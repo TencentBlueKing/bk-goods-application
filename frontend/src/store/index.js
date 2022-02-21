@@ -89,6 +89,11 @@ const store = new Vuex.Store({
             // 跟后台打交道
             // 调用mutaions里面的方法
             commit('setIdentity', status)
+        },
+        setUserLeaderIdentity ({ commit, state }, status) { // 组长
+            // 跟后台打交道
+            // 调用mutaions里面的方法
+            commit('setLeaderIdentity', status)
         }
     }
 })

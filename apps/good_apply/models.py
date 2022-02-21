@@ -43,7 +43,7 @@ class Position(models.Model):
 class Apply(TimeBasic):
     STATUS_TYPE = (
         (0, "申请终止"),
-        (1, "组长审核中"),
+        (1, "导员审核中"),
         (2, "管理员审核中"),
         (3, "审核完成")
     )
@@ -78,8 +78,8 @@ class Apply(TimeBasic):
 # 申请审核表
 class Review(TimeBasic):
     IDENTITY_TYPES = (
-        (1, '组长'),
-        (2, '秘书')
+        (1, '导员'),
+        (2, '管理员')
     )
     RESULT_TYPES = (
         (1, '通过'),

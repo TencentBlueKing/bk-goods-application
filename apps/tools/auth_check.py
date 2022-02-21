@@ -25,7 +25,7 @@ def sub_users_in_group(request, username, group_id) -> list:
     """校验用户username在组内是否有管理的人员，返回成员列表，没有则为空列表"""
     users = get_users_in_group(request, group_id)
     sub_users = []
-    # 循环用户信息，查看组长username是否和组长username匹配，匹配则该组长管辖的成员
+    # 循环用户信息，查看导员username是否和导员username匹配，匹配则该导员管辖的成员
     for user in users:
         leaders = user.get('leader')
         for leader in leaders:
@@ -37,13 +37,13 @@ def sub_users_in_group(request, username, group_id) -> list:
 
 
 def is_leader_or_secretary(request):
-    """校验是否是秘书或者组长"""
+    """校验是否是秘书或者导员"""
     username = request.user.username
     # 是否是秘书
     if is_secretary(username=username):
         return True, 0  # 0表示是秘书
 
-    # 是否是组长
+    # 是否是导员
     # 一期先使用group_id=6的组(唯一组)，二期丰富多个组的情况
     r = get_redis_connection()
     group_id = 6
@@ -51,14 +51,14 @@ def is_leader_or_secretary(request):
     if r.exists(key):
         is_leader = r.get(key)
         if is_leader:
-            return True, 1  # 1表示是组长
+            return True, 1  # 1表示是导员
         else:
-            return False, None  # 不是组长也不是秘书
+            return False, None  # 不是导员也不是秘书
     # redis中不存在记录，再查询数据库
     sub_users = sub_users_in_group(request, username=username, group_id=group_id)
     if sub_users:
-        r.set(name=key, value=1, ex=21600)  # 是组长
+        r.set(name=key, value=1, ex=21600)  # 是导员
         return True, 1
     else:
-        r.set(name=key, value=0, ex=21600)  # 不是组长，没有下级组员
+        r.set(name=key, value=0, ex=21600)  # 不是导员，没有下级组员
         return False, None

@@ -186,7 +186,7 @@
                             this.$store.dispatch('setUserIdentity', isAdmin)
                         } else if (res.data.identity === 1) {
                             isLeader = true
-                            this.$store.dispatch('setUserIdentity', isLeader)
+                            this.$store.dispatch('setUserLeaderIdentity', isLeader)
                         }
                     } else {
                         this.$bkMessage({
