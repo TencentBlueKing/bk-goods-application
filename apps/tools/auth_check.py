@@ -1,7 +1,7 @@
 from apps.good_apply.models import Secretary
 from apps.utils.exceptions import BusinessException
 from blueapps.utils import get_client_by_request
-from django_redis import get_redis_connection
+from django.core.cache import cache
 
 
 def is_secretary(username):
@@ -45,20 +45,19 @@ def is_leader_or_secretary(request):
 
     # 是否是导员
     # 一期先使用group_id=6的组(唯一组)，二期丰富多个组的情况
-    r = get_redis_connection()
     group_id = 6
     key = username + '_is_leader'
-    if r.exists(key):
-        is_leader = r.get(key)
+    if cache.get(key):
+        is_leader = cache.get(key)
         if is_leader:
             return True, 1  # 1表示是导员
         else:
             return False, None  # 不是导员也不是秘书
-    # redis中不存在记录，再查询数据库
+    # 缓存中不存在记录，再查询数据库
     sub_users = sub_users_in_group(request, username=username, group_id=group_id)
     if sub_users:
-        r.set(name=key, value=1, ex=21600)  # 是导员
+        cache.set(key=key, value=1, timeout=21600)  # 是导员
         return True, 1
     else:
-        r.set(name=key, value=0, ex=21600)  # 不是导员，没有下级组员
+        cache.set(key=key, value=0, timeout=21600)  # 不是导员，没有下级组员
         return False, None
