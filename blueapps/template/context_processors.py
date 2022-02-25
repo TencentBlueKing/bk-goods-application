@@ -72,6 +72,7 @@ def blue_settings(request):
             "NOW": datetime.datetime.now(),
             # 前后端联合开发的静态资源路径, 这个变量可选配置
             "BK_STATIC_URL": getattr(settings, "BK_STATIC_URL", ""),
+            "BK_APPLY_STATIC_URL": getattr(settings, "BK_APPLY_STATIC_URL", ""),
             # 是否使用blueking_language切换国际化语言
             "IS_DISPLAY_LANGUAGE_CHANGE": settings.IS_DISPLAY_LANGUAGE_CHANGE,
         }

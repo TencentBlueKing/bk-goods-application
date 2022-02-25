@@ -168,7 +168,7 @@
     const getPersonalGoodsUrl = '/purchase/get_personal_goods/' // 获取个人物资接口
     const getTypesUrl = '/purchase/get_good_type_list' // 获取所有类型接口
     const getStatusUrl = '/purchase/get_good_status_list' // 获取所有物品状态接口
-    const getPositionsUrl = '/apply/get_position_list' // 获取所有地区接口
+    const getPositionsUrl = '/get_root_position_list' // 获取一级地区接口
     const deriveExcelUrl = '/purchase/derive_excel' // 生成excel文件并导出接口
     const delFilesUrl = '/purchase/del_excel' // 删除已生成的excel文件接口
     const confirmReceiptUrl = '/purchase/confirm_receipt'

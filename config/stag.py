@@ -24,6 +24,7 @@ RUN_MODE = "STAGING"
 STATIC_URL = "/static/"
 # 前端静态url
 BK_STATIC_URL = STATIC_URL + "dist/"
+BK_APPLY_STATIC_URL = STATIC_URL + "apply_dist/"
 # 只对预发布环境日志级别进行配置，可以在这里修改
 # from blueapps.conf.log import set_log_level # noqa
 # LOG_LEVEL = "ERROR"
