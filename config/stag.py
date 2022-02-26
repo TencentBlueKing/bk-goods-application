@@ -20,8 +20,8 @@ else:
 
 # 预发布环境
 RUN_MODE = "STAGING"
-# APP本地静态资源目录
-STATIC_URL = "static/"
+# # APP本地静态资源目录
+# STATIC_URL = "static/"
 # 前端静态url
 BK_STATIC_URL = STATIC_URL + "dist"
 BK_APPLY_STATIC_URL = STATIC_URL + "apply_dist"
