@@ -193,7 +193,7 @@
 </template>
 
 <script>
-    const deriveExcelUrl = '/purchase/derive_excel' // 导出数据接口
+    const deriveExcelUrl = '/derive_excel' // 导出数据接口
     const getGoodApplyListUrl = '/get_self_good_apply_list' // 获取申请列表接口
     const getGoodApplyByIdUrl = '/get_good_apply' // 根据id查找单个apply
     const editApplyUrl = '/update_good_apply' // 更新apply信息
@@ -281,6 +281,7 @@
                     this.get_params.start_time = ''
                 }
                 if (this.formData.end_date) {
+                    this.formData.end_date.setDate(this.formData.end_date.getDate() + 1)
                     this.get_params.end_time = this.dateFormat('YYYY-mm-dd', this.formData.end_date)
                 } else {
                     this.get_params.end_time = ''

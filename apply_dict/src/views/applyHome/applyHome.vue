@@ -274,7 +274,7 @@
 </template>
 
 <script>
-    const delFilesUrl = '/purchase/del_excel' // 删除已生成的excel文件接口
+    const delFilesUrl = '/del_excel' // 删除已生成的excel文件接口
     const analysisExcelUrl = '/analysis_apply_excel' // 解析excel文件数据接口
     const getRootPositionListUrl = '/get_root_position_list' // 获取根地点接口
     const getSubPositionListUrl = '/get_sub_position_list' // 获取子地点接口
