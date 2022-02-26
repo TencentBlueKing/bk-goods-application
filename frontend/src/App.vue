@@ -179,11 +179,13 @@
                     })
                     return
                 }
-                this.$http.get('/apply/if_admin?username=' + username).then((res) => {
+                this.$http.get('/if_leader_or_secretary').then((res) => {
+                    console.log('res', res)
                     if (res.result !== null) {
                         if (res.data.identity === 0) {
                             isAdmin = true
                             this.$store.dispatch('setUserIdentity', isAdmin)
+                            console.log('this.$store.state.isAdmin', this.$store.state.isAdmin)
                         } else if (res.data.identity === 1) {
                             isLeader = true
                             this.$store.dispatch('setUserLeaderIdentity', isLeader)

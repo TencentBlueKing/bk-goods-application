@@ -103,7 +103,7 @@
 
 <script>
     const getPersonalGoodsUrl = '/purchase/get_personal_goods/' // 获取个人物资接口
-    const getPositionsUrl = '/apply/get_position_list' // 获取所有地区接口
+    const getPositionsUrl = '/get_root_position_list' // 获取一级地区接口
     const getWithdrawReasonsUrl = '/purchase/get_withdraw_reason' // 获取所有地区接口
     const returnGoodsUrl = '/purchase/add_withdraw_apply' // 退库接口
     export default {

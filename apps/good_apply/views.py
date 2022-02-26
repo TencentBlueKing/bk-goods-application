@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 import datetime
 import json
+import os
 
 from apps.good_apply.models import Apply, Position, Review
 from apps.good_apply.serializers import ApplySerializers, IDListSeralizers
@@ -36,7 +37,10 @@ def home(request):
     """
     首页
     """
-    return render(request, "index.html")
+    if os.getenv('BK_DJANGO_CONFIG', 'apply') == 'apply':
+        return render(request, "apply_index.html")
+    else:
+        return render(request, 'index.html')
 
 
 @require_GET

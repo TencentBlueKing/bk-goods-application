@@ -42,7 +42,8 @@
                     <p class="goodName">{{ item.good_name }}</p>
                     <div class="goodPrice">￥<div style="color: orange">{{ item.price }}</div></div>
                     <p>{{ item.cn_status }}</p>
-                    <div class="addButton">
+                    <div class="replace-addButton" v-if="isAdmin"></div>
+                    <div class="addButton" v-if="!isAdmin">
                         <bk-button theme="primary" title="search" :outline="true" class="group-text" :text="true" @click.stop="addToCart(item.id)">
                             加入购物车
                         </bk-button>
@@ -109,6 +110,7 @@
         },
         created () {
             this.username = this.$store.state.user.username
+            this.isAdmin = this.$store.state.isAdmin
             this.loadData() // 创建实例时加载数据
         },
         methods: {
@@ -320,6 +322,9 @@
                 margin-left: 15px;
                 display: flex;
                 font-size: 10px;
+            }
+            .replace-addButton{
+                margin: 0 10px 5px 0;
             }
             .addButton{
                 text-align: right;

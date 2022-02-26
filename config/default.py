@@ -33,7 +33,6 @@ from blueapps.conf.log import get_logging_config_dict
 
 # 请在这里加入你的自定义 APP
 INSTALLED_APPS += (  # noqa
-    "home_application",
     "mako_application",
     "apps.good_purchase",  # 物资采购
     "apps.good_apply",  # 物资申请
