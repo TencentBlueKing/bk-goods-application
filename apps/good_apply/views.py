@@ -37,7 +37,7 @@ def home(request):
     """
     首页
     """
-    if os.getenv('BK_DJANGO_CONFIG', 'apply') == 'apply':
+    if os.getenv('BKAPP_DJANGO_CONFIG', 'apply') == 'apply':
         return render(request, "apply_index.html")
     else:
         return render(request, 'index.html')
