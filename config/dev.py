@@ -21,7 +21,7 @@ else:
 # 本地开发环境
 RUN_MODE = "DEVELOP"
 # APP本地静态资源目录
-STATIC_URL = "/static/"
+STATIC_URL = "static/"
 # 前端静态url
 BK_STATIC_URL = STATIC_URL + "dist"
 BK_APPLY_STATIC_URL = STATIC_URL + "apply_dist"
