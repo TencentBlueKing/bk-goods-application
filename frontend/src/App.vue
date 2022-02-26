@@ -10,7 +10,8 @@
             <template slot="header">
                 <div class="monitor-navigation-header">
                     <ol class="header-nav">
-                        <div v-show="!(index === 1 && curIsAdmin !== true)" v-for="(item,index) in header.list" :key="item.id" theme="light navigation-message" :arrow="false" offset="0, -5" placement="bottom">
+                        <!-- <div v-show="!(index === 1 && curIsAdmin !== true)" v-for="(item,index) in header.list" :key="item.id" theme="light navigation-message" :arrow="false" offset="0, -5" placement="bottom"> -->
+                        <div v-show="(curIsAdmin === true || curIsLeader === true)" v-for="(item,index) in header.list" :key="item.id" theme="light navigation-message" :arrow="false" offset="0, -5" placement="bottom">
                             <router-link :to="item.path">
                                 <li v-show="item.show" class="header-nav-item"
                                     :class="{ 'item-active': index === header.active }"

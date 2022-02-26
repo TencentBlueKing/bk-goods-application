@@ -360,7 +360,7 @@ def get_self_good_apply_list(request):
     params.append(start_time)
     end_time = request.GET.get('end_time')
     if not end_time:
-        end_time = datetime.datetime.now().strftime('%Y-%m-%d')
+        end_time = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
     params.append(end_time)
 
     # 物品编码、物品名、申请原因模糊查询

@@ -126,7 +126,7 @@
         },
         methods: {
             getDetailInfo () {
-                this.$http.get('/purchase/get_good_detail?good_id=' + this.goodId).then((res) => {
+                this.$http.get('/get_good_detail?good_id=' + this.goodId).then((res) => {
                     if (res.result && res.data !== null) {
                         this.goodInfo = res.data
                         this.infoDetailList[0].value = '￥' + res.data.price
@@ -206,7 +206,7 @@
                     id: this.goodInfo.id
                 }
                 this.$http.post(
-                    '/purchase/add_cart_goods',
+                    '/add_cart_goods',
                     {
                         goodInfo: updateInfo
                     }

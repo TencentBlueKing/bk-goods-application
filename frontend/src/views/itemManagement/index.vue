@@ -172,7 +172,7 @@
 </template>
 
 <script>
-    const delPicsUrl = '/purchase/del_pics'
+    const delPicsUrl = '/del_pics'
     export default {
         components: {},
         data () {
@@ -298,7 +298,7 @@
             // 后端请求函数
             getGoods () {
                 this.isGoodsInfoLoad = true
-                this.$http.get('/purchase/get_good_list'
+                this.$http.get('/get_good_list'
                     + '?good_code=' + this.submitSearchInput.goodCode
                     + '&good_name=' + this.submitSearchInput.goodName
                     + '&good_type_id=' + this.submitSearchInput.goodTypeId
@@ -325,7 +325,7 @@
             },
             getGoodTypes () {
                 this.isGoodTypesLoad = true
-                this.$http.get('/purchase/get_good_type_list').then(res => {
+                this.$http.get('/get_good_type_list').then(res => {
                     if (res.result) {
                         this.goodTypeList = res.data
                     }
@@ -334,7 +334,7 @@
                 })
             },
             getGoodCodeList () {
-                this.$http.get('/purchase/get_good_code_list').then(res => {
+                this.$http.get('/get_good_code_list').then(res => {
                     if (res.result) {
                         res.data.forEach((item, index) => {
                             this.goodsCodeList.push({
@@ -355,7 +355,7 @@
                 console.log('this.unSubmitSearch.goodCode == ', this.unSubmitSearch.goodCode)
             },
             getGoodInfo (goodId) {
-                this.$http.get('/purchase/get_good_detail?good_id=' + goodId).then(res => {
+                this.$http.get('/get_good_detail?good_id=' + goodId).then(res => {
                     if (res.result) {
                         this.goodFormData.good_code = res.data.good_code
                         this.goodFormData.good_name = res.data.good_name
@@ -393,7 +393,7 @@
                 const formData = JSON.parse(JSON.stringify(this.goodFormData))
                 const picUrls = this.dealGoodPics()
                 formData.pics = picUrls
-                this.$http.post('/purchase/add_good', formData).then(res => {
+                this.$http.post('/add_good', formData).then(res => {
                     const config = {
                         'offsetY': 80,
                         'delay': 2000
@@ -428,7 +428,7 @@
                 const picUrls = this.dealGoodPics()
                 formData.pics = picUrls
                 formData.id = this.currentGoodId
-                this.$http.post('/purchase/update_good', formData).then(res => {
+                this.$http.post('/update_good', formData).then(res => {
                     const config = {
                         'offsetY': 80,
                         'delay': 2000
@@ -449,7 +449,7 @@
             },
             // 下架物品
             downGood (goodId) {
-                this.$http.get('/purchase/down_good?id=' + goodId).then(res => {
+                this.$http.get('/down_good?id=' + goodId).then(res => {
                     const config = {
                         'offsetY': 80,
                         'delay': 2000
@@ -490,7 +490,7 @@
                 this.getBase64(files.fileObj.origin).then(res => {
                     const fileType = files.fileObj.name.split('.')[1]
                     const fileData = res.split(',')[1]
-                    this.$http.post('/purchase/upload_img', { img: fileData, img_type: fileType }).then(res => {
+                    this.$http.post('/upload_img', { img: fileData, img_type: fileType }).then(res => {
                         if (res.result) {
                             const picUrl = res.data.pic_url
                             // console.log('picUrl:', picUrl)
@@ -513,7 +513,7 @@
                     this.getBase64(file).then(res => {
                         const fileType = file.name.split('.')[1]
                         const fileData = res.split(',')[1]
-                        this.$http.post('/purchase/upload_img', { img: fileData, img_type: fileType }).then(res => {
+                        this.$http.post('/upload_img', { img: fileData, img_type: fileType }).then(res => {
                             if (res.result) {
                                 insertImage({
                                     url: res.data.pic_url
@@ -524,7 +524,7 @@
                 })
             },
             addGoodType () {
-                this.$http.post('/purchase/add_good_type', { type_name: this.addGoodTypeDialog.typeName }).then(res => {
+                this.$http.post('/add_good_type', { type_name: this.addGoodTypeDialog.typeName }).then(res => {
                     const config = {
                         'offsetY': 80
                     }

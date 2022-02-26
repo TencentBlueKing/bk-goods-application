@@ -145,7 +145,7 @@
 <script>
     import { mapGetters } from 'vuex'
     import { bkTable, bkTableColumn, bkButton } from 'bk-magic-vue'
-    const delFilesUrl = '/purchase/del_excel' // 删除已生成的excel文件接口
+    const delFilesUrl = '/del_excel' // 删除已生成的excel文件接口
     export default {
         components: {
             bkTable,
@@ -231,7 +231,7 @@
             },
             getCartList () {
                 if (this.cartUsername !== '') {
-                    this.$http.get('/purchase/get_shopping_cart').then((res) => {
+                    this.$http.get('/get_shopping_cart').then((res) => {
                         if (res.result && res.data !== null) {
                             this.allGoodsCount = 0
                             if (res.data.length !== 0) {
@@ -350,7 +350,7 @@
                 deleteList.forEach((item) => {
                     idList.push(item.id)
                 })
-                this.$http.post('/purchase/delete_cart_goods', { cartIdList: idList }).then((res) => {
+                this.$http.post('/delete_cart_goods', { cartIdList: idList }).then((res) => {
                     if (res.result) {
                         this.deleteTableGoods(deleteList)
                     } else {
@@ -370,7 +370,7 @@
             },
             deleteApplyList (deleteList) {
                 const id = deleteList[0].id
-                this.$http.post('/purchase/delete_group_apply', { applyId: id }).then((res) => {
+                this.$http.post('/delete_group_apply', { applyId: id }).then((res) => {
                     if (res.result) {
                         this.deleteTableGoods(deleteList)
                     } else {
@@ -451,7 +451,7 @@
                 })
                 const updateUrl = this.curIsAdmin ? 'update_group_apply' : 'update_cart_goods'
                 const params = this.curIsAdmin ? { applyList: updateList, updateType: 'num' } : { goodsList: updateList }
-                this.$http.post('/purchase/' + updateUrl, params).then((res) => {
+                this.$http.post('/' + updateUrl, params).then((res) => {
                     if (!res.result) {
                         this.$bkMessage({
                             message: '物资数量更新失败',
@@ -478,7 +478,7 @@
                             try {
                                 const selectedList = this.getSelectedGoodsList()
                                 this.$http.post(
-                                    '/purchase/update_group_apply',
+                                    '/update_group_apply',
                                     {
                                         userName: this.cartUsername,
                                         cartList: selectedList
@@ -540,7 +540,7 @@
                     })
                     return
                 }
-                this.$http.post('/purchase/derive_excel', { model: 2, dataList: submitGoods })
+                this.$http.post('/derive_excel', { model: 2, dataList: submitGoods })
                     .then((res) => {
                         if (res.result) {
                             const link = document.createElement('a') // 生成a元素，用以实现下载功能
@@ -577,7 +577,7 @@
                     })
             },
             getGroupApplyList () {
-                this.$http.get('/purchase/get_group_apply').then((res) => {
+                this.$http.get('/get_group_apply').then((res) => {
                     if (res.result && res.data !== null) {
                         this.allGoodsCount = 0
                         this.cartList = JSON.parse(JSON.stringify(res.data))
@@ -627,7 +627,7 @@
                     confirmFn: async () => {
                         try {
                             this.$http.post(
-                                '/purchase/update_group_apply',
+                                '/update_group_apply',
                                 {
                                     applyList: submitApplyList,
                                     updateType: 'status'
@@ -673,7 +673,7 @@
                 this.getBase64(file.fileObj.origin).then(res => {
                     const excelFile = res.split(',')[1] // 获取文件信息
                     const fileName = this.cartUsername + '_' + file.fileObj.name // 获取文件名
-                    this.$http.post('/purchase/import_excel', { file: excelFile, fileName: fileName }).then(res => {
+                    this.$http.post('/import_excel', { file: excelFile, fileName: fileName }).then(res => {
                         if (res && res.result === true && res.code === 200) { // 全部导入成功
                             this.handleError({ theme: 'success' }, res.message)
                         } else if (res && res.result === true && res.code === 5003) { // 存在导入失败物品

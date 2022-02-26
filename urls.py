@@ -24,7 +24,7 @@ urlpatterns = [
     # 这里的 mako_application 可以改成你想要的名字
     url(r"^mako/", include("mako_application.urls")),
     url(r"^i18n/", include("django.conf.urls.i18n")),
-    url(r"^purchase/", include("apps.good_purchase.urls")),
     url(r"^", include("apps.good_apply.urls")),
+    url(r"^", include("apps.good_purchase.urls")),
     re_path(r'^media/(?P<path>.*)$', serve, kwargs={"document_root": settings.MEDIA_ROOT}),  # 添加媒体路径
 ]
