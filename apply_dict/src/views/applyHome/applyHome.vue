@@ -110,7 +110,7 @@
                                     label="期望领用日期"
                                     :property="'getDate'"
                                     :required="true">
-                                    <bk-date-picker placeholder="请选择" :timer="false" v-model="formData.getDate" :disabled="false" style="width: 100%">
+                                    <bk-date-picker placeholder="请选择" :options="dateOptions" :timer="false" v-model="formData.getDate" :disabled="false" style="width: 100%">
                                     </bk-date-picker>
                                 </bk-form-item>
                             </div>
@@ -292,6 +292,15 @@
                 showMultiImport: false,
                 excelFiles: [],
                 inputVisible: false,
+                dateOptions: {
+                    disabledDate: function (date) {
+                        const myDate = new Date()
+                        if (date < myDate.setDate(myDate.getDate() - 1)) {
+                            return true
+                        }
+                        return false
+                    }
+                }, // 禁用日期
                 multiInput: { // 批量导入时所需填写的表格数据
                     leaders: '无',
                     campus: '',

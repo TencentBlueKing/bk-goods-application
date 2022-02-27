@@ -56,8 +56,8 @@ def is_leader_or_secretary(request):
     # 缓存中不存在记录，再查询数据库
     sub_users = sub_users_in_group(request, username=username, group_id=group_id)
     if sub_users:
-        cache.set(key=key, value=1, timeout=21600)  # 是导员
+        cache.set(key=key, value=1, timeout=3600)  # 是导员
         return True, 1
     else:
-        cache.set(key=key, value=0, timeout=21600)  # 不是导员，没有下级组员
+        cache.set(key=key, value=0, timeout=3600)  # 不是导员，没有下级组员
         return False, None

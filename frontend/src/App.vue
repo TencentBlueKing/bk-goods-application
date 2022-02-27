@@ -21,9 +21,9 @@
                             </router-link>
                         </div>
                     </ol>
-                    <bk-popover theme="light navigation-message" :arrow="false" offset="-20, 10" placement="bottom-start" :tippy-options="{ 'hideOnClick': false }">
+                    <bk-popover theme="light navigation-message" :arrow="false" offset="20, 10" placement="bottom-start" :tippy-options="{ 'hideOnClick': false }">
                         <div class="header-user">
-                            admin
+                            {{ username }}
                             <i class="bk-icon icon-down-shape"></i>
                         </div>
                         <template slot="content">
@@ -71,6 +71,7 @@
         components: { userCenter },
         data () {
             return {
+                username: 'admin',
                 routerKey: +new Date(),
                 systemCls: 'mac',
                 nav: {
@@ -135,6 +136,7 @@
             }
         },
         created () {
+            this.username = this.$store.state.user.username
             const platform = window.navigator.platform.toLowerCase()
             if (platform.indexOf('win') === 0) {
                 this.systemCls = 'win'
@@ -185,10 +187,12 @@
                     if (res.result !== null) {
                         if (res.data.identity === 0) {
                             isAdmin = true
+                            // console.log('admin')
                             this.$store.dispatch('setUserIdentity', isAdmin)
                             console.log('this.$store.state.isAdmin', this.$store.state.isAdmin)
                         } else if (res.data.identity === 1) {
                             isLeader = true
+                            // console.log('leader')
                             this.$store.dispatch('setUserLeaderIdentity', isLeader)
                         }
                     } else {

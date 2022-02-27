@@ -63,6 +63,13 @@ class ApplySerializers(serializers.Serializer):
                                                        'required': '申请人不可为空',
                                                        'blank': '申请人不可为空'})
 
+    def validate_require_date(self, require_date):
+        today = datetime.date.today()
+        if require_date >= today:
+            return require_date
+        else:
+            raise ValueError('期望领用日期不能为今天以前的日期')
+
 
 class IDListSeralizers(serializers.Serializer):
     apply_id_list = serializers.ListField(required=True,

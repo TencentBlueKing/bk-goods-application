@@ -22,8 +22,8 @@ const store = new Vuex.Store({
         mainContentLoading: false,
         // 系统当前登录用户
         user: {},
-        isAdmin: -1,
-        isLeader: -1
+        isAdmin: false,
+        isLeader: false
     },
     // 公共 getters
     getters: {
