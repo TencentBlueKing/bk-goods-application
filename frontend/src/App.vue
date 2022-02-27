@@ -93,13 +93,13 @@
                         {
                             name: '首页',
                             id: 1,
-                            path: 'purchaseHome',
+                            path: '/purchaseHome',
                             show: true
                         },
                         {
                             name: '物品管理',
                             id: 2,
-                            path: 'itemManagement',
+                            path: '/itemManagement',
                             show: true
                         }
                     ],
@@ -116,7 +116,7 @@
                         {
                             name: '个人物资查询',
                             id: '',
-                            path: 'personalGoods'
+                            path: '/personalGoods'
                         }
                     ]
                 },

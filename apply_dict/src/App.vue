@@ -94,13 +94,13 @@
                         {
                             name: '首页',
                             id: 1,
-                            path: 'applyHome',
+                            path: '/applyHome',
                             show: true
                         },
                         {
                             name: '申请管理',
                             id: 2,
-                            path: 'applyManagement',
+                            path: '/applyManagement',
                             show: false
                         }
                     ],
@@ -117,7 +117,7 @@
                         {
                             name: '历史记录',
                             id: '',
-                            path: 'applyHistory'
+                            path: '/applyHistory'
                         }
                     ]
                 },
