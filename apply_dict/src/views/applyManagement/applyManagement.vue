@@ -36,7 +36,7 @@
                                             label="开始时间"
                                             :property="'startDate'"
                                             :icon-offset="35">
-                                            <bk-date-picker placeholder="请选择" :timer="false" v-model="formData.startDate" :disabled="false" style="width: 100%">
+                                            <bk-date-picker :options="startDateOptions" placeholder="请选择" :timer="false" v-model="formData.startDate" :disabled="false" style="width: 100%">
                                             </bk-date-picker>
                                         </bk-form-item>
                                     </div>
@@ -47,7 +47,7 @@
                                             label="结束时间"
                                             :property="'endDate'"
                                             :icon-offset="0">
-                                            <bk-date-picker placeholder="请选择" :timer="false" v-model="formData.endDate" :disabled="false" style="width: 100%">
+                                            <bk-date-picker :options="endDateOptions" placeholder="请选择" :timer="false" v-model="formData.endDate" :disabled="false" style="width: 100%">
                                             </bk-date-picker>
                                         </bk-form-item>
                                     </div>
@@ -217,10 +217,32 @@
                     selectedRows: [] // 存放被选中行数
                 },
                 okText: '',
-                dialogTitle: ''
+                dialogTitle: '',
+                startDateOptions: {},
+                endDateOptions: {}
             }
         },
         watch: {
+            'formData.startDate': function (val) {
+                this.endDateOptions = {
+                    disabledDate: function (date) {
+                        if (date < val.setDate(val.getDate())) {
+                            return true
+                        }
+                        return false
+                    }
+                }
+            },
+            'formData.endDate': function (val) {
+                this.startDateOptions = {
+                    disabledDate: function (date) {
+                        if (date > val.setDate(val.getDate())) {
+                            return true
+                        }
+                        return false
+                    }
+                }
+            },
             'formData.campus': function (val) { // 监听查询表格的校区变量
                 if (val === 0) {
                     return

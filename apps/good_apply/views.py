@@ -301,9 +301,14 @@ def get_goods_apply(request, leader_or_secretary):
 
     # 时间-范围查询
     start_time = request.GET.get('start_time')
+    end_time = request.GET.get('end_time')
+
+    if start_time and end_time:
+        if not start_time <= end_time:
+            raise ValueError('开始日期不能大于结束日期')
+
     if not start_time:
         start_time = '1970-1-1'
-    end_time = request.GET.get('end_time')
     if not end_time:
         end_time = datetime.datetime.now().strftime('%Y-%m-%d')
     query = query & Q(create_time__range=(start_time, end_time))
@@ -355,10 +360,15 @@ def get_self_good_apply_list(request):
     params = [request.user.username]
     # 时间-范围查询
     start_time = request.GET.get('start_time')
+    end_time = request.GET.get('end_time')
+
+    if start_time and end_time:
+        if not start_time <= end_time:
+            raise ValueError('开始日期不能大于结束日期')
+
     if not start_time:
         start_time = '1970-1-1'
     params.append(start_time)
-    end_time = request.GET.get('end_time')
     if not end_time:
         end_time = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
     params.append(end_time)

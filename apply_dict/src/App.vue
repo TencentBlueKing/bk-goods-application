@@ -20,13 +20,13 @@
                             </router-link>
                         </div>
                     </ol>
-                    <bk-popover theme="light navigation-message" :arrow="false" offset="-20, 10" placement="bottom-start" :tippy-options="{ 'hideOnClick': false }">
+                    <bk-popover theme="light navigation-message" :arrow="false" offset="20, 10" :align="'left'" placement="bottom-start" :tippy-options="{ 'hideOnClick': false }">
                         <div class="header-user">
-                            admin
+                            {{ username }}
                             <i class="bk-icon icon-down-shape"></i>
                         </div>
                         <template slot="content">
-                            <ul class="monitor-navigation-admin">
+                            <ul class="monitor-navigation-admin" style="right: 0">
                                 <li class="nav-item" v-for="userItem in user.list" :key="userItem" @click="PUSH(userItem)">
                                     {{userItem.name}}
                                 </li>
@@ -72,6 +72,7 @@
         components: { userCenter },
         data () {
             return {
+                username: 'admin',
                 routerKey: +new Date(),
                 systemCls: 'mac',
                 nav: {
@@ -136,6 +137,7 @@
             }
         },
         created () {
+            this.username = this.$store.state.user.username
             const platform = window.navigator.platform.toLowerCase()
             if (platform.indexOf('win') === 0) {
                 this.systemCls = 'win'

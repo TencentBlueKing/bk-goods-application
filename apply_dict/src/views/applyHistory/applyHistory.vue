@@ -38,7 +38,7 @@
                                             label="开始时间"
                                             :property="'startDate'"
                                             :icon-offset="35">
-                                            <bk-date-picker placeholder="请选择" :timer="false" v-model="formData.start_date" :disabled="false" style="width: 100%">
+                                            <bk-date-picker :options="startDateOptions" placeholder="请选择" :timer="false" v-model="formData.start_date" :disabled="false" style="width: 100%">
                                             </bk-date-picker>
                                         </bk-form-item>
                                     </div>
@@ -49,7 +49,7 @@
                                             label="结束时间"
                                             :property="'endDate'"
                                             :icon-offset="0">
-                                            <bk-date-picker placeholder="请选择" :timer="false" v-model="formData.end_date" :disabled="false" style="width: 100%">
+                                            <bk-date-picker :options="endDateOptions" placeholder="请选择" :timer="false" v-model="formData.end_date" :disabled="false" style="width: 100%">
                                             </bk-date-picker>
                                         </bk-form-item>
                                     </div>
@@ -203,6 +203,8 @@
     export default {
         data () {
             return {
+                endDateOptions: {}, // 禁用日期
+                startDateOptions: {}, // 禁用日期
                 formData: { // 查询条件表单数据
                     good_name: '',
                     good_code: '',
@@ -241,6 +243,28 @@
                 },
                 selected: {
                     selectedRows: [] // 存放被选中行数
+                }
+            }
+        },
+        watch: {
+            'formData.start_date': function (val) {
+                this.endDateOptions = {
+                    disabledDate: function (date) {
+                        if (date < val.setDate(val.getDate())) {
+                            return true
+                        }
+                        return false
+                    }
+                }
+            },
+            'formData.end_date': function (val) {
+                this.startDateOptions = {
+                    disabledDate: function (date) {
+                        if (date > val.setDate(val.getDate())) {
+                            return true
+                        }
+                        return false
+                    }
                 }
             }
         },
@@ -484,16 +508,18 @@
     width: 95%;
     margin: 0 auto;
     overflow: hidden;
+    height:calc(100vh - 200px);
+    /* height: 1000px; */
     .condition-form {
         padding: 30px 0 0 0;
         .condition-form-row {
-            margin-bottom: 30px;
+            margin-bottom: 15px;
         }
     }
     .historyTable {
         text-align: right;
         .more-options {
-            margin: 0 20px 10px 0;
+            margin: 0 10px 10px 0;
             .multi-export:hover {
 
             }
