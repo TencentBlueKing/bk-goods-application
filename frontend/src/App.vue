@@ -12,7 +12,7 @@
                     <ol class="header-nav">
                         <!-- <div v-show="!(index === 1 && curIsAdmin !== true)" v-for="(item,index) in header.list" :key="item.id" theme="light navigation-message" :arrow="false" offset="0, -5" placement="bottom"> -->
                         <div v-show="(curIsAdmin === true || curIsLeader === true)" v-for="(item,index) in header.list" :key="item.id" theme="light navigation-message" :arrow="false" offset="0, -5" placement="bottom">
-                            <router-link :to="item.path">
+                            <router-link :to="{ name: item.pageName }">
                                 <li v-show="item.show" class="header-nav-item"
                                     :class="{ 'item-active': index === header.active }"
                                     @click="header.active = (item.id - 1)">
@@ -93,13 +93,13 @@
                         {
                             name: '首页',
                             id: 1,
-                            path: '/purchaseHome',
+                            pageName: 'purchaseHome',
                             show: true
                         },
                         {
                             name: '物品管理',
                             id: 2,
-                            path: '/itemManagement',
+                            pageName: 'itemManagement',
                             show: true
                         }
                     ],
@@ -111,12 +111,12 @@
                         {
                             name: '个人中心',
                             id: '',
-                            path: ''
+                            pageName: ''
                         },
                         {
                             name: '个人物资查询',
                             id: '',
-                            path: '/personalGoods'
+                            pageName: 'personalGoods'
                         }
                     ]
                 },
@@ -216,7 +216,7 @@
                     this.$refs.userCenter.loadData()
                     this.header.active = -1
                 } else {
-                    this.$router.push(item.path)
+                    this.$router.push({ name: item.pageName })
                     this.header.active = -1
                 }
             }
