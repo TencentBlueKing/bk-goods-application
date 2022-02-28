@@ -11,7 +11,7 @@
                 <div class="monitor-navigation-header">
                     <ol class="header-nav">
                         <!-- <div v-show="!(index === 1 && curIsAdmin !== true)" v-for="(item,index) in header.list" :key="item.id" theme="light navigation-message" :arrow="false" offset="0, -5" placement="bottom"> -->
-                        <div v-show="(curIsAdmin === true || curIsLeader === true)" v-for="(item,index) in header.list" :key="item.id" theme="light navigation-message" :arrow="false" offset="0, -5" placement="bottom">
+                        <div v-for="(item,index) in header.list" :key="item.id" theme="light navigation-message" :arrow="false" offset="0, -5" placement="bottom">
                             <router-link :to="{ name: item.pageName }">
                                 <li v-show="item.show" class="header-nav-item"
                                     :class="{ 'item-active': index === header.active }"
@@ -100,7 +100,7 @@
                             name: '物品管理',
                             id: 2,
                             pageName: 'itemManagement',
-                            show: true
+                            show: false
                         }
                     ],
                     active: 0,
@@ -108,6 +108,11 @@
                 },
                 user: {
                     list: [
+                        {
+                            name: '购物车',
+                            id: '',
+                            pageName: 'shoppingCart'
+                        },
                         {
                             name: '个人中心',
                             id: '',
@@ -170,6 +175,9 @@
             handleToggle (v) {
                 this.nav.toggle = v
             },
+            findGoodManagement (obj) {
+                return obj.id === 2
+            },
             getUserIdentity () {
                 const username = this.$store.state.user.username
                 let isAdmin = false
@@ -189,11 +197,16 @@
                             isAdmin = true
                             // console.log('admin')
                             this.$store.dispatch('setUserIdentity', isAdmin)
-                            console.log('this.$store.state.isAdmin', this.$store.state.isAdmin)
+                            if (isAdmin === true) {
+                                this.header.list.find(this.findGoodManagement).show = true
+                            }
                         } else if (res.data.identity === 1) {
                             isLeader = true
                             // console.log('leader')
                             this.$store.dispatch('setUserLeaderIdentity', isLeader)
+                            if (isLeader === true) {
+                                this.header.list.find(this.findGoodManagement).show = true
+                            }
                         }
                     } else {
                         this.$bkMessage({
