@@ -167,7 +167,7 @@ class DeriveModel(object):
             self.file_name = self.username + '_cart_' + datetime.datetime.today().strftime('%Y-%m-%d__%H') + '.xls'
         elif self.model == 3:
             self.file_name = self.username + '_apply_history_' + \
-                datetime.datetime.today().strftime('%Y-%m-%d__%H') + '.xls '
+                datetime.datetime.today().strftime('%Y-%m-%d__%H') + '.xls'
         # 规定文件夹名
         if self.model == 1:
             self.dir_path = os.path.join(settings.MEDIA_ROOT, 'personal_goods')
