@@ -63,6 +63,7 @@
 </template>
 
 <script>
+    import { mapGetters } from 'vuex'
 
     const goodsUrl = '/get_good_list' // 获取物品信息接口
     const typesUrl = '/get_good_type_list' // 获取商品种类
@@ -100,7 +101,16 @@
                 }
             }
         },
+        computed: {
+            ...mapGetters(['isAdmin']),
+            watchIsAdmin () {
+            return this.isAdmin
+            }
+        },
         watch: {
+            watchIsAdmin (newVal, oldVal) {
+                this.isAdmin = newVal
+            },
             currentPage (val) { // 监测页数的变化
                 this.paramPage = val
                 this.type = this.lastType
@@ -110,7 +120,6 @@
         },
         created () {
             this.username = this.$store.state.user.username
-            this.isAdmin = this.$store.state.isAdmin
             this.loadData() // 创建实例时加载数据
         },
         methods: {
