@@ -274,6 +274,8 @@
 </template>
 
 <script>
+    import { mapGetters } from 'vuex'
+
     const delFilesUrl = '/del_excel' // 删除已生成的excel文件接口
     const analysisExcelUrl = '/analysis_apply_excel' // 解析excel文件数据接口
     const getRootPositionListUrl = '/get_root_position_list' // 获取根地点接口
@@ -286,7 +288,6 @@
             return {
                 isDropdownShow: false,
                 isLeader: false,
-                isAdmin: false,
                 username: '',
                 showInfoForm: true,
                 showMultiImport: false,
@@ -386,7 +387,16 @@
                 }
             }
         },
+        computed: {
+            ...mapGetters(['isAdmin']),
+            watchIsAdmin () {
+                return this.isAdmin
+            }
+        },
         watch: {
+            watchIsAdmin (newVal, oldVal) {
+                this.isAdmin = newVal
+            },
             showMultiImport: function (val) { // 监听批量导入页面是否展示
                 this.changUploadName()
                 this.showInfoForm = !val
