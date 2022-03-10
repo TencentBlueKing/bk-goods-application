@@ -22,7 +22,7 @@
                 </bk-button>
             </div>
             <div class="content-wapper">
-                <div class="goods-type-list" v-if="cartList.length === 0">
+                <div class="goods-type-list" v-if="(cartList.length === 0 && isAdmin === false) || (applyCartList.length === 0 && isAdmin === true)">
                     <div class="empty-cart">
                         <svg t="1642558051352" class="icon" viewBox="0 0 1024 1024" version="1.1" p-id="5516" width="200" height="200">
                             <path d="M64 409l227.038-152.906A24 24 0 0 1 304.444 252h417.194a24 24 0 0 1 13.492 4.151L960 409v339c0 13.255-10.745 24-24 24H88c-13.255 0-24-10.745-24-24V409z" fill="#9F9F9F" fill-opacity=".5" p-id="5517"></path>
@@ -31,78 +31,92 @@
                         <div>暂无物资信息</div>
                     </div>
                 </div>
-                <div v-else class="goods-type-list" v-for="(item,index) in cartList" :key="index">
-                    <div class="type-item-wapper">
-                        <div class="type-title">
-                            <bk-tag theme="info">{{item.goods_type_name}}</bk-tag>
-                            <bk-button v-if="curIsAdmin" theme="primary" title="申请" class="mr10" @click="submitApply(item,index)">
-                                申请
-                            </bk-button>
+                <div class="user" v-if="!isAdmin">
+                    <div class="goods-type-list" v-for="(item,index) in cartList" :key="index">
+                        <div class="type-item-wapper">
+                            <div class="type-title">
+                                <bk-tag theme="info">{{item.goods_type_name}}</bk-tag>
+                                <bk-button v-if="curIsAdmin" theme="primary" title="申请" class="mr10" @click="submitApply(item,index)">
+                                    申请
+                                </bk-button>
+                            </div>
+                            <div class="goods-item-list">
+                                <bk-table
+                                    :ref="'typeTable' + item.goods_type_id"
+                                    @select="rowSelectChange"
+                                    @select-all="(val) => tableSelectAll(val,index)"
+                                    ext-cls="type-table"
+                                    :data="item.goods_list"
+                                    :size="size"
+                                    :outer-border="false"
+                                    :header-border="false"
+                                    :header-cell-style="{ background: '#fff' }"
+                                >
+                                    <bk-table-column type="selection" width="60"></bk-table-column>
+                                    <bk-table-column label="物资编码" prop="good_code"></bk-table-column>
+                                    <bk-table-column label="物资名称" prop="good_name"></bk-table-column>
+                                    <bk-table-column label="参考价格" prop="price"></bk-table-column>
+                                    <bk-table-column label="数量">
+                                        <template slot-scope="props">
+                                            <bk-input @change="(value, event) => goodNumChange(value, event, props.row)"
+                                                type="number" :max="1000" :min="1"
+                                                v-model="props.row.num"
+                                            ></bk-input>
+                                        </template>
+                                    </bk-table-column>
+                                    <bk-table-column label="操作" width="150">
+                                        <template slot-scope="props">
+                                            <bk-button class="mr10" theme="primary" text @click="showRemoveBox(props.row, 'table')">移除</bk-button>
+                                        </template>
+                                    </bk-table-column>
+                                </bk-table>
+                            </div>
                         </div>
-                        <div v-if="curIsAdmin">
-                            <bk-table
-                                :ref="'typeTable' + item.goods_type_id"
-                                @select="rowSelectChange"
-                                @select-all="(val) => tableSelectAll(val,index)"
-                                ext-cls="type-table"
-                                :data="item.goods_list"
-                                :size="size"
-                                :outer-border="false"
-                                :header-border="false"
-                                :header-cell-style="{ background: '#fff' }"
-                            >
-                                <bk-table-column type="selection" width="60"></bk-table-column>
-                                <bk-table-column label="物资编码" prop="good_code"></bk-table-column>
-                                <bk-table-column label="物资名称" prop="good_name"></bk-table-column>
-                                <bk-table-column label="参考价格" prop="price"></bk-table-column>
-                                <bk-table-column label="使用人" prop="username"></bk-table-column>
-                                <bk-table-column label="配送地区" prop="position"></bk-table-column>
-                                <bk-table-column show-overflow-tooltip="true" label="备注" prop="remarks"></bk-table-column>
-                                <bk-table-column label="数量">
-                                    <template slot-scope="props">
-                                        <bk-input @change="(value, event) => goodNumChange(value, event, props.row)"
-                                            type="number" :max="1000" :min="1"
-                                            v-model="props.row.num"
-                                        ></bk-input>
-                                    </template>
-                                </bk-table-column>
-                                <bk-table-column label="操作" width="150">
-                                    <template slot-scope="props">
-                                        <bk-button class="mr10" theme="primary" text @click="showAdminRemoveBox(props.row)">移除</bk-button>
-                                    </template>
-                                </bk-table-column>
-                            </bk-table>
-                        </div>
-                        <div v-else class="goods-item-list">
-                            <bk-table
-                                :ref="'typeTable' + item.goods_type_id"
-                                @select="rowSelectChange"
-                                @select-all="(val) => tableSelectAll(val,index)"
-                                ext-cls="type-table"
-                                :data="item.goods_list"
-                                :size="size"
-                                :outer-border="false"
-                                :header-border="false"
-                                :header-cell-style="{ background: '#fff' }"
-                            >
-                                <bk-table-column type="selection" width="60"></bk-table-column>
-                                <bk-table-column label="物资编码" prop="good_code"></bk-table-column>
-                                <bk-table-column label="物资名称" prop="good_name"></bk-table-column>
-                                <bk-table-column label="参考价格" prop="price"></bk-table-column>
-                                <bk-table-column label="数量">
-                                    <template slot-scope="props">
-                                        <bk-input @change="(value, event) => goodNumChange(value, event, props.row)"
-                                            type="number" :max="1000" :min="1"
-                                            v-model="props.row.num"
-                                        ></bk-input>
-                                    </template>
-                                </bk-table-column>
-                                <bk-table-column label="操作" width="150">
-                                    <template slot-scope="props">
-                                        <bk-button class="mr10" theme="primary" text @click="showRemoveBox(props.row, 'table')">移除</bk-button>
-                                    </template>
-                                </bk-table-column>
-                            </bk-table>
+                    </div>
+                </div>
+                <div class="admin" v-if="isAdmin">
+                    <div class="goods-type-list" v-for="(item,index) in applyCartList" :key="index">
+                        <div class="type-item-wapper">
+                            <div class="type-title">
+                                <bk-tag theme="info">{{item.goods_type_name}}</bk-tag>
+                                <bk-button v-if="curIsAdmin" theme="primary" title="申请" class="mr10" @click="submitApply(item,index)">
+                                    申请
+                                </bk-button>
+                            </div>
+                            <div>
+                                <bk-table
+                                    :ref="'typeTable' + item.goods_type_id"
+                                    @select="rowSelectChange"
+                                    @select-all="(val) => tableSelectAll(val,index)"
+                                    ext-cls="type-table"
+                                    :data="item.goods_list"
+                                    :size="size"
+                                    :outer-border="false"
+                                    :header-border="false"
+                                    :header-cell-style="{ background: '#fff' }"
+                                >
+                                    <bk-table-column type="selection" width="60"></bk-table-column>
+                                    <bk-table-column label="物资编码" prop="good_code"></bk-table-column>
+                                    <bk-table-column label="物资名称" prop="good_name"></bk-table-column>
+                                    <bk-table-column label="参考价格" prop="price"></bk-table-column>
+                                    <bk-table-column label="使用人" prop="username"></bk-table-column>
+                                    <bk-table-column label="配送地区" prop="position"></bk-table-column>
+                                    <bk-table-column show-overflow-tooltip="true" label="备注" prop="remarks"></bk-table-column>
+                                    <bk-table-column label="数量">
+                                        <template slot-scope="props">
+                                            <bk-input @change="(value, event) => goodNumChange(value, event, props.row)"
+                                                type="number" :max="1000" :min="1"
+                                                v-model="props.row.num"
+                                            ></bk-input>
+                                        </template>
+                                    </bk-table-column>
+                                    <bk-table-column label="操作" width="150">
+                                        <template slot-scope="props">
+                                            <bk-button class="mr10" theme="primary" text @click="showAdminRemoveBox(props.row)">移除</bk-button>
+                                        </template>
+                                    </bk-table-column>
+                                </bk-table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -159,8 +173,10 @@
                 allSelectVal: false,
                 size: 'medium',
                 cartList: [],
+                applyCartList: [],
                 allGoodsCount: 0,
                 selectGoodsList: [],
+                selectAppliesList: [],
                 selectedCount: 0,
                 selectedPrice: 0,
                 timer: null,
@@ -180,9 +196,29 @@
                 handler (newVal, oldVal) {
                     if (newVal !== -1) {
                         this.curIsAdmin = newVal
-                        this.initCardata()
+                        this.initCartData()
                     }
                 }
+            },
+            selectAppliesList: {
+                handler (val) {
+                    this.selectedCount = 0
+                    this.selectedPrice = 0
+                    val.forEach((good) => {
+                        if (good.selected) {
+                            this.selectedCount++
+                            this.applyCartList[good.table_index].goods_list.forEach((item) => {
+                                if (good.id === item.id) {
+                                    this.selectedPrice += item.num * item.price
+                                }
+                            })
+                        }
+                    })
+                    this.selectedPrice = this.selectedPrice.toFixed(2)
+                    this.allGoodsCount = val.length
+                    this.allSelectVal = (this.selectedCount === this.allGoodsCount && this.allGoodsCount !== 0) ? 'yes' : 'no'
+                },
+                deep: true
             },
             selectGoodsList: {
                 handler (val) {
@@ -212,7 +248,7 @@
             const xIsAdmin = this.$store.getters.isAdmin
             if (xIsAdmin !== -1) {
                 this.curIsAdmin = xIsAdmin
-                this.initCardata()
+                this.initCartData()
             }
         },
         updated () {
@@ -222,7 +258,7 @@
             }
         },
         methods: {
-            initCardata () {
+            initCartData () {
                 if (this.curIsAdmin) {
                     this.getGroupApplyList()
                 } else {
@@ -327,22 +363,41 @@
             },
             deleteTableGoods (deleteList) {
                 // 在页面删除物资
-                deleteList.forEach((item) => {
-                    this.cartList[item.table_index].goods_list = this.cartList[item.table_index].goods_list.filter((good) => {
-                        return item.id !== good.id
+                if (this.isAdmin === false) {
+                    deleteList.forEach((item) => {
+                        this.cartList[item.table_index].goods_list = this.cartList[item.table_index].goods_list.filter((good) => {
+                            return item.id !== good.id
+                        })
                     })
-                })
-                // 删除空表
-                this.cartList = this.cartList.filter((typeItem) => {
-                    return typeItem.goods_list.length !== 0
-                })
-                // 更新selectlist
-                this.selectGoodsList = []
-                this.cartList.forEach((typeItem) => {
-                    typeItem.goods_list.forEach((good) => {
-                        this.selectGoodsList.push(good)
+                    // 删除空表
+                    this.cartList = this.cartList.filter((typeItem) => {
+                        return typeItem.goods_list.length !== 0
                     })
-                })
+                    // 更新selectGoodsList
+                    this.selectGoodsList = []
+                    this.cartList.forEach((typeItem) => {
+                        typeItem.goods_list.forEach((good) => {
+                            this.selectGoodsList.push(good)
+                        })
+                    })
+                } else if (this.isAdmin === true) {
+                    deleteList.forEach((item) => {
+                        this.applyCartList[item.table_index].goods_list = this.applyCartList[item.table_index].goods_list.filter((good) => {
+                            return item.id !== good.id
+                        })
+                    })
+                    // 删除空表
+                    this.applyCartList = this.applyCartList.filter((typeItem) => {
+                        return typeItem.goods_list.length !== 0
+                    })
+                    // 更新selectAppliesList
+                    this.selectAppliesList = []
+                    this.applyCartList.forEach((typeItem) => {
+                        typeItem.goods_list.forEach((good) => {
+                            this.selectAppliesList.push(good)
+                        })
+                    })
+                }
             },
             deleteCartList (deleteList) {
                 // 在数据库中删除物资
@@ -389,45 +444,90 @@
                 })
             },
             recoverSelected () {
-                this.cartList.forEach((typeItem, typeIndex) => {
-                    typeItem.goods_list.forEach((good, goodIndex) => {
-                        good['table_index'] = typeIndex
-                        this.selectGoodsList.forEach((selectGood) => {
-                            if (selectGood.id === good.id && selectGood.selected) {
-                                this.$refs['typeTable' + typeItem.goods_type_id][0].toggleRowSelection(this.cartList[typeIndex].goods_list[goodIndex], true)
+                if (this.isAdmin === false) {
+                    this.cartList.forEach((typeItem, typeIndex) => {
+                        typeItem.goods_list.forEach((good, goodIndex) => {
+                            good['table_index'] = typeIndex
+                            this.selectGoodsList.forEach((selectGood) => {
+                                if (selectGood.id === good.id && selectGood.selected) {
+                                    this.$refs['typeTable' + typeItem.goods_type_id][0].toggleRowSelection(this.cartList[typeIndex].goods_list[goodIndex], true)
+                                }
+                            })
+                        })
+                    })
+                } else if (this.isAdmin === true) {
+                    this.applyCartList.forEach((typeItem, typeIndex) => {
+                        typeItem.goods_list.forEach((good, goodIndex) => {
+                            good['table_index'] = typeIndex
+                            this.selectAppliesList.forEach((selectGood) => {
+                                if (selectGood.id === good.id && selectGood.selected) {
+                                    this.$refs['typeTable' + typeItem.goods_type_id][0].toggleRowSelection(this.applyCartList[typeIndex].goods_list[goodIndex], true)
+                                }
+                            })
+                        })
+                    })
+                }
+            },
+            rowSelectChange (selection, row) {
+                if (this.isAdmin === false) {
+                    this.selectGoodsList.forEach((good) => {
+                        if (row.id === good.id) {
+                            good.selected = !good.selected
+                        }
+                    })
+                } else if (this.isAdmin === true) {
+                    this.selectAppliesList.forEach((good) => {
+                        if (row.id === good.id) {
+                            good.selected = !good.selected
+                        }
+                    })
+                }
+            },
+            tableSelectAll (selection, tableIndex) {
+                if (this.isAdmin === false) {
+                    this.cartList[tableIndex].goods_list.forEach((good) => {
+                        this.selectGoodsList.forEach((item) => {
+                            if (item.good_code === good.good_code) {
+                                item.selected = (selection.length !== 0)
                             }
                         })
                     })
-                })
-            },
-            rowSelectChange (selection, row) {
-                this.selectGoodsList.forEach((good) => {
-                    if (row.id === good.id) {
-                        good.selected = !good.selected
-                    }
-                })
-            },
-            tableSelectAll (selection, tableIndex) {
-                this.cartList[tableIndex].goods_list.forEach((good) => {
-                    this.selectGoodsList.forEach((item) => {
-                        if (item.good_code === good.good_code) {
-                            item.selected = (selection.length !== 0)
-                        }
-                    })
-                })
-            },
-            allCheckChange () {
-                this.cartList.forEach((typeItem) => {
-                    this.$refs['typeTable' + typeItem.goods_type_id][0].clearSelection()
-                })
-                if (this.allSelectVal === 'yes') {
-                    this.cartList.forEach((typeItem) => {
-                        this.$refs['typeTable' + typeItem.goods_type_id][0].toggleAllSelection()
+                } else if (this.isAdmin === true) {
+                    this.applyCartList[tableIndex].goods_list.forEach((good) => {
+                        this.selectAppliesList.forEach((item) => {
+                            if (item.good_code === good.good_code) {
+                                item.selected = (selection.length !== 0)
+                            }
+                        })
                     })
                 }
-                this.selectGoodsList.forEach((good) => {
-                    good.selected = (this.allSelectVal === 'yes')
-                })
+            },
+            allCheckChange () {
+                if (this.isAdmin === false) {
+                    this.cartList.forEach((typeItem) => {
+                        this.$refs['typeTable' + typeItem.goods_type_id][0].clearSelection()
+                    })
+                    if (this.allSelectVal === 'yes') {
+                        this.cartList.forEach((typeItem) => {
+                            this.$refs['typeTable' + typeItem.goods_type_id][0].toggleAllSelection()
+                        })
+                    }
+                    this.selectGoodsList.forEach((good) => {
+                        good.selected = (this.allSelectVal === 'yes')
+                    })
+                } else if (this.isAdmin === true) {
+                    this.applyCartList.forEach((typeItem) => {
+                        this.$refs['typeTable' + typeItem.goods_type_id][0].clearSelection()
+                    })
+                    if (this.allSelectVal === 'yes') {
+                        this.applyCartList.forEach((typeItem) => {
+                            this.$refs['typeTable' + typeItem.goods_type_id][0].toggleAllSelection()
+                        })
+                    }
+                    this.selectAppliesList.forEach((good) => {
+                        good.selected = (this.allSelectVal === 'yes')
+                    })
+                }
             },
             goodNumChange (value, event, row) {
                 this.changeGoodsList.push(row)
@@ -440,15 +540,27 @@
             updateGoodsNum () {
                 const uqChangeGoodsList = new Set(this.changeGoodsList)
                 const updateList = []
-                uqChangeGoodsList.forEach((changeGood) => {
-                    if (this.cartList[changeGood.table_index] !== null && this.cartList[changeGood.table_index].length !== 0) {
-                        this.cartList[changeGood.table_index].goods_list.forEach((good) => {
-                            if (good.id === changeGood.id) {
-                                updateList.push(good)
-                            }
-                        })
-                    }
-                })
+                if (this.isAdmin === false) {
+                    uqChangeGoodsList.forEach((changeGood) => {
+                        if (this.cartList[changeGood.table_index] !== null && this.cartList[changeGood.table_index].length !== 0) {
+                            this.cartList[changeGood.table_index].goods_list.forEach((good) => {
+                                if (good.id === changeGood.id) {
+                                    updateList.push(good)
+                                }
+                            })
+                        }
+                    })
+                } else if (this.isAdmin === true) {
+                    uqChangeGoodsList.forEach((changeGood) => {
+                        if (this.applyCartList[changeGood.table_index] !== null && this.applyCartList[changeGood.table_index].length !== 0) {
+                            this.applyCartList[changeGood.table_index].goods_list.forEach((good) => {
+                                if (good.id === changeGood.id) {
+                                    updateList.push(good)
+                                }
+                            })
+                        }
+                    })
+                }
                 const updateUrl = this.curIsAdmin ? 'update_group_apply' : 'update_cart_goods'
                 const params = this.curIsAdmin ? { applyList: updateList, updateType: 'num' } : { goodsList: updateList }
                 this.$http.post('/' + updateUrl, params).then((res) => {
@@ -518,13 +630,23 @@
             },
             getSelectedGoodsList () {
                 const selectedList = []
-                this.selectGoodsList.forEach((good) => {
-                    this.cartList[good.table_index].goods_list.forEach((item) => {
-                        if (good.id === item.id && good.selected) {
-                            selectedList.push(item)
-                        }
+                if (this.isAdmin === false) {
+                    this.selectGoodsList.forEach((good) => {
+                        this.cartList[good.table_index].goods_list.forEach((item) => {
+                            if (good.id === item.id && good.selected) {
+                                selectedList.push(item)
+                            }
+                        })
                     })
-                })
+                } else if (this.isAdmin === true) {
+                    this.selectAppliesList.forEach((good) => {
+                        this.applyCartList[good.table_index].goods_list.forEach((item) => {
+                            if (good.id === item.id && good.selected) {
+                                selectedList.push(item)
+                            }
+                        })
+                    })
+                }
                 return selectedList
             },
             exportCart () {
@@ -580,19 +702,19 @@
                 this.$http.get('/get_group_apply').then((res) => {
                     if (res.result && res.data !== null) {
                         this.allGoodsCount = 0
-                        this.cartList = JSON.parse(JSON.stringify(res.data))
-                        this.cartList.forEach((typeItem, typeIndex) => {
+                        this.applyCartList = JSON.parse(JSON.stringify(res.data))
+                        this.applyCartList.forEach((typeItem, typeIndex) => {
                             this.allGoodsCount += typeItem.goods_list.length
                             typeItem.goods_list.forEach((good) => {
                                 good['table_index'] = typeIndex
                             })
                         })
                         // 初始化购物车选择状态数组
-                        this.selectGoodsList = []
-                        JSON.parse(JSON.stringify(this.cartList)).forEach((typeItem) => {
+                        this.selectAppliesList = []
+                        JSON.parse(JSON.stringify(this.applyCartList)).forEach((typeItem) => {
                             typeItem.goods_list.forEach((good) => {
                                 good.selected = false
-                                this.selectGoodsList.push(good)
+                                this.selectAppliesList.push(good)
                             })
                         })
                     } else {
@@ -611,7 +733,7 @@
                 })
             },
             submitApply (tableItem, tableIndex) {
-                const submitApplyList = this.selectGoodsList.filter((apply) => {
+                const submitApplyList = this.selectAppliesList.filter((apply) => {
                     return apply.selected && apply.table_index === tableIndex
                 })
                 if (submitApplyList.length === 0) {

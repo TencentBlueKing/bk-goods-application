@@ -109,15 +109,15 @@
                 @page-change="handlePageChange"
                 @page-limit-change="handlePageLimitChange">
                 <bk-table-column type="selection" width="60"></bk-table-column>
-                <bk-table-column label="物品名称" prop="good_name"></bk-table-column>
+                <bk-table-column label="物品名称" prop="good_name" width="150"></bk-table-column>
                 <bk-table-column label="物品编码" prop="good_code"></bk-table-column>
-                <bk-table-column label="申请时间" prop="apply_time"></bk-table-column>
-                <bk-table-column label="数量" prop="num"></bk-table-column>
+                <bk-table-column label="申请时间" prop="create_time" width="160"></bk-table-column>
+                <bk-table-column label="数量" prop="num" width="40"></bk-table-column>
                 <bk-table-column label="申请原因" prop="reason"></bk-table-column>
-                <bk-table-column label="状态" prop="status"></bk-table-column>
-                <bk-table-column label="审核人" prop="apply_time"></bk-table-column>
-                <bk-table-column label="审核日期" prop="apply_time"></bk-table-column>
-                <bk-table-column label="备注" prop="apply_time"></bk-table-column>
+                <bk-table-column label="状态" prop="status" width="90"></bk-table-column>
+                <bk-table-column label="审核人" prop="reviewer" width="120"></bk-table-column>
+                <bk-table-column label="审核日期" prop="review_time" width="180"></bk-table-column>
+                <bk-table-column label="备注" prop="reason"></bk-table-column>
                 <bk-table-column label="操作" width="150">
                     <template slot-scope="props">
                         <bk-button class="mr10" theme="primary" text @click="editHistory(props.row)" :disabled="props.row.status !== '导员审核中'">编辑</bk-button>
