@@ -54,10 +54,12 @@ class CheckWithdrawsSeralizers(serializers.Serializer):
                                      )
     reason_id = serializers.IntegerField(required=True, min_value=1, error_messages={
         'min_value': '退货原因id不合法', 'required': '退回原因id不可为空', 'invalid': '退回原因id不是合法数字'})
-    position = serializers.CharField(required=True, max_length=100,
-                                     error_messages={'max_length': '退货地址参数过长',
-                                                     'required': '退货地址不可为空',
-                                                     'blank': '退货地址不可为空'})
+    province = serializers.CharField(required=True, max_length=100,
+                                     error_messages={'max_length': '退货省份地址参数过长',
+                                                     'required': '退货省份地址不可为空',
+                                                     'blank': '退货省份地址不可为空'})
+    city = serializers.CharField(required=True, max_length=100,
+                                 error_messages={'max_length': '退货城市地址参数过长'})
     remark = serializers.CharField(allow_blank=True)
 
 

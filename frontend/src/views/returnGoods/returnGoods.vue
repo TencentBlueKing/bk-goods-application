@@ -36,14 +36,19 @@
                         </bk-col>
                     </bk-row>
                     <bk-row style="margin-bottom: 30px;">
-                        <bk-col :span="6">
+                        <bk-col :span="3">
                             <div class="returnLocation">
-                                <bk-form-item label="退库地点">
-                                    <bk-select :disabled="false" v-model="formData.location" style="width: 80%"
+                                <bk-form-item label="退库省份">
+                                    <bk-select :disabled="false" v-model="formData.province" style="width: 80%"
                                         ext-cls="select-custom"
                                         ext-popover-cls="select-popover-custom"
                                         searchable>
-                                        <bk-option v-for="option in locationList"
+                                        <bk-option
+                                            key="0"
+                                            id="0"
+                                            name="所有地区">
+                                        </bk-option>
+                                        <bk-option v-for="option in provinceList"
                                             :key="option.id"
                                             :id="option.name"
                                             :name="option.name">
@@ -52,7 +57,28 @@
                                 </bk-form-item>
                             </div>
                         </bk-col>
-                        <bk-col :span="6">
+                        <bk-col :span="3">
+                            <div class="returnLocation">
+                                <bk-form-item label="退库城市">
+                                    <bk-select :disabled="false" v-model="formData.city" style="width: 80%"
+                                        ext-cls="select-custom"
+                                        ext-popover-cls="select-popover-custom"
+                                        searchable>
+                                        <bk-option
+                                            key="0"
+                                            id="0"
+                                            name="所有地区">
+                                        </bk-option>
+                                        <bk-option v-for="option in cityList"
+                                            :key="option.id"
+                                            :id="option.name"
+                                            :name="option.name">
+                                        </bk-option>
+                                    </bk-select>
+                                </bk-form-item>
+                            </div>
+                        </bk-col>
+                        <bk-col :span="3">
                             <div class="returnReason">
                                 <bk-form-item label="退库原因">
                                     <bk-select :disabled="false" v-model="formData.reason" style="width: 80%"
@@ -104,6 +130,7 @@
 <script>
     const getPersonalGoodsUrl = '/get_personal_goods/' // 获取个人物资接口
     const getPositionsUrl = '/get_root_position_list' // 获取一级地区接口
+    const getSubPositionListUrl = '/get_sub_position_list' // 获取子地点接口
     const getWithdrawReasonsUrl = '/get_withdraw_reason' // 获取所有地区接口
     const returnGoodsUrl = '/add_withdraw_apply' // 退库接口
     export default {
@@ -118,11 +145,13 @@
                     }
                 ],
                 formData: {
-                    location: '',
+                    province: 0,
+                    city: 0,
                     remark: '',
                     reason: ''
                 },
-                locationList: [],
+                provinceList: [],
+                cityList: [],
                 reasonList: [],
                 idList: [],
                 username: '',
@@ -130,7 +159,8 @@
                     form: {
                         name: '',
                         code: '',
-                        location: '',
+                        province: '',
+                        city: '',
                         status: 2,
                         type: ''
                     },
@@ -150,6 +180,20 @@
                 FIRST: true
             }
         },
+        watch: {
+            'formData.province': function (val) { // 监听单个导入时的页面表格的校区变量
+                this.cityList = []
+                this.formData.city = 0
+                if (val === 0 || val === '0') {
+                    return
+                }
+                const parentCode = this.getParentCode(val)
+                this.$http.get(getSubPositionListUrl, { params: { parent_code: parentCode } }).then(res => {
+                    console.log(res)
+                    this.cityList = res.data
+                })
+            }
+        },
         created () {
             if (!this.$route.params.isFromPersonalGoods) { // 如果不是从个人物资查询页面的跳转则直接返回个人物资查询页面
                 this.$router.replace({ name: 'personalGoods' })
@@ -164,17 +208,27 @@
                 this.getPosition()
                 this.getWithdrawReasons()
             },
+            getParentCode (val) { // 获取父级地区的编码
+                let parentCode = ''
+                for (let index = 0; index < this.provinceList.length; index++) {
+                    if (this.provinceList[index].name === val) {
+                        parentCode = this.provinceList[index].code
+                        break
+                    }
+                }
+                return parentCode
+            },
             checkIdList () {
                 if (this.data.length !== JSON.parse(this.idList).length && this.FIRST === true) { // 传进来的id存在状态为非使用的情况
                     this.handleError({ theme: 'warning' }, '状态非在使用的物资不可退库')
                     this.FIRST = false
                 }
             },
-            getPosition () { // 获得所有地点
+            getPosition () { // 获得一级地点
                 this.$http.get(getPositionsUrl).then(res => {
                     if (res) {
                         if (res && res.result === true) {
-                            this.locationList = res.data
+                            this.provinceList = res.data
                         } else if (res && res.result === false) {
                             this.handleError({ theme: 'error' }, res.message)
                         }
@@ -225,7 +279,7 @@
                 this.returnDialogVisible = true
             },
             returnGoods () { // 退库函数
-                this.$http.post(returnGoodsUrl, { good_ids: this.selected.selectedRows, reason_id: this.formData.reason, position: this.formData.location, remark: this.formData.remark }).then(res => {
+                this.$http.post(returnGoodsUrl, { good_ids: this.selected.selectedRows, reason_id: this.formData.reason, province: this.formData.province, city: this.formData.city, remark: this.formData.remark }).then(res => {
                     if (res && res.result === true) {
                         this.handleError({ theme: 'success' }, '退库成功')
                         this.idList = JSON.parse(this.idList) // 转为列表类型

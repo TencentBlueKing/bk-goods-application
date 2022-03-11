@@ -4,15 +4,15 @@
             <bk-form :label-width="100" :model="userInfo" :rules="rules" ref="userInfo" class="InfoForm">
                 <bk-container :col="12" :gutter="8">
                     <bk-row style="margin-bottom: 20px;">
-                        <bk-col :span="11">
-                            <bk-form-item label="用户名" :required="true" :property="'name'" :error-display-type="'normal'">
-                                <bk-input v-model="userInfo.username" placeholder="请输入新的用户名" :disabled="true"></bk-input>
+                        <bk-col :span="9">
+                            <bk-form-item :label-width="80" label="用户名" :required="true" :property="'name'" :error-display-type="'normal'">
+                                <bk-input class="userCenterInput" v-model="userInfo.username" placeholder="请输入新的用户名" :disabled="true"></bk-input>
                             </bk-form-item>
                         </bk-col>
                     </bk-row>
                     <bk-row style="margin-bottom: 20px;">
-                        <bk-col :span="12">
-                            <bk-form-item label="所在地区" :error-display-type="'normal'" :required="true" :property="'position'">
+                        <bk-col :span="10">
+                            <bk-form-item :label-width="80" label="所在地区" :error-display-type="'normal'" :required="true" :property="'position'">
                                 <bk-select :disabled="editable" v-model="userInfo.position" style="width: 80%"
                                     ext-cls="select-custom"
                                     ext-popover-cls="select-popover-custom"
@@ -26,30 +26,26 @@
                             </bk-form-item>
                         </bk-col>
                     </bk-row>
-                    <bk-row style="margin-bottom: 20px;">
-                        <bk-col :span="11">
-                            <bk-form-item label="手机号码" :property="'phone'" :error-display-type="'normal'">
-                                <bk-input v-model="userInfo.phone" placeholder="号码为空" :disabled="editable"></bk-input>
+                    <bk-row style="margin-bottom: 30px;">
+                        <bk-col :span="9">
+                            <bk-form-item :label-width="80" label="手机号码" :property="'phone'" :error-display-type="'normal'">
+                                <bk-input class="userCenterInput" v-model="userInfo.phone" placeholder="号码为空" :disabled="editable"></bk-input>
                             </bk-form-item>
                         </bk-col>
                     </bk-row>
                     <bk-row style="margin-bottom: 20px;">
                         <bk-col :span="6">
-                            <bk-form-item class="mt20">
-                                <bk-button :theme="'primary'" :title="'修改信息'" class="mr10" @click="editInfo" v-if="editable">
-                                    修改信息
-                                </bk-button>
-                                <bk-button :theme="'warning'" :title="'取消修改'" class="mr10" @click="cancelEdit" v-if="!editable">
-                                    取消修改
-                                </bk-button>
-                            </bk-form-item>
+                            <bk-button style="margin-left: 60%" :theme="'primary'" :title="'修改信息'" class="mr10" @click="editInfo" v-if="editable">
+                                修改信息
+                            </bk-button>
+                            <bk-button style="margin-left: 10%" :theme="'warning'" :title="'取消修改'" class="mr10" @click="cancelEdit" v-if="!editable">
+                                取消修改
+                            </bk-button>
                         </bk-col>
                         <bk-col :span="6">
-                            <bk-form-item class="mt20">
-                                <bk-button :theme="'success'" :title="'确定修改'" @click="confirmEdit" v-if="!editable">
-                                    确定修改
-                                </bk-button>
-                            </bk-form-item>
+                            <bk-button style="margin-left: 10%" :theme="'success'" :title="'确定修改'" @click="confirmEdit" v-if="!editable">
+                                确定修改
+                            </bk-button>
                             <bk-dialog v-model="submitDialogVisible"
                                 width="400"
                                 :render-directive="'if'"
@@ -203,8 +199,13 @@
 <style lang="postcss" scoped>
 .userCenter-wrapper{
     .Info{
+        .userCenterInput{
+            width: 94%;
+        }
         .InfoForm{
-
+            /deep/.mt20{
+                text-align: center;
+            }
         }
     }
 }

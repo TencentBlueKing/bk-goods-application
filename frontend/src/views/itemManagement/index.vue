@@ -1,10 +1,13 @@
 <template>
     <div class="itemManagement-wrapper">
-        <div class="title-wapper">
+        <div class="header">
+            <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span @click="refresh" style="cursor: pointer">物品管理</span></bk-tag></bk-divider>
+        </div>
+        <!-- <div class="title-wapper">
             <bk-breadcrumb>
                 <bk-breadcrumb-item :key="1" :to="itemManagement">物品管理</bk-breadcrumb-item>
             </bk-breadcrumb>
-        </div>
+        </div> -->
         <div class="header-wrapper">
             <div class="fun-bar">
                 <span>物品编号：</span>
@@ -645,6 +648,9 @@
                 // 点击切换页数
                 this.goodsInfo.pagination.current = page
                 this.getGoods()
+            },
+            refresh () {
+                this.$router.go(0)
             }
         }
     }
@@ -652,14 +658,14 @@
 
 <style scoped lang="postcss">
 @import './index.css';
-.title-wapper{
+/* .title-wapper{
     margin-top: 10px;
-}
+} */
 .header-wrapper {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    margin-top: 10px;
+    margin-top: 30px;
     .fun-bar {
         display: flex;
         align-items: center;

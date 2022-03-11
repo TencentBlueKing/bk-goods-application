@@ -33,10 +33,10 @@
                                 </li>
                             </ul>
                             <bk-dialog v-model="userCenterDialogVisible" title="个人信息"
-                                :width="700"
+                                :width="400"
                                 :esc-close="false"
                                 :show-footer="false">
-                                <div style="width: 99%; margin: 0 auto">
+                                <div style="width: 100%; margin: 0">
                                     <user-center ref="userCenter"></user-center>
                                 </div>
                             </bk-dialog>
@@ -260,6 +260,9 @@
     @import './css/app.css';
     .monitor-navigation /deep/ .container-content{
         position: relative;
+    }
+    .bk-dialog-wrapper .bk-dialog-body{
+        padding: 0 0 20px 40px;
     }
     .monitor-navigation-header {
         -webkit-box-flex: 1;

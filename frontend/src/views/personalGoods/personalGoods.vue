@@ -1,25 +1,49 @@
 <template>
     <div class="personalGoods-wrapper">
-        <div class="breadCrumb">
+        <div class="header">
+            <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span @click="refresh" style="cursor: pointer">个人物资查询</span></bk-tag></bk-divider>
+        </div>
+        <!-- <div class="breadCrumb">
             <bk-breadcrumb>
                 <bk-breadcrumb-item v-for="(item,index) in navList" :key="index" :to="item.link">{{item.title}}</bk-breadcrumb-item>
             </bk-breadcrumb>
-        </div>
+        </div> -->
         <div class="conditions">
             <bk-form :label-width="200" form-type="vertical">
                 <bk-container :col="12" :gutter="8">
-                    <bk-row style="margin-bottom: 20px;">
-                        <bk-col :span="6">
+                    <bk-row style="margin-bottom: 10px;">
+                        <bk-col :span="3">
                             <div class="goodCode">
                                 <bk-form-item label="物资编码">
-                                    <bk-input v-model="formData.code" style="width: 90%"></bk-input>
+                                    <bk-input v-model="formData.code" style="width: 80%"></bk-input>
                                 </bk-form-item>
                             </div>
                         </bk-col>
-                        <bk-col :span="6">
+                        <bk-col :span="3">
                             <div class="goodName">
                                 <bk-form-item label="物品名称">
-                                    <bk-input v-model="formData.name" style="width: 90%"></bk-input>
+                                    <bk-input v-model="formData.name" style="width: 80%"></bk-input>
+                                </bk-form-item>
+                            </div>
+                        </bk-col>
+                        <bk-col :span="3">
+                            <div class="goodLocation">
+                                <bk-form-item label="省级地区">
+                                    <bk-select :disabled="false" v-model="formData.province" style="width: 80%"
+                                        ext-cls="select-custom"
+                                        ext-popover-cls="select-popover-custom"
+                                        searchable>
+                                        <bk-option
+                                            key="0"
+                                            id="0"
+                                            name="所有地区">
+                                        </bk-option>
+                                        <bk-option v-for="option in provinceList"
+                                            :key="option.name"
+                                            :id="option.id"
+                                            :name="option.name">
+                                        </bk-option>
+                                    </bk-select>
                                 </bk-form-item>
                             </div>
                         </bk-col>
@@ -69,8 +93,8 @@
                         </bk-col>
                         <bk-col :span="3">
                             <div class="goodLocation">
-                                <bk-form-item label="物品地区">
-                                    <bk-select :disabled="false" v-model="formData.location" style="width: 80%"
+                                <bk-form-item label="市级地区">
+                                    <bk-select :disabled="false" v-model="formData.city" style="width: 80%"
                                         ext-cls="select-custom"
                                         ext-popover-cls="select-popover-custom"
                                         searchable>
@@ -79,7 +103,7 @@
                                             id="0"
                                             name="所有地区">
                                         </bk-option>
-                                        <bk-option v-for="option in locationList"
+                                        <bk-option v-for="option in cityList"
                                             :key="option.id"
                                             :id="option.name"
                                             :name="option.name">
@@ -89,7 +113,7 @@
                             </div>
                         </bk-col>
                     </bk-row>
-                    <bk-row style="margin-bottom: 10px; text-align: right">
+                    <bk-row style="text-align: right">
                         <bk-col :span="9">
                             <div class="search">
                                 <bk-form-item class="mt20">
@@ -144,6 +168,7 @@
         </div>
         <div class="goods">
             <bk-table style="margin-top: 15px;"
+                :height="380"
                 :data="data"
                 :size="medium"
                 :pagination="pagination"
@@ -169,6 +194,7 @@
     const getTypesUrl = '/get_good_type_list' // 获取所有类型接口
     const getStatusUrl = '/get_good_status_list' // 获取所有物品状态接口
     const getPositionsUrl = '/get_root_position_list' // 获取一级地区接口
+    const getSubPositionListUrl = '/get_sub_position_list' // 获取子地点接口
     const deriveExcelUrl = '/derive_excel' // 生成excel文件并导出接口
     const delFilesUrl = '/del_excel' // 删除已生成的excel文件接口
     const confirmReceiptUrl = '/confirm_receipt'
@@ -176,18 +202,20 @@
         data () {
             return {
                 username: '',
-                navList: [ // 面包屑列表
-                    {
-                        title: '个人物资查询', link: { name: 'personalGoods' }
-                    }
-                ],
+                // navList: [ // 面包屑列表
+                //     {
+                //         title: '个人物资查询', link: { name: 'personalGoods' }
+                //     }
+                // ],
                 statusList: [], // 物资状态列表
                 typeList: [], // 物资种类列表
-                locationList: [], // 地点列表
+                provinceList: [], // 一级地点列表
+                cityList: [], // 二级地点列表
                 formData: { // 条件搜索表单数据
                     name: '',
                     code: '',
-                    location: 0,
+                    province: 0,
+                    city: 0,
                     status: 0,
                     type: 0
                 },
@@ -201,7 +229,8 @@
                     form: {
                         name: '',
                         code: '',
-                        location: '',
+                        province: '',
+                        city: '',
                         status: '',
                         type: ''
                     },
@@ -213,6 +242,20 @@
                 }, // 存放被选中行数
                 fileCache: [], // 存放待删除excel文件名以及文件夹名,
                 confirmReceiptDialogVisible: false
+            }
+        },
+        watch: {
+            'formData.province': function (val) { // 监听单个导入时的页面表格的校区变量
+                this.cityList = []
+                this.formData.city = 0
+                if (val === 0 || val === '0') {
+                    return
+                }
+                const parentCode = this.getParentCode(val)
+                this.$http.get(getSubPositionListUrl, { params: { parent_code: parentCode } }).then(res => {
+                    console.log(res)
+                    this.cityList = res.data
+                })
             }
         },
         created () {
@@ -228,6 +271,17 @@
                 this.getTypes()
                 this.getStatus()
                 this.getPosition()
+            },
+            getParentCode (val) { // 获取父级地区的编码
+                console.log('val', val)
+                let parentCode = ''
+                for (let index = 0; index < this.provinceList.length; index++) {
+                    if (this.provinceList[index].id === val) {
+                        parentCode = this.provinceList[index].code
+                        break
+                    }
+                }
+                return parentCode
             },
             sleep (time) { // 定时器
                 return new Promise((resolve) => setTimeout(resolve, time * 1000))
@@ -340,7 +394,7 @@
                 this.$http.get(getPositionsUrl).then(res => {
                     if (res) {
                         if (res && res.result === true) {
-                            this.locationList = res.data
+                            this.provinceList = res.data
                         } else if (res && res.result === false) {
                             this.handleError({ theme: 'error' }, res.message)
                         }
@@ -396,6 +450,9 @@
                 this.pagination.current = page
                 this.get_params.page = this.pagination.current
                 this.getPersonalGoods()
+            },
+            refresh () {
+                this.$router.go(0)
             }
         }
     }
@@ -404,8 +461,12 @@
 
 <style lang="postcss" scoped>
 .personalGoods-wrapper{
+    overflow: hidden;
+    .header{
+        display: block;
+    }
     .breadCrumb{
-        margin: 15px 20px;
+        margin: 15px 10px;
     }
     .conditions{
         width: 100%;
