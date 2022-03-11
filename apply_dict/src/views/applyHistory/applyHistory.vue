@@ -112,9 +112,9 @@
                 <bk-table-column label="物品名称" prop="good_name" width="150"></bk-table-column>
                 <bk-table-column label="物品编码" prop="good_code"></bk-table-column>
                 <bk-table-column label="申请时间" prop="create_time" width="160"></bk-table-column>
-                <bk-table-column label="数量" prop="num" width="40"></bk-table-column>
+                <bk-table-column label="数量" prop="num" width="55"></bk-table-column>
                 <bk-table-column label="申请原因" prop="reason"></bk-table-column>
-                <bk-table-column label="状态" prop="status" width="90"></bk-table-column>
+                <bk-table-column label="状态" prop="status" width="110"></bk-table-column>
                 <bk-table-column label="审核人" prop="reviewer" width="120"></bk-table-column>
                 <bk-table-column label="审核日期" prop="review_time" width="180"></bk-table-column>
                 <bk-table-column label="备注" prop="reason"></bk-table-column>

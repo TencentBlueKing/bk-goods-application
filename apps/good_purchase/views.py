@@ -84,7 +84,7 @@ def get_personal_goods(request):
     form = json.loads(form)
     name = form.get('name')
     code = form.get('code')
-    location = form.get('location')
+    location = form.get('city')
     status = form.get('status')
     good_type = form.get('type')
 
@@ -111,7 +111,7 @@ def get_personal_goods(request):
     if code:
         query = query & Q(good_code=code)
     if location and location != '0':
-        query = query & Q(position=location)
+        query = query & Q(position__icontains=location)
     if status and int(status) != 0:
         query = query & Q(status=status)
     queryset = queryset.filter(query)
@@ -459,7 +459,15 @@ def add_withdraw_apply(request):
         return get_result({"code": 1, "result": False, "message": message})
     ids = check_withdraws_seralizers.validated_data.get("good_ids")
     reason_id = check_withdraws_seralizers.validated_data.get("reason_id")
-    position = check_withdraws_seralizers.validated_data.get("position")
+    province = check_withdraws_seralizers.validated_data.get("province", None)
+    city = check_withdraws_seralizers.validated_data.get("city", None)
+    if province and (province != '0' and province != 0):
+        if not city or city == '0' or city == 0:
+            position = province
+        else:
+            position = province + '/' + city
+    else:
+        position = '无'
     remark = check_withdraws_seralizers.validated_data.get("remark", '')
     good_ids = GroupApply.objects.filter(id__in=ids, status=2, username=username).values_list("id", flat=True)
     if not set(ids).issubset(good_ids):
