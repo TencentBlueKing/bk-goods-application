@@ -110,17 +110,17 @@
                     list: [
                         {
                             name: '购物车',
-                            id: '',
+                            id: 1,
                             pageName: 'shoppingCart'
                         },
                         {
                             name: '个人中心',
-                            id: '',
+                            id: 2,
                             pageName: ''
                         },
                         {
                             name: '个人物资查询',
-                            id: '',
+                            id: 3,
                             pageName: 'personalGoods'
                         }
                     ]
@@ -129,7 +129,10 @@
             }
         },
         computed: {
-            ...mapGetters(['mainContentLoading']),
+            ...mapGetters(['mainContentLoading', 'isAdmin']),
+             watchIsAdmin () {
+                return this.isAdmin
+            },
             curHeaderNav () {
                 return this.header.list[this.header.active] || {}
             },
@@ -140,8 +143,20 @@
                 return this.$store.getters.isLeader === undefined ? false : this.$store.getters.isLeader
             }
         },
+        watch: {
+            watchIsAdmin (newVal, oldVal) {
+                this.isAdmin = newVal
+                if (this.isAdmin === true) {
+                    this.user.list.find(this.findUserListId1).name = '物资导入及申请'
+                } else {
+                    this.user.list.find(this.findUserListId1).name = '购物车'
+                }
+            }
+        },
         created () {
             this.username = this.$store.state.user.username
+            this.isAdmin = this.$store.state.isAdmin
+            // console.log('this.isAdmin', this.isAdmin)
             const platform = window.navigator.platform.toLowerCase()
             if (platform.indexOf('win') === 0) {
                 this.systemCls = 'win'
@@ -166,12 +181,16 @@
         updated () {
             if (this.$route.name === 'purchaseHome') {
                 this.header.active = 0
-            }
-            if (this.$route.name === 'itemManagement') {
+            } else if (this.$route.name === 'itemManagement') {
                 this.header.active = 1
+            } else {
+                this.header.active = -1
             }
         },
         methods: {
+            findUserListId1 (obj) {
+                return obj.id === 1
+            },
             handleToggle (v) {
                 this.nav.toggle = v
             },
@@ -191,7 +210,6 @@
                     return
                 }
                 this.$http.get('/if_leader_or_secretary').then((res) => {
-                    console.log('res', res)
                     if (res.result !== null) {
                         if (res.data.identity === 0) {
                             isAdmin = true

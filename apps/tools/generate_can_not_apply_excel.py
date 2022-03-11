@@ -9,7 +9,7 @@ def generate_can_not_apply_excel(can_not_apply_list, username):
     work_book = xlwt.Workbook(encoding='utf-8')  # 创建excel对象
     work_sheet = work_book.add_sheet('格式错误物资表')
     excel_title = ['使用人', '物品编码', '物品名称', '数量', '参考单价', '需求地点',
-                   '期望领用日期', '标准领用日期', '备注', '配送方式', '验收人', '收货信息']  # excel标题
+                   '期望领用日期', '标准领用日期', '备注', '配送方式', '验收人', '收货信息', '错误信息']  # excel标题
     style = xlwt.XFStyle()
     font = xlwt.Font()
     # 加粗标题字体
@@ -23,6 +23,8 @@ def generate_can_not_apply_excel(can_not_apply_list, username):
     # 写入数据
     for index_row, row in enumerate(can_not_apply_list):
         for index_col, col in enumerate(row):
+            if isinstance(col, datetime.date):
+                col = col.strftime("%Y-%m-%d")
             work_sheet.write(index_row + 1, index_col, col)
 
     # 设置宽度

@@ -272,6 +272,7 @@ def get_goods_apply(request, leader_or_secretary):
     """
     获取需要审核的物资列表
     """
+    uesrname = request.user.username
     if leader_or_secretary == 0:
         # 秘书, 查询审核中
         query = Q(status=2)
@@ -282,6 +283,7 @@ def get_goods_apply(request, leader_or_secretary):
         query = Q(status=1)
         users = sub_users_in_group(request, username=request.user.username, group_id=6)
         user_usernames = [user.get('username') for user in users]
+        user_usernames.append(uesrname)
 
     # 申请人-查询条件
     apply_user = request.GET.get('apply_user', None)
@@ -310,7 +312,7 @@ def get_goods_apply(request, leader_or_secretary):
     if not start_time:
         start_time = '1970-1-1'
     if not end_time:
-        end_time = datetime.datetime.now().strftime('%Y-%m-%d')
+        end_time = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
     query = query & Q(create_time__range=(start_time, end_time))
 
     # 分页

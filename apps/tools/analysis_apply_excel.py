@@ -7,6 +7,7 @@ import xlrd
 from apps.good_apply.serializers import PreApplySerializers
 from apps.tools.generate_can_not_apply_excel import \
     generate_can_not_apply_excel
+from apps.tools.param_check import get_error_message
 from apps.tools.response import get_result
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
@@ -29,7 +30,11 @@ def analysis_apply_excel(request):
             num = row[3]
             # price = row[4]
             # position = row[5]
-            require_date = str(row[6])
+            if file_Type == 'xlsx':
+                row[6] = row[6].date()
+                require_date = row[6]
+            elif file_Type == 'xls':
+                require_date = row[6]
             # standard_require_date = row[7]
             # remark = row[8]
             # delivery_method = row[9]
@@ -45,6 +50,8 @@ def analysis_apply_excel(request):
             }
             pre_apply_serializer = PreApplySerializers(data=pre_apply)
             if not pre_apply_serializer.is_valid():
+                err_msg = get_error_message(pre_apply_serializer)
+                row.append(err_msg)
                 CANNOT_APPLY.append(row)
                 continue
             validated_list.append(row)
