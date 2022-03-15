@@ -45,7 +45,6 @@ BK_APPLY_STATIC_URL = STATIC_URL + "apply_dist"
 #         },
 #     }
 # )
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
