@@ -5,7 +5,7 @@ import xlwt
 from django.conf import settings
 
 
-def generate_can_not_add_excel(err_code_list, username):
+def generate_can_not_add_excel(err_code_list, username, err_msg):
     work_book = xlwt.Workbook(encoding='utf-8')  # 创建excel对象
     work_sheet = work_book.add_sheet('格式错误物资表')
     excel_title = ['错误物资编码']
@@ -21,8 +21,14 @@ def generate_can_not_add_excel(err_code_list, username):
         work_sheet.write(0, index, item, style)
 
     # 写入数据
-    for index_row, item in enumerate(err_code_list):
-        work_sheet.write(index_row + 1, 0, item)
+    for index, item in enumerate(err_code_list):
+        work_sheet.write(index + 1, 0, item)
+    # 写入标题
+    work_sheet.write(len(err_code_list) + 1, 0, '错误信息', style)
+
+    # 写入错误信息
+    for index, item in enumerate(err_msg):
+        work_sheet.write(index + 1 + 1 + len(err_code_list), 0, item)
 
     # 设置宽度
     for index, item in enumerate(excel_title):

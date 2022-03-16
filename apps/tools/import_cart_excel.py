@@ -16,7 +16,7 @@ from openpyxl import load_workbook
 
 @require_POST
 def import_cart_excel(request):
-    def handle_excel_data(rows, CANNOT_ADD):  # 处理传入的列表数据，判断是否加入部门所需物资表
+    def handle_excel_data(rows, CANNOT_ADD, err_msg):  # 处理传入的列表数据，判断是否加入部门所需物资表
         group_apply_create_list = []  # 存放GroupApply对象
         for row_index, row in enumerate(rows):
             if row_index == 0:  # 标题行跳过
@@ -30,9 +30,11 @@ def import_cart_excel(request):
             # 判断商品是否存在于商品表中，判断用户名是否存在于用户表中
             if not Good.objects.filter(good_code=good_code, status=1).exists():
                 CANNOT_ADD.append(good_code)
+                err_msg.append('{}: 无对应商品'.format(good_code))
                 continue
             if not UserInfo.objects.filter(username=username).exists():
                 CANNOT_ADD.append(good_code)
+                err_msg.append('{}: 无对应用户'.format(good_code))
                 continue
 
             phone = ''
@@ -44,6 +46,7 @@ def import_cart_excel(request):
             # 判断数量是否为整形或浮点型，并且是否大于等于0
             if (not isinstance(num, int) and not isinstance(num, float)) or not num >= 0:
                 CANNOT_ADD.append(good_code)
+                err_msg.append('{}: 数量格式有误'.format(good_code))
                 continue
 
             position = gapply_item[3]
@@ -91,6 +94,7 @@ def import_cart_excel(request):
 
     # 存放问题数据
     CANNOT_ADD = []
+    err_msg = []
     if file_Type == 'xlsx':
         xlsx = load_workbook(file_path)
         table = xlsx.worksheets[0]
@@ -101,7 +105,7 @@ def import_cart_excel(request):
             row = [table.cell(i, index).value for index in range(1, table.max_column + 1)]
             rows.append(row)
         if len(rows) > 1:
-            handle_excel_data(rows, CANNOT_ADD)  # 处理数据
+            handle_excel_data(rows, CANNOT_ADD, err_msg)  # 处理数据
         else:
             raise BusinessException(StatusEnums.IMPORT_FILE_EMPTY_ERROR)
 
@@ -114,7 +118,7 @@ def import_cart_excel(request):
         for row_idx in range(table.nrows):
             rows.append(table.row_values(row_idx))
         if len(rows) > 1:
-            handle_excel_data(rows, CANNOT_ADD)  # 处理数据
+            handle_excel_data(rows, CANNOT_ADD, err_msg)  # 处理数据
         else:
             raise BusinessException(StatusEnums.IMPORT_FILE_EMPTY_ERROR)
 
@@ -127,7 +131,7 @@ def import_cart_excel(request):
         }
         return get_result(result)
     else:
-        can_not_add_file_url = generate_can_not_add_excel(CANNOT_ADD, username)
+        can_not_add_file_url = generate_can_not_add_excel(CANNOT_ADD, username, err_msg)
         result = {
             "code": StatusEnums.IMPORT_ERROR.code,
             "result": True,
