@@ -439,7 +439,8 @@ def upload_img(request):
     # 判断文件夹是否存在
     dir_path = os.path.join(settings.MEDIA_ROOT, 'good_purchase')
     if not os.path.exists(dir_path):
-        os.mkdir(dir_path)
+        # os.mkdir(dir_path)
+        os.makedirs(dir_path)
     file_path = os.path.join(dir_path, file_name)
     # 写入图片
     with open(file_path, 'wb') as f:
