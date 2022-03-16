@@ -9,7 +9,6 @@ from apps.tools.generate_can_not_add_excel import generate_can_not_add_excel
 from apps.tools.response import get_result
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
-from django.conf import settings
 from django.views.decorators.http import require_POST
 from openpyxl import load_workbook
 
@@ -76,7 +75,7 @@ def import_cart_excel(request):
         raise BusinessException(StatusEnums.PARAMS_ERROR)
 
     file_name = body.get('fileName')
-    dir_path = os.path.join(settings.MEDIA_ROOT, 'import_cart_excel')
+    dir_path = 'import_cart_excel'
 
     # 检查文件夹是否存在
     if not os.path.exists(dir_path):

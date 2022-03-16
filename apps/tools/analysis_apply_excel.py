@@ -11,7 +11,7 @@ from apps.tools.param_check import get_error_message
 from apps.tools.response import get_result
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
-from django.conf import settings
+from bkstorages.backends.bkrepo import BKRepoStorage
 from django.views.decorators.http import require_POST
 from openpyxl import load_workbook
 from xlrd import xldate_as_tuple
@@ -72,7 +72,7 @@ def analysis_apply_excel(request):
         raise BusinessException(StatusEnums.PARAMS_ERROR)
 
     file_name = body.get('fileName')
-    dir_path = os.path.join(settings.MEDIA_ROOT, 'analysis_apply_excel')
+    dir_path = 'analysis_apply_excel'
 
     # 检查文件夹是否存在
     if not os.path.exists(dir_path):
@@ -81,9 +81,15 @@ def analysis_apply_excel(request):
     # 拼接文件路径
     file_path = os.path.join(dir_path, file_name)
 
+    storage = BKRepoStorage()
+
     # 将file以base64格式译码
     with open(file_path, 'wb') as f:
         f.write(base64.b64decode(file))
+
+    # 保存到云端
+    with open(file_path, 'rb') as fp:
+        storage.save(file_path, fp)
 
     # 获取文件类型，支持xlsx于xls
     file_Type = file_name.split('.')[-1]

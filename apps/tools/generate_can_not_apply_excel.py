@@ -2,7 +2,7 @@ import datetime
 import os
 
 import xlwt
-from blueapps.conf import settings
+from bkstorages.backends.bkrepo import BKRepoStorage
 
 
 def generate_can_not_apply_excel(can_not_apply_list, username):
@@ -33,7 +33,7 @@ def generate_can_not_apply_excel(can_not_apply_list, username):
 
     file_name = username + '_analysis_err_code_' + datetime.datetime.today().strftime('%Y-%m-%d__%H') + '.xls'
 
-    dir_path = os.path.join(settings.MEDIA_ROOT, 'analysis_err_excel')
+    dir_path = 'analysis_err_excel'
 
     # 检查文件夹是否存在
     if not os.path.exists(dir_path):
@@ -44,6 +44,10 @@ def generate_can_not_apply_excel(can_not_apply_list, username):
 
     work_book.save(file_path)
 
-    file_url = settings.BK_BACK_URL + '/media/' + 'analysis_err_excel/' + file_name
+    storage = BKRepoStorage()
+    with open(file_path, 'rb') as fp:
+        storage.save(file_path, fp)
 
+    # file_url = settings.BK_BACK_URL + '/media/' + 'analysis_err_excel/' + file_name
+    file_url = storage.url(file_path)
     return file_url

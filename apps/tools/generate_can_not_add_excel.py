@@ -2,7 +2,7 @@ import datetime
 import os
 
 import xlwt
-from django.conf import settings
+from bkstorages.backends.bkrepo import BKRepoStorage
 
 
 def generate_can_not_add_excel(err_code_list, username, err_msg):
@@ -36,7 +36,7 @@ def generate_can_not_add_excel(err_code_list, username, err_msg):
 
     file_name = username + '_import_err_code_' + datetime.datetime.today().strftime('%Y-%m-%d__%H') + '.xls'
 
-    dir_path = os.path.join(settings.MEDIA_ROOT, 'import_err_excel')
+    dir_path = 'import_err_excel'
 
     # 检查文件夹是否存在
     if not os.path.exists(dir_path):
@@ -47,6 +47,11 @@ def generate_can_not_add_excel(err_code_list, username, err_msg):
 
     work_book.save(file_path)
 
-    file_url = settings.BK_BACK_URL + '/media/' + 'import_err_excel/' + file_name
+    storage = BKRepoStorage()
+    with open(file_path, 'rb') as f:
+        storage.save(file_path, f)
+
+    # file_url = settings.BK_BACK_URL + '/media/' + 'import_err_excel/' + file_name
+    file_url = storage.url(file_path)
 
     return file_url

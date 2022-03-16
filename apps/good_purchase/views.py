@@ -14,6 +14,7 @@ import base64
 import json
 import uuid
 from datetime import datetime
+from tempfile import NamedTemporaryFile
 
 from apps.good_purchase.models import (Cart, Good, GoodType, GroupApply,
                                        UserInfo, Withdraw, WithdrawReason)
@@ -31,8 +32,9 @@ from apps.tools.param_check import (check_apply_update_param, check_param_id,
 from apps.tools.response import get_cart_result, get_result
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
+from bkstorages.backends.bkrepo import BKRepoStorage
 from config.default import os
-from django.conf import settings
+from django.core.files.base import File
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
@@ -437,15 +439,25 @@ def upload_img(request):
     # 生成随机数命名图片
     file_name = str(uuid.uuid4()) + '.' + file_type
     # 判断文件夹是否存在
-    dir_path = os.path.join(settings.MEDIA_ROOT, 'good_purchase')
+    dir_path = 'good_purchase'
     if not os.path.exists(dir_path):
         # os.mkdir(dir_path)
         os.makedirs(dir_path)
     file_path = os.path.join(dir_path, file_name)
+
+    storage = BKRepoStorage()
+
     # 写入图片
-    with open(file_path, 'wb') as f:
-        f.write(base64.b64decode(img_obj))
-    pic_url = settings.BK_BACK_URL + '/media/good_purchase/' + file_name
+    # with open(file_path, 'wb') as f:
+    #     f.write(base64.b64decode(img_obj))
+
+    with NamedTemporaryFile() as fp:
+        fp.write(base64.b64decode(img_obj))
+        fp.flush()
+        f = File(fp)
+        storage.save(file_path, f)
+    # pic_url = settings.BK_BACK_URL + '/media/good_purchase/' + file_name
+    pic_url = storage.url(file_path)
     return get_result({"message": "上传图片成功", "data": {"pic_url": pic_url}})
 
 
@@ -563,10 +575,10 @@ def get_good_code_list(request):
 def del_pics(request):
     body = request.body
     file_paths = json.loads(body)
+    storage = BKRepoStorage()
     if file_paths:
         for file_path in file_paths:
-            file_path = os.path.join(settings.MEDIA_ROOT, file_path)
-            if os.path.exists(file_path):
-                os.remove(file_path)
+            if storage.exists(file_path):
+                storage.delete(file_path)
         return get_result({'message': '删除成功'})
     return get_result({'message': '删除失败'})
