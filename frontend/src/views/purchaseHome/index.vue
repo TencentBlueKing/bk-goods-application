@@ -1,7 +1,7 @@
 <template>
     <div class="index-wrapper">
         <div class="header">
-            <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span @click="refresh" style="cursor: pointer">首页</span></bk-tag></bk-divider>
+            <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span>首页</span></bk-tag></bk-divider>
         </div>
         <div class="toCarTab" @click="toShoppingCar" v-if="!isAdmin">
             <svg t="1641539862015" class="icon" viewBox="0 0 1028 1024" version="1.1" p-id="2153" width="40" height="40">

@@ -1,7 +1,7 @@
 <template>
     <div class="itemManagement-wrapper">
         <div class="header">
-            <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span @click="refresh" style="cursor: pointer">物品管理</span></bk-tag></bk-divider>
+            <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span>物品管理</span></bk-tag></bk-divider>
         </div>
         <!-- <div class="title-wapper">
             <bk-breadcrumb>
@@ -51,13 +51,10 @@
         >
             <div class="form-wrapper">
                 <bk-form :model="goodFormData" :rules="rules" :ext-cls="'good-form'" ref="checkForm">
-                    <bk-form-item :label-width="80" label="物品编码" :required="true" :property="'good_code'">
-                        <bk-input v-model="goodFormData.good_code" placeholder="请输入1到30个以内的字符"></bk-input>
+                    <bk-form-item :label-width="80" label="物品编码" :required="true" :property="'good_code'" :icon-offset="145">
+                        <bk-input v-model="goodFormData.good_code" placeholder="请输入1到30个以内的字符" style="width: 70%"></bk-input>
                     </bk-form-item>
-                    <bk-form-item :label-width="80" label="物品名称" :required="true" :property="'good_name'">
-                        <bk-input v-model="goodFormData.good_name" placeholder="请输入物品名称（50字以内）"></bk-input>
-                    </bk-form-item>
-                    <bk-form-item :label-width="80" label="物品类型" :required="true" :property="'good_type_id'">
+                    <bk-form-item :label-width="80" label="物品类型" :required="true" :property="'good_type_id'" style="width: 74.5%" :icon-offset="25">
                         <bk-select :disabled="false" v-model="goodFormData.good_type_id"
                             searchable
                         >
@@ -78,8 +75,8 @@
                         title="添加物品类型"
                     >
                         <div class="add-type-wrapper">
-                            <span>类型名称：</span>
-                            <bk-input :clearable="true" v-model="addGoodTypeDialog.typeName"></bk-input>
+                            <span style="width: 20%">类型名称：</span>
+                            <bk-input :clearable="true" v-model="addGoodTypeDialog.typeName" style="width: 65%"></bk-input>
                         </div>
                         <div slot="footer">
                             <bk-button :theme="'primary'" :title="'确认'" class="mr10" @click="submitAddGoodType">
@@ -90,8 +87,8 @@
                             </bk-button>
                         </div>
                     </bk-dialog>
-                    <bk-form-item :label-width="80" label="参考价" ext-cls="price-wrapper" :required="true" :property="'price'">
-                        <bk-input type="number" precision="2" v-model="goodFormData.price" title="保留两位小数">
+                    <bk-form-item :label-width="80" label="参考价" ext-cls="price-wrapper" :required="true" :property="'price'" :icon-offset="165">
+                        <bk-input type="number" precision="2" v-model="goodFormData.price" title="保留两位小数" style="width: 70%">
                             <template slot="prepend">
                                 <div class="group-text">
                                     <span v-bk-tooltips="toolTips.top" class="top-start">
@@ -101,7 +98,11 @@
                             </template>
                         </bk-input>
                     </bk-form-item>
-                    <bk-form-item :label-width="80" label="参考图" ext-cls="pics-wrapper" :required="true" :property="'pics'">
+                    <div class="remark-wrapper">
+                        <span style="margin: 0 25px 0 15px">备注</span>
+                        <bk-input type="textarea" v-model="goodFormData.remark" placeholder="请输入物品备注" style="width: 80%"></bk-input>
+                    </div>
+                    <!-- <bk-form-item :label-width="80" label="参考图" ext-cls="pics-wrapper" :required="true" :property="'pics'">
                         <bk-upload
                             :theme="'picture'"
                             :with-credentials="true"
@@ -111,12 +112,30 @@
                             :files="goodFormData.pics"
                             @on-delete="deleteImg"
                         ></bk-upload>
-                    </bk-form-item>
+                    </bk-form-item> -->
                 </bk-form>
-                <div class="remark-wrapper">
-                    <span>备注</span>
-                    <bk-input type="textarea" v-model="goodFormData.remark" placeholder="请输入物品备注"></bk-input>
-                </div>
+                <bk-container :col="12" :gutter="4" style="width: 50%">
+                    <bk-form :model="goodFormData" :rules="rules" :ext-cls="'good-form'" ref="checkForm">
+                        <bk-row style="margin-bottom: 20px">
+                            <bk-form-item :label-width="80" label="物品名称" :required="true" :property="'good_name'" :icon-offset="145">
+                                <bk-input v-model="goodFormData.good_name" placeholder="请输入物品名称（50字以内）" style="width: 70%"></bk-input>
+                            </bk-form-item>
+                        </bk-row>
+                        <bk-row>
+                            <bk-form-item :label-width="80" label="参考图" ext-cls="pics-wrapper" :required="true" :property="'pics'">
+                                <bk-upload
+                                    :theme="'picture'"
+                                    :with-credentials="true"
+                                    :handle-res-code="handleRes"
+                                    :limit="picsLimit"
+                                    :custom-request="uploadImg"
+                                    :files="goodFormData.pics"
+                                    @on-delete="deleteImg"
+                                ></bk-upload>
+                            </bk-form-item>
+                        </bk-row>
+                    </bk-form>
+                </bk-container>
             </div>
             <div class="text-wrapper">
                 <span>物品介绍</span>
@@ -723,6 +742,7 @@
         .remark-wrapper {
             display: flex;
             flex: 1;
+            margin: 20px 0 0 0;
             span {
                 width: 40px;
             }
@@ -746,5 +766,7 @@
         text-align: right;
     }
 }
-
+/deep/ .bk-dialog-wrapper .bk-dialog-header .bk-dialog-header-inner, .bk-dialog-wrapper .bk-dialog-header p{
+    font-size: 20px;
+}
 </style>
