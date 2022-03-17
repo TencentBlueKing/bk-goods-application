@@ -1,7 +1,7 @@
 <template>
     <div class="personalGoods-wrapper">
         <div class="header">
-            <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span @click="refresh" style="cursor: pointer">个人物资查询</span></bk-tag></bk-divider>
+            <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span>个人物资查询</span></bk-tag></bk-divider>
         </div>
         <!-- <div class="breadCrumb">
             <bk-breadcrumb>
