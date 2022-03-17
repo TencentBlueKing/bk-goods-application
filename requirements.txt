@@ -30,3 +30,4 @@ xlrd==2.0.1
 openpyxl==3.0.9
 
 djangorestframework==3.12.2
+bkstorages==1.0.6

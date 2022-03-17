@@ -170,7 +170,6 @@ if locals().get("DISABLED_APPS"):
         )
 
 # 存放媒体数据的路径
-MEDIA_ROOT = os.path.join(BASE_DIR, "USERRES")
 BK_BACK_URL = os.getenv('BKAPP_BACK_URL')
 
 CACHES.update({
@@ -179,3 +178,12 @@ CACHES.update({
         'LOCATION': 'unique-snowflake',
     }
 })
+
+# BKREPO 相关配置信息, 启用增强服务后会自动往环境变量中添加对应的配置
+BKREPO_ENDPOINT_URL = os.environ['BKREPO_ENDPOINT_URL']
+BKREPO_USERNAME = os.environ['BKREPO_USERNAME']
+BKREPO_PASSWORD = os.environ['BKREPO_PASSWORD']
+BKREPO_PROJECT = os.environ['BKREPO_PROJECT']
+BKREPO_BUCKET = os.environ['BKREPO_BUCKET']
+
+DEFAULT_FILE_STORAGE = 'bkstorages.backends.bkrepo.BKRepoStorage'

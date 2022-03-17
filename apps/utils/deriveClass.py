@@ -4,7 +4,7 @@ import os
 import xlwt
 from apps.good_apply.models import Apply
 from apps.good_purchase.models import Cart, Good, GoodType, GroupApply
-from django.conf import settings
+from bkstorages.backends.bkrepo import BKRepoStorage
 
 
 class DeriveModel(object):
@@ -20,6 +20,7 @@ class DeriveModel(object):
         self.dir_path = ''  # excel文件所在文件夹
         self.file_url = ''  # excel文件资源路径
         self.result = ''  # 标准化result
+        self.storage = None  # 存储对象
 
     def init_data(self):  # 初始化数据
         if self.model == 1:
@@ -170,11 +171,11 @@ class DeriveModel(object):
                 datetime.datetime.today().strftime('%Y-%m-%d__%H') + '.xls'
         # 规定文件夹名
         if self.model == 1:
-            self.dir_path = os.path.join(settings.MEDIA_ROOT, 'personal_goods')
+            self.dir_path = 'personal_goods'
         elif self.model == 2:
-            self.dir_path = os.path.join(settings.MEDIA_ROOT, 'cart')
+            self.dir_path = 'cart'
         elif self.model == 3:
-            self.dir_path = os.path.join(settings.MEDIA_ROOT, 'apply_history')
+            self.dir_path = 'apply_history'
 
         # 检查文件夹是否存在
         if not os.path.exists(self.dir_path):
@@ -184,14 +185,18 @@ class DeriveModel(object):
         file_path = os.path.join(self.dir_path, self.file_name)
 
         self.work_book.save(file_path)
+        self.storage = BKRepoStorage()
+        with open(file_path, 'rb') as fp:
+            self.storage.save(file_path, fp)
 
     def derive_result(self):
-        if self.model == 1:
-            self.file_url = settings.BK_BACK_URL + '/media/' + 'personal_goods/' + self.file_name
-        elif self.model == 2:
-            self.file_url = settings.BK_BACK_URL + '/media/' + 'cart/' + self.file_name
-        elif self.model == 3:
-            self.file_url = settings.BK_BACK_URL + '/media/' + 'apply_history/' + self.file_name
+        # if self.model == 1:
+        #     self.file_url = settings.BK_BACK_URL + '/media/' + 'personal_goods/' + self.file_name
+        # elif self.model == 2:
+        #     self.file_url = settings.BK_BACK_URL + '/media/' + 'cart/' + self.file_name
+        # elif self.model == 3:
+        #     self.file_url = settings.BK_BACK_URL + '/media/' + 'apply_history/' + self.file_name
+        self.file_url = self.storage.url(os.path.join(self.dir_path, self.file_name))
 
         self.result = {
             "code": 200,

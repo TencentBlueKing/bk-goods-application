@@ -5,7 +5,7 @@ from apps.good_purchase.serializers import delExcelSerializer
 from apps.tools.response import get_result
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
-from django.conf import settings
+from bkstorages.backends.bkrepo import BKRepoStorage
 from django.views.decorators.http import require_POST
 
 
@@ -31,11 +31,14 @@ def del_excel(request):
         raise BusinessException(StatusEnums.AUTHORITY_ERROR)
 
     # 拼接路径
-    file_path = os.path.join(settings.MEDIA_ROOT, dir_name, file_name)
+    file_path = os.path.join(dir_name, file_name)
 
     # 删除文件
-    if os.path.exists(file_path):
-        os.remove(file_path)
+    # if os.path.exists(file_path):
+    #     os.remove(file_path)
+    storage = BKRepoStorage()
+    if storage.exists(file_path):
+        storage.delete(file_path)
     result = {
         "code": 200,
         "result": True,

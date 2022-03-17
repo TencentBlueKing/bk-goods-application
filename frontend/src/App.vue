@@ -222,9 +222,9 @@
                             isLeader = true
                             // console.log('leader')
                             this.$store.dispatch('setUserLeaderIdentity', isLeader)
-                            if (isLeader === true) {
-                                this.header.list.find(this.findGoodManagement).show = true
-                            }
+                            // if (isLeader === true) {
+                            //     this.header.list.find(this.findGoodManagement).show = true
+                            // }
                         }
                     } else {
                         this.$bkMessage({
