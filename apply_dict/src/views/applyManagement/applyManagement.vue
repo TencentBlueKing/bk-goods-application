@@ -256,7 +256,6 @@
         },
         created () {
             this.username = this.$store.state.user.username
-            this.get_params.apply_user = this.username
             this.loadData()
         },
         mounted () {},
@@ -378,8 +377,9 @@
                     this.get_params.start_time = ''
                 }
                 if (this.formData.endDate) {
-                    this.formData.endDate.setDate(this.formData.endDate.getDate() + 1)
-                    this.get_params.end_time = this.dateFormat('YYYY-mm-dd', this.formData.endDate)
+                    const tempDate = new Date(Date.parse(this.formData.endDate))
+                    tempDate.setDate(tempDate.getDate() + 1)
+                    this.get_params.end_time = this.dateFormat('YYYY-mm-dd', tempDate)
                 } else {
                     this.get_params.end_time = ''
                 }
