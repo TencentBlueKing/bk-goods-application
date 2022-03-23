@@ -17,14 +17,14 @@ import os
 import sys
 
 import celery
+from django.core.management.base import BaseCommand
+from kombu.utils.encoding import str_to_bytes
 
 try:
     import django_celery_beat
 except ImportError:
     import djcelery
 
-from kombu.utils.encoding import str_to_bytes
-from django.core.management.base import BaseCommand
 
 DB_SHARED_THREAD = """\
 DatabaseWrapper objects created in a thread can only \

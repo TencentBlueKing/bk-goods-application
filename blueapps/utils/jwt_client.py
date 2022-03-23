@@ -13,13 +13,10 @@ specific language governing permissions and limitations under the License.
 
 import cryptography  # noqa
 import jwt
-
-from jwt import exceptions as jwt_exceptions
-
-from django.conf import settings
-
-from blueapps.utils.logger import logger
 from blueapps.utils.fancy_dict import FancyDict
+from blueapps.utils.logger import logger
+from django.conf import settings
+from jwt import exceptions as jwt_exceptions
 
 
 class JWTClient(object):

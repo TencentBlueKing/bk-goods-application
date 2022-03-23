@@ -13,22 +13,13 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+from blueapps.contrib.bk_commands.management.handlers.migrate_from_djcelery_handler import (
+    DjCrontabSchedule, DjIntervalSchedule, DjPeriodicTask, DjPeriodicTasks,
+    execute)
 from django.core.management import BaseCommand
 from django.db import transaction
-from django_celery_beat.models import (
-    IntervalSchedule,
-    CrontabSchedule,
-    PeriodicTasks,
-    PeriodicTask,
-)
-
-from blueapps.contrib.bk_commands.management.handlers.migrate_from_djcelery_handler import (
-    execute,
-    DjIntervalSchedule,
-    DjCrontabSchedule,
-    DjPeriodicTask,
-    DjPeriodicTasks,
-)
+from django_celery_beat.models import (CrontabSchedule, IntervalSchedule,
+                                       PeriodicTask, PeriodicTasks)
 
 logger = logging.getLogger("blueapps")
 

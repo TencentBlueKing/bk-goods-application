@@ -13,10 +13,13 @@ import preload from '@/common/preload'
 Vue.use(VueRouter)
 
 const MainEntry = () => import(/* webpackChunkName: 'entry' */'@/views')
-const Example1 = () => import(/* webpackChunkName: 'example1' */'@/views/example1')
-const Example2 = () => import(/* webpackChunkName: 'example2' */'@/views/example2')
-const Example3 = () => import(/* webpackChunkName: 'example3' */'@/views/example3')
+const PurchaseHome = () => import(/* webpackChunkName: 'purchaseHome' */'@/views/purchaseHome')
+const ItemManagement = () => import(/* webpackChunkName: 'itemManagement' */'@/views/itemManagement')
+const ItemDetail = () => import(/* webpackChunkName: 'itemDetail' */'@/views/itemDetail')
 const NotFound = () => import(/* webpackChunkName: 'none' */'@/views/404')
+const ShoppingCart = () => import(/* webpackChunkName: 'shoppingCart' */'@/views/shoppingCart')
+const personalGoods = () => import(/* webpackChunkName: 'personalGoods' */'@/views/personalGoods/personalGoods.vue')
+const returnGoods = () => import(/* webpackChunkName: 'returnGoods' */'@/views/returnGoods/returnGoods.vue')
 
 const routes = [
     {
@@ -26,20 +29,35 @@ const routes = [
         alias: '',
         children: [
             {
-                path: 'example1',
+                path: 'purchaseHome',
                 alias: '',
-                name: 'example1',
-                component: Example1
+                name: 'purchaseHome',
+                component: PurchaseHome
             },
             {
-                path: 'example2',
-                name: 'example2',
-                component: Example2
+                path: 'itemManagement',
+                name: 'itemManagement',
+                component: ItemManagement
             },
             {
-                path: 'example3',
-                name: 'example3',
-                component: Example3
+                path: 'itemDetail',
+                name: 'itemDetail',
+                component: ItemDetail
+            },
+            {
+                path: 'shoppingCart',
+                name: 'shoppingCart',
+                component: ShoppingCart
+            },
+            {
+                path: 'personalGoods',
+                name: 'personalGoods',
+                component: personalGoods
+            },
+            {
+                path: 'returnGoods',
+                name: 'returnGoods',
+                component: returnGoods
             }
         ]
     },
@@ -67,6 +85,9 @@ let canceling = true
 let pageMethodExecuting = true
 
 router.beforeEach(async (to, from, next) => {
+    if (store.state.isAdmin !== true && store.state.isLeader !== true && to.name === 'itemManagement') {
+        router.push({ name: 'purchaseHome' })
+    }
     canceling = true
     await cancelRequest()
     canceling = false

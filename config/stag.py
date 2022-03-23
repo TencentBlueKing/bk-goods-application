@@ -20,10 +20,11 @@ else:
 
 # 预发布环境
 RUN_MODE = "STAGING"
-# APP本地静态资源目录
-STATIC_URL = "static/"
+# # APP本地静态资源目录
+# STATIC_URL = "static/"
 # 前端静态url
-BK_STATIC_URL = STATIC_URL + "dist/"
+BK_STATIC_URL = STATIC_URL + "dist"
+BK_APPLY_STATIC_URL = STATIC_URL + "apply_dist"
 # 只对预发布环境日志级别进行配置，可以在这里修改
 # from blueapps.conf.log import set_log_level # noqa
 # LOG_LEVEL = "ERROR"
@@ -41,14 +42,15 @@ if FRONTEND_BACKEND_SEPARATION:
 
 DATABASES.update(
     {
-        "default": {
-            "ENGINE": "django.db.backends.mysql",
-            "NAME": os.getenv("BKAPP_MYSQL_DBNAME"),  # 数据库名
-            "USER": os.getenv("BKAPP_MYSQL_USER"),  # 数据库用户
-            "PASSWORD": os.getenv("BKAPP_MYSQL_PASSWORD"),  # 数据库密码
-            "HOST": os.getenv("BKAPP_MYSQL_HOST"),  # 数据库主机
-            "PORT": os.getenv("BKAPP_MYSQL_PORT"),  # 数据库端口
-        },
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.environ.get('MYSQL_NAME'),
+            'USER': os.environ.get('MYSQL_USER'),
+            'PASSWORD': os.environ.get('MYSQL_PASSWORD'),
+            'HOST': os.environ.get('MYSQL_HOST'),
+            'PORT': os.environ.get('MYSQL_PORT'),
+        }
     }
 )
 
+MEDIA_URL = '%smedia/' % SITE_URL

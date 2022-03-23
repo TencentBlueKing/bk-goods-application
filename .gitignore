@@ -550,3 +550,12 @@ test/
 
 build.yml
 .codecc
+
+USERRES/*
+analysis_apply_excel/*
+analysis_err_excel/*
+apply_history/*
+good_purchase/*
+import_cart_excel/*
+import_err_excel/*
+personal_goods/*

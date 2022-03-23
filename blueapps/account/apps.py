@@ -11,12 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from blueapps.account.conf import APIGW_CACHE_EXPIRES, APIGW_CACHE_KEY
 from django.apps import AppConfig
-from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from django.core.cache import caches
-
-from blueapps.account.conf import APIGW_CACHE_KEY, APIGW_CACHE_EXPIRES
+from django.utils.translation import ugettext_lazy as _
 
 cache = caches["login_db"]
 

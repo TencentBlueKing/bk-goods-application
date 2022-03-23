@@ -33,8 +33,9 @@ from blueapps.conf.log import get_logging_config_dict
 
 # 请在这里加入你的自定义 APP
 INSTALLED_APPS += (  # noqa
-    "home_application",
     "mako_application",
+    "apps.good_purchase",  # 物资采购
+    "apps.good_apply",  # 物资申请
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -65,10 +66,11 @@ INSTALLED_APPS += (  # noqa
 # 自定义中间件
 MIDDLEWARE += (
     "blueapps.middleware.bkui.middlewares.BkuiPageMiddleware",
+    "apps.utils.middlewares.ViewErrorMiddleware",
 )
 
 # 添加首页搜索范围
-TEMPLATES[0]["DIRS"] += (os.path.join(BASE_DIR, "static", "dist"),)
+TEMPLATES[0]["DIRS"] += (os.path.join(BASE_DIR, "static", "dist"), os.path.join(BASE_DIR, "static", "apply_dist"))
 
 # 所有环境的日志级别可以在这里配置
 # LOG_LEVEL = 'INFO'
@@ -107,7 +109,7 @@ LOGGING = get_logging_config_dict(locals())
 
 # 初始化管理员列表，列表中的人员将拥有预发布环境和正式环境的管理员权限
 # 注意：请在首次提测和上线前修改，之后的修改将不会生效
-INIT_SUPERUSER = []
+INIT_SUPERUSER = ["1789572985Q", "1271768177Q"]
 
 # 使用mako模板时，默认打开的过滤器：h(过滤html)
 MAKO_DEFAULT_FILTERS = ["h"]
@@ -121,7 +123,7 @@ IS_AJAX_PLAIN_MODE = False
 # 国际化配置
 LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)  # noqa
 
-USE_TZ = True
+USE_TZ = False
 TIME_ZONE = "Asia/Shanghai"
 LANGUAGE_CODE = "zh-hans"
 
@@ -166,3 +168,22 @@ if locals().get("DISABLED_APPS"):
         locals()[_key] = tuple(
             [_item for _item in locals()[_key] if not _item.startswith(_app + ".")]
         )
+
+# 存放媒体数据的路径
+BK_BACK_URL = os.getenv('BKAPP_BACK_URL')
+
+CACHES.update({
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+})
+
+# BKREPO 相关配置信息, 启用增强服务后会自动往环境变量中添加对应的配置
+BKREPO_ENDPOINT_URL = os.environ['BKREPO_ENDPOINT_URL']
+BKREPO_USERNAME = os.environ['BKREPO_USERNAME']
+BKREPO_PASSWORD = os.environ['BKREPO_PASSWORD']
+BKREPO_PROJECT = os.environ['BKREPO_PROJECT']
+BKREPO_BUCKET = os.environ['BKREPO_BUCKET']
+
+DEFAULT_FILE_STORAGE = 'bkstorages.backends.bkrepo.BKRepoStorage'

@@ -15,12 +15,11 @@ import json
 import logging
 import traceback
 
+from blueapps.core.exceptions.base import BlueException
 from django.conf import settings
 from django.http import Http404, JsonResponse
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import gettext_lazy as _
-
-from blueapps.core.exceptions.base import BlueException
 
 try:
     from raven.contrib.django.raven_compat.models import sentry_exception_handler

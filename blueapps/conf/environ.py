@@ -17,7 +17,6 @@ import importlib
 import os
 
 import config
-
 from blueapps.conf import get_settings_from_module
 
 locals().update(get_settings_from_module(config))

@@ -11,11 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.core.management.base import BaseCommand
-from django.core.cache import caches
-
-
 from blueapps.account.conf import APIGW_CACHE_KEY
+from django.core.cache import caches
+from django.core.management.base import BaseCommand
 
 cache = caches["login_db"]
 

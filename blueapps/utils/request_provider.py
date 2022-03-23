@@ -11,11 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.dispatch import Signal
-from django.utils.deprecation import MiddlewareMixin
-
 from blueapps.conf import settings
 from blueapps.core.exceptions import AccessForbidden, ServerBlueException
+from django.dispatch import Signal
+from django.utils.deprecation import MiddlewareMixin
 
 # since each thread has its own greenlet we can just use those as identifiers
 # for the context.  If greenlets are not available we fall back to the

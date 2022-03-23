@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 import django
-
 from blueapps.core.handler.wsgi import BkWSGIHandler
 
 

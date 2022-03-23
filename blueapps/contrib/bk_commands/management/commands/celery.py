@@ -15,10 +15,9 @@ from __future__ import absolute_import, unicode_literals
 
 from optparse import make_option as Option
 
-from celery.bin import celery
-
 from blueapps.contrib.bk_commands.management.app import app
 from blueapps.contrib.bk_commands.management.base import CeleryCommand
+from celery.bin import celery
 
 base = celery.CeleryCommand(app=app)
 

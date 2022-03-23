@@ -53,8 +53,9 @@
     }
   },
   "dependencies": {
-    "bk-magic-vue": "latest",
+    "@kangc/v-md-editor": "^1.7.8",
     "axios": "~0.18.0",
+    "bk-magic-vue": "latest",
     "cookie": "~0.4.0",
     "jsonp": "~0.2.1",
     "query-string": "~6.5.0",

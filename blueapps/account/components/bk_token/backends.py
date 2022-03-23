@@ -14,14 +14,13 @@ specific language governing permissions and limitations under the License.
 import logging
 import traceback
 
-from django.conf import settings
-from django.contrib.auth.backends import ModelBackend
-from django.db import IntegrityError
-
 from blueapps.account import get_user_model
 from blueapps.account.conf import ConfFixture
 from blueapps.account.utils.http import send
 from blueapps.utils import client
+from django.conf import settings
+from django.contrib.auth.backends import ModelBackend
+from django.db import IntegrityError
 
 logger = logging.getLogger("component")
 

@@ -12,7 +12,6 @@ from .apis.monitor_v3 import CollectionsMonitorV3
 from .apis.sops import CollectionsSOPS
 from .apis.usermanage import CollectionsUSERMANAGE
 
-
 # Available components
 AVAILABLE_COLLECTIONS = {
     'bk_login': CollectionsBkLogin,
