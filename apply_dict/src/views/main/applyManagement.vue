@@ -1,8 +1,5 @@
 <template>
     <div class="applyManagement-wrapper">
-        <div class="header">
-            <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span>申请管理</span></bk-tag></bk-divider>
-        </div>
         <div class="condition-form">
             <bk-form :label-width="130" :model="formData" ref="infoForm">
                 <bk-container :col="12" :margin="6">
@@ -527,9 +524,7 @@
 
 <style lang="postcss" scoped>
 .applyManagement-wrapper {
-    width: 95%;
-    margin: 0 auto;
-    overflow: hidden;
+    margin-top: 10px;
     .condition-form {
         padding: 30px 0 0 0;
         .condition-form-row {

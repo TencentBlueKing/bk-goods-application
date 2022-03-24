@@ -1,8 +1,5 @@
 <template>
     <div class="applyHistory-wrapper">
-        <div class="header">
-            <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span>历史记录</span></bk-tag></bk-divider>
-        </div>
         <div class="condition-form">
             <bk-form :label-width="130" :model="formData" ref="infoForm">
                 <bk-container :col="12" :margin="6">
@@ -505,11 +502,6 @@
 
 <style lang="postcss" scoped>
 .applyHistory-wrapper {
-    width: 95%;
-    margin: 0 auto;
-    overflow: hidden;
-    height:calc(100vh - 200px);
-    /* height: 1000px; */
     .condition-form {
         padding: 30px 0 0 0;
         .condition-form-row {
@@ -521,12 +513,6 @@
         .more-options {
             margin: 0 10px 10px 0;
             .multi-export:hover {
-
-            }
-        }
-        .edit-history-dialog {
-            .edit-table-row {
-                
             }
         }
     }
