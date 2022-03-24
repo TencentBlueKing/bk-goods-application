@@ -131,9 +131,7 @@
 </template>
 
 <script>
-    const getPositionsUrl = '/get_root_position_list' // 获取一级地区接口
-    const getUserInfoUrl = '/get_user_info' // 获取用户信息
-    const editUserInfoUrl = '/edit_user_info' // 修改用户信息
+    import { getPositionsUrl, getUserInfoUrl, editUserInfoUrl } from '@/pattern'
 
     export default {
         data () {

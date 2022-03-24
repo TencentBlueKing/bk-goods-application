@@ -74,3 +74,4 @@ test/unit/coverage
 *.njsproj
 *.sln
 src/public-path.js
+build/
