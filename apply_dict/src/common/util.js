@@ -1,3 +1,6 @@
+import {
+    bkMessage
+} from 'bk-magic-vue'
 /**
  * @file 通用方法
  * @author wheel-w
@@ -341,4 +344,10 @@ export function loadScript (url, callback) {
     }
 
     document.getElementsByTagName('head')[0].appendChild(script)
+}
+
+export function handleError (config, message) { // 遇到后台报自定义错误时上方弹窗提醒
+    config.message = message
+    config.offsetY = 80
+    bkMessage(config)
 }

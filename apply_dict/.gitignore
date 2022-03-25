@@ -73,5 +73,3 @@ test/unit/coverage
 *.ntvs*
 *.njsproj
 *.sln
-src/public-path.js
-build/

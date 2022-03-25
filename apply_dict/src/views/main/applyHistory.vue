@@ -65,7 +65,7 @@
                                                 :options="startDateOptions"
                                                 placeholder="请选择"
                                                 :timer="false"
-                                                v-model="formData.start_date"
+                                                v-model="formData.startDate"
                                                 :disabled="false"
                                                 style="width: 100%"
                                             >
@@ -84,7 +84,7 @@
                                                 :options="endDateOptions"
                                                 placeholder="请选择"
                                                 :timer="false"
-                                                v-model="formData.end_date"
+                                                v-model="formData.endDate"
                                                 :disabled="false"
                                                 style="width: 100%"
                                             >
@@ -215,7 +215,8 @@
                     label="审核日期"
                     prop="review_time"
                     width="180"
-                ></bk-table-column>
+                >
+                </bk-table-column>
                 <bk-table-column
                     label="备注"
                     prop="reason"
@@ -358,11 +359,11 @@
                     good_name: '',
                     good_code: '',
                     apply_reason: '',
-                    start_date: '',
-                    end_date: '',
+                    startDate: '',
+                    endDate: '',
                     status: 999
                 },
-                get_params: {
+                getParams: {
                     good_name: '',
                     good_code: '',
                     reason: '',
@@ -396,23 +397,27 @@
             }
         },
         watch: {
-            'formData.start_date': function (val) {
-                this.endDateOptions = {
-                    disabledDate: function (date) {
-                        if (date < val.setDate(val.getDate())) {
-                            return true
+            'formData.startDate' (val) {
+                if (val) {
+                    this.endDateOptions = {
+                        disabledDate (date) {
+                            if (date < val.setDate(val.getDate())) {
+                                return true
+                            }
+                            return false
                         }
-                        return false
                     }
                 }
             },
-            'formData.end_date': function (val) {
-                this.startDateOptions = {
-                    disabledDate: function (date) {
-                        if (date > val.setDate(val.getDate())) {
-                            return true
+            'formData.endDate' (val) {
+                if (val) {
+                    this.startDateOptions = {
+                        disabledDate (date) {
+                            if (date > val.setDate(val.getDate())) {
+                                return true
+                            }
+                            return false
                         }
-                        return false
                     }
                 }
             }
@@ -433,45 +438,33 @@
                 })
             },
             getGoodApplyList () {
-                this.$http.get(getGoodApplyListUrl, {
-                    params: {
-                        start_time: this.get_params.start_time,
-                        end_time: this.get_params.end_time,
-                        good_code: this.get_params.good_code,
-                        good_name: this.get_params.good_name,
-                        reason: this.get_params.reason,
-                        status: this.get_params.status,
-                        page: this.get_params.page,
-                        size: this.get_params.size
-                    }
+                this.$http.post(getGoodApplyListUrl, {
+                    start_time: this.getParams.start_time,
+                    end_time: this.getParams.end_time,
+                    good_code: this.getParams.good_code,
+                    good_name: this.getParams.good_name,
+                    reason: this.getParams.reason,
+                    status: this.getParams.status,
+                    page: this.getParams.page,
+                    size: this.getParams.size
                 }).then(res => {
                     this.history = res.data.apply_list
                     this.pagination.count = res.data.total_num
                 })
             },
             search () {
-                if (this.formData.start_date) {
-                    this.get_params.start_time = this.dateFormat('YYYY-mm-dd', this.formData.start_date)
-                } else {
-                    this.get_params.start_time = ''
-                }
-                if (this.formData.end_date) {
-                    this.formData.end_date.setDate(this.formData.end_date.getDate() + 1)
-                    this.get_params.end_time = this.dateFormat('YYYY-mm-dd', this.formData.end_date)
-                } else {
-                    this.get_params.end_time = ''
-                }
-                this.get_params.status = this.formData.status
+                this.getParams.start_time = this.formData.startDate ? this.moment(this.formData.startDate).format('YYYY-MM-DD') : ''
+                this.getParams.end_time = this.formData.endDate ? this.moment(this.formData.endDate).format('YYYY-MM-DD') : ''
+                this.getParams.status = this.formData.status
                 if (this.formData.status === 999 || this.formData.status === '999') {
-                    this.get_params.status = ''
+                    this.getParams.status = ''
                 }
-                this.get_params.good_name = this.formData.good_name
-                this.get_params.good_code = this.formData.good_code
-                this.get_params.reason = this.formData.apply_reason
+                this.getParams.good_name = this.formData.good_name
+                this.getParams.good_code = this.formData.good_code
+                this.getParams.reason = this.formData.apply_reason
 
                 this.pagination.current = 1
-                this.get_params.page = this.pagination.current
-                console.log('this.get_params', this.get_params)
+                this.getParams.page = this.pagination.current
                 this.getGoodApplyList()
             },
             editHistory (row) {
@@ -482,11 +475,6 @@
                     }
                 }).then(res => {
                     if (res) {
-                        console.log('id_apply', res)
-                        // this.editFormData.good_name = res.data.good_name
-                        // this.editFormData.good_code = res.data.good_code
-                        // this.editFormData.reason = res.data.reason
-                        // this.editFormData.num = res.data.num
                         this.editFormData = res.data
                     }
                 })
@@ -502,15 +490,11 @@
                 let detailPosition = ''
                 if (this.editFormData.position) {
                     const positionList = this.editFormData.position.split(',')
-                    console.log('positionList', positionList)
                     school = positionList[0]
                     academy = positionList[1]
                     if (positionList.length > 2) {
                         detailPosition = positionList[2]
                     }
-                    console.log('school', school)
-                    console.log('academy', academy)
-                    console.log('detail_position', detailPosition)
                 }
                 this.$http.post(editApplyUrl, {
                     apply_time: this.editFormData.apply_time,
@@ -574,7 +558,6 @@
                 } else {
                     this.selected.selectedRows.push(row.id)
                 }
-                console.log('this.selected.selectedRows', this.selected.selectedRows)
             },
             selectAll () { // 全选时触发函数
                 let ifFullPage = true
@@ -603,7 +586,6 @@
                         this.selected.selectedRows.push(this.history[index].id)
                     }
                 }
-                console.log('this.selected.selectedRows', this.selected.selectedRows)
             },
             handleError (config, message) { // 遇到后台报自定义错误时上方弹窗提醒
                 config.message = message
@@ -612,35 +594,16 @@
             },
             handlePageLimitChange () { // 修改每页多少条数据触发函数
                 this.pagination.limit = arguments[0]
-                this.get_params.size = this.pagination.limit
+                this.getParams.size = this.pagination.limit
                 this.pagination.current = 1
-                this.get_params.page = this.pagination.current
+                this.getParams.page = this.pagination.current
                 this.selected.selectedRows = []
                 this.getGoodApplyList()
             },
             handlePageChange (page) { // 修改当前页触发函数
                 this.pagination.current = page
-                this.get_params.page = this.pagination.current
+                this.getParams.page = this.pagination.current
                 this.getGoodApplyList()
-            },
-            dateFormat (fmt, date) {
-                let ret
-                const opt = {
-                    'Y+': date.getFullYear().toString(), // 年
-                    'm+': (date.getMonth() + 1).toString(), // 月
-                    'd+': date.getDate().toString(), // 日
-                    'H+': date.getHours().toString(), // 时
-                    'M+': date.getMinutes().toString(), // 分
-                    'S+': date.getSeconds().toString() // 秒.
-                    // 有其他格式化字符需求可以继续添加，必须转化成字符串
-                }
-                for (const k in opt) {
-                    ret = new RegExp('(' + k + ')').exec(fmt)
-                    if (ret) {
-                        fmt = fmt.replace(ret[1], (ret[1].length === 1) ? (opt[k]) : (opt[k].padStart(ret[1].length, '0')))
-                    }
-                }
-                return fmt
             },
             dropdownShow () {
                 this.isDropdownShow = true
@@ -650,9 +613,6 @@
             },
             triggerHandler () {
                 this.$refs.dropdown.hide()
-            },
-            refresh () { // 刷新页面
-                this.$router.go(0)
             }
         }
     }

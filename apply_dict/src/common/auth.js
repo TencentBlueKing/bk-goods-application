@@ -43,13 +43,13 @@ export default {
                 resolve(currentUser)
             })
         } else {
-            if (!store.state.user || !Object.keys(store.state.user).length) {
+            if (!store.state.user.userInfo || !Object.keys(store.state.user.userInfo).length) {
                 // store action userInfo 里，如果请求成功会更新 state.user
-                const req = store.dispatch('userInfo')
+                const req = store.dispatch('user/userInfo')
                 promise = new Promise((resolve, reject) => {
                     req.then(resp => {
                         // 存储当前用户信息(全局)
-                        currentUser = store.getters.user
+                        currentUser = store.state.user.userInfo
                         currentUser.isAuthenticated = true
                         resolve(currentUser)
                     }, err => {
