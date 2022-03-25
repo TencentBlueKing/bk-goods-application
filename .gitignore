@@ -559,3 +559,6 @@ good_purchase/*
 import_cart_excel/*
 import_err_excel/*
 personal_goods/*
+
+cart/*
+package-lock.json
