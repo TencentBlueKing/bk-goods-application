@@ -1,7 +1,11 @@
 <template>
     <div class="personalGoods-wrapper">
         <div class="header">
-            <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span>个人物资查询</span></bk-tag></bk-divider>
+            <bk-divider align="left"
+                ><bk-tag type="filled" style="font-size: 13px"
+                    ><span>个人物资查询</span></bk-tag
+                ></bk-divider
+            >
         </div>
         <!-- <div class="breadCrumb">
             <bk-breadcrumb>
@@ -11,37 +15,50 @@
         <div class="conditions">
             <bk-form :label-width="200" form-type="vertical">
                 <bk-container :col="19" :gutter="8">
-                    <bk-row style="margin-bottom: 10px;">
+                    <bk-row style="margin-bottom: 10px">
                         <bk-col :span="5">
                             <div class="goodCode">
                                 <bk-form-item label="物资编码">
-                                    <bk-input v-model="formData.code" style="width: 70%"></bk-input>
+                                    <bk-input
+                                        v-model="formData.code"
+                                        style="width: 70%"
+                                    ></bk-input>
                                 </bk-form-item>
                             </div>
                         </bk-col>
                         <bk-col :span="5">
                             <div class="goodName">
                                 <bk-form-item label="物品名称">
-                                    <bk-input v-model="formData.name" style="width: 70%"></bk-input>
+                                    <bk-input
+                                        v-model="formData.name"
+                                        style="width: 70%"
+                                    ></bk-input>
                                 </bk-form-item>
                             </div>
                         </bk-col>
                         <bk-col :span="5">
                             <div class="goodLocation">
                                 <bk-form-item label="省级地区">
-                                    <bk-select :disabled="false" v-model="formData.province" style="width: 70%"
+                                    <bk-select
+                                        :disabled="false"
+                                        v-model="formData.province"
+                                        style="width: 70%"
                                         ext-cls="select-custom"
                                         ext-popover-cls="select-popover-custom"
-                                        searchable>
+                                        searchable
+                                    >
                                         <bk-option
                                             key="0"
                                             id="0"
-                                            name="所有地区">
+                                            name="所有地区"
+                                        >
                                         </bk-option>
-                                        <bk-option v-for="option in provinceList"
+                                        <bk-option
+                                            v-for="option in provinceList"
                                             :key="option.name"
                                             :id="option.id"
-                                            :name="option.name">
+                                            :name="option.name"
+                                        >
                                         </bk-option>
                                     </bk-select>
                                 </bk-form-item>
@@ -50,37 +67,57 @@
                         <bk-col :span="2">
                             <div class="search">
                                 <bk-form-item class="mt20">
-                                    <bk-button style="margin-top: 13px" :theme="'primary'" title="查询" :outline="true" @click="search">查询数据</bk-button>
+                                    <bk-button
+                                        style="margin-top: 13px"
+                                        :theme="'primary'"
+                                        title="查询"
+                                        :outline="true"
+                                        @click="search"
+                                        >查询数据</bk-button
+                                    >
                                 </bk-form-item>
                             </div>
                         </bk-col>
                         <bk-col :span="2">
                             <div class="output">
                                 <bk-form-item class="mt20">
-                                    <bk-button style="margin-top: 13px" :theme="'success'" title="导出数据" :outline="true" @click="deriveExcel">
+                                    <bk-button
+                                        style="margin-top: 13px"
+                                        :theme="'success'"
+                                        title="导出数据"
+                                        :outline="true"
+                                        @click="deriveExcel"
+                                    >
                                         导出数据
                                     </bk-button>
                                 </bk-form-item>
                             </div>
                         </bk-col>
                     </bk-row>
-                    <bk-row style="margin-bottom: 10px;">
+                    <bk-row style="margin-bottom: 10px">
                         <bk-col :span="5">
                             <div class="goodTypes">
                                 <bk-form-item label="物品类型">
-                                    <bk-select :disabled="false" v-model="formData.type" style="width: 250px;width: 70%"
+                                    <bk-select
+                                        :disabled="false"
+                                        v-model="formData.type"
+                                        style="width: 250px; width: 70%"
                                         ext-cls="select-custom"
                                         ext-popover-cls="select-popover-custom"
-                                        searchable>
+                                        searchable
+                                    >
                                         <bk-option
                                             key="0"
                                             id="0"
-                                            name="全部类型">
+                                            name="全部类型"
+                                        >
                                         </bk-option>
-                                        <bk-option v-for="option in typeList"
+                                        <bk-option
+                                            v-for="option in typeList"
                                             :key="option.id"
                                             :id="option.id"
-                                            :name="option.type_name">
+                                            :name="option.type_name"
+                                        >
                                         </bk-option>
                                     </bk-select>
                                 </bk-form-item>
@@ -89,19 +126,26 @@
                         <bk-col :span="5">
                             <div class="goodStatus">
                                 <bk-form-item label="物品状态">
-                                    <bk-select :disabled="false" v-model="formData.status" style="width: 70%"
+                                    <bk-select
+                                        :disabled="false"
+                                        v-model="formData.status"
+                                        style="width: 70%"
                                         ext-cls="select-custom"
                                         ext-popover-cls="select-popover-custom"
-                                        searchable>
+                                        searchable
+                                    >
                                         <bk-option
                                             key="0"
                                             id="0"
-                                            name="全部状态">
+                                            name="全部状态"
+                                        >
                                         </bk-option>
-                                        <bk-option v-for="option in statusList"
+                                        <bk-option
+                                            v-for="option in statusList"
                                             :key="option.id"
                                             :id="option.id"
-                                            :name="option.status_name">
+                                            :name="option.status_name"
+                                        >
                                         </bk-option>
                                     </bk-select>
                                 </bk-form-item>
@@ -110,19 +154,26 @@
                         <bk-col :span="5">
                             <div class="goodLocation">
                                 <bk-form-item label="市级地区">
-                                    <bk-select :disabled="false" v-model="formData.city" style="width: 70%"
+                                    <bk-select
+                                        :disabled="false"
+                                        v-model="formData.city"
+                                        style="width: 70%"
                                         ext-cls="select-custom"
                                         ext-popover-cls="select-popover-custom"
-                                        searchable>
+                                        searchable
+                                    >
                                         <bk-option
                                             key="0"
                                             id="0"
-                                            name="所有地区">
+                                            name="所有地区"
+                                        >
                                         </bk-option>
-                                        <bk-option v-for="option in cityList"
+                                        <bk-option
+                                            v-for="option in cityList"
                                             :key="option.id"
                                             :id="option.name"
-                                            :name="option.name">
+                                            :name="option.name"
+                                        >
                                         </bk-option>
                                     </bk-select>
                                 </bk-form-item>
@@ -131,10 +182,17 @@
                         <bk-col :span="2">
                             <div class="output">
                                 <bk-form-item class="mt20">
-                                    <bk-button style="margin-top: 13px" :theme="'warning'" title="确认收货" :outline="true" @click="confirmReceiptDialog">
+                                    <bk-button
+                                        style="margin-top: 13px"
+                                        :theme="'warning'"
+                                        title="确认收货"
+                                        :outline="true"
+                                        @click="confirmReceiptDialog"
+                                    >
                                         确认收货
                                     </bk-button>
-                                    <bk-dialog v-model="confirmReceiptDialogVisible"
+                                    <bk-dialog
+                                        v-model="confirmReceiptDialogVisible"
                                         theme="primary"
                                         width="600"
                                         :render-directive="'if'"
@@ -142,7 +200,8 @@
                                         :header-position="left"
                                         @confirm="confirmReceipt"
                                         :esc-close="false"
-                                        title="">
+                                        title=""
+                                    >
                                         确认收货?
                                     </bk-dialog>
                                 </bk-form-item>
@@ -151,23 +210,27 @@
                         <bk-col :span="2">
                             <div class="return">
                                 <bk-form-item class="mt20">
-                                    <bk-button style="margin-top: 13px" :theme="'danger'" title="物资退库" :outline="true" @click="returnGoods">
+                                    <bk-button
+                                        style="margin-top: 13px"
+                                        :theme="'danger'"
+                                        title="物资退库"
+                                        :outline="true"
+                                        @click="returnGoods"
+                                    >
                                         物资退库
                                     </bk-button>
                                 </bk-form-item>
                             </div>
                         </bk-col>
                     </bk-row>
-                    <bk-row style="text-align: right">
-                    </bk-row>
+                    <bk-row style="text-align: right"> </bk-row>
                 </bk-container>
             </bk-form>
         </div>
-        <div class="options">
-            
-        </div>
+        <div class="options"></div>
         <div class="goods">
-            <bk-table style="margin-top: 15px;"
+            <bk-table
+                style="margin-top: 15px"
                 :height="435"
                 :data="data"
                 :size="medium"
@@ -177,12 +240,25 @@
                 @row-mouse-enter="handleRowMouseEnter"
                 @row-mouse-leave="handleRowMouseLeave"
                 @page-change="handlePageChange"
-                @page-limit-change="handlePageLimitChange">
+                @page-limit-change="handlePageLimitChange"
+            >
                 <bk-table-column type="selection" width="60"></bk-table-column>
-                <bk-table-column label="物资编码" prop="good_code"></bk-table-column>
-                <bk-table-column label="物品名称" prop="good_name"></bk-table-column>
-                <bk-table-column label="所在地区" prop="position"></bk-table-column>
-                <bk-table-column label="使用人" prop="username"></bk-table-column>
+                <bk-table-column
+                    label="物资编码"
+                    prop="good_code"
+                ></bk-table-column>
+                <bk-table-column
+                    label="物品名称"
+                    prop="good_name"
+                ></bk-table-column>
+                <bk-table-column
+                    label="所在地区"
+                    prop="position"
+                ></bk-table-column>
+                <bk-table-column
+                    label="使用人"
+                    prop="username"
+                ></bk-table-column>
                 <bk-table-column label="状态" prop="status"></bk-table-column>
             </bk-table>
         </div>
@@ -252,7 +328,11 @@
                     return
                 }
                 const parentCode = this.getParentCode(val)
-                this.$http.get(getSubPositionListUrl, { params: { parent_code: parentCode } }).then(res => {
+                this.$http.get(getSubPositionListUrl, {
+                    params: {
+                        parent_code: parentCode
+                    }
+                }).then(res => {
                     console.log(res)
                     this.cityList = res.data
                 })
@@ -348,7 +428,7 @@
                     console.log('catch错误：', e)
                 }
             },
-            
+
             getPersonalGoods () { // 获得个人物资
                 this.$http.get(getPersonalGoodsUrl, {
                     params: {
@@ -460,19 +540,19 @@
 </script>
 
 <style lang="postcss" scoped>
-.personalGoods-wrapper{
-    overflow: hidden;
-    .header{
-        display: block;
+    .personalGoods-wrapper {
+        overflow: hidden;
+        .header {
+            display: block;
+        }
+        .breadCrumb {
+            margin: 15px 10px;
+        }
+        .conditions {
+            width: 100%;
+        }
+        .goods {
+            margin: 20px 10px;
+        }
     }
-    .breadCrumb{
-        margin: 15px 10px;
-    }
-    .conditions{
-        width: 100%;
-    }
-    .goods{
-        margin: 20px 10px;
-    }
-}
 </style>

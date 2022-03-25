@@ -35,6 +35,10 @@ VMdEditor.use(githubTheme,
 Vue.use(VMdEditor)
 Vue.use(VMdPreview)
 
+// wuhha本地配置
+// 运行vue-devtools插件使用
+Vue.config.devtools = true
+
 Vue.use(bkMagic)
 
 Vue.component('app-exception', Exception)
