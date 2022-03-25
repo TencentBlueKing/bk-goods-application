@@ -194,11 +194,10 @@
 
 <script>
     const deriveExcelUrl = '/derive_excel' // 导出数据接口
-    const getGoodApplyListUrl = '/get_self_good_apply_list' // 获取申请列表接口
-    const getGoodApplyByIdUrl = '/get_good_apply' // 根据id查找单个apply
-    const editApplyUrl = '/update_good_apply' // 更新apply信息
-    const deleteApplyUrl = '/delete_good_apply' // 删除apply
-    const getApplyStatusUrl = '/get_apply_status' // 获取所有申请状态
+    const getGoodApplyListUrl = 'apply/get_self_good_apply_list/' // 获取申请列表接口
+    const editApplyUrl = 'apply/update_good_apply/' // 更新apply信息
+    const deleteApplyUrl = 'apply/delete_good_apply/' // 删除apply
+    const getApplyStatusUrl = 'apply/get_apply_status/' // 获取所有申请状态
 
     export default {
         data () {
@@ -284,7 +283,7 @@
                 })
             },
             getGoodApplyList () {
-                this.$http.get(getGoodApplyListUrl, { params: {
+                this.$http.post(getGoodApplyListUrl, {
                     start_time: this.get_params.start_time,
                     end_time: this.get_params.end_time,
                     good_code: this.get_params.good_code,
@@ -293,7 +292,7 @@
                     status: this.get_params.status,
                     page: this.get_params.page,
                     size: this.get_params.size
-                } }).then(res => {
+                }).then(res => {
                     this.history = res.data.apply_list
                     this.pagination.count = res.data.total_num
                 })
@@ -305,8 +304,9 @@
                     this.get_params.start_time = ''
                 }
                 if (this.formData.end_date) {
-                    this.formData.end_date.setDate(this.formData.end_date.getDate() + 1)
-                    this.get_params.end_time = this.dateFormat('YYYY-mm-dd', this.formData.end_date)
+                    const tempDate = new Date(Date.parse(this.formData.end_date))
+                    tempDate.setDate(tempDate.getDate() + 1)
+                    this.get_params.end_time = this.dateFormat('YYYY-mm-dd', tempDate)
                 } else {
                     this.get_params.end_time = ''
                 }
@@ -325,16 +325,16 @@
             },
             editHistory (row) {
                 this.editDialogVisible = true
-                this.$http.get(getGoodApplyByIdUrl, { params: {
+                this.$http.post(getGoodApplyListUrl, {
                     id: row.id
-                } }).then(res => {
+                }).then(res => {
                     if (res) {
                         console.log('id_apply', res)
                         // this.editFormData.good_name = res.data.good_name
                         // this.editFormData.good_code = res.data.good_code
                         // this.editFormData.reason = res.data.reason
                         // this.editFormData.num = res.data.num
-                        this.editFormData = res.data
+                        this.editFormData = res.data.apply_list[0]
                     }
                 })
             },
@@ -360,18 +360,11 @@
                     console.log('detail_position', detailPosition)
                 }
                 this.$http.post(editApplyUrl, {
-                    apply_time: this.editFormData.apply_time,
-                    apply_user: this.editFormData.apply_user,
                     good_code: this.editFormData.good_code,
                     good_name: this.editFormData.good_name,
-                    id: this.editFormData.id,
                     num: this.editFormData.num,
-                    school: school,
-                    academy: academy,
-                    detail_position: detailPosition,
                     reason: this.editFormData.reason,
-                    require_date: this.editFormData.require_date,
-                    status: this.editFormData.status
+                    id: this.editFormData.id
                 }).then(res => {
                     if (res.result === true) {
                         this.handleError({ theme: 'success' }, res.message)
@@ -381,9 +374,9 @@
             },
             confirmDelete () {
                 this.deleteDialogVisible = false
-                this.$http.get(deleteApplyUrl, { params: {
+                this.$http.post(deleteApplyUrl, {
                     id: this.deleteApplyId
-                } }).then(res => {
+                }).then(res => {
                     if (res.result === true) {
                         this.handleError({ theme: 'success' }, res.message)
                         this.getGoodApplyList()

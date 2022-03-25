@@ -22,9 +22,13 @@ from apps.good_purchase.serializers import (CheckWithdrawsSeralizers,
                                             ConfirmReceiptSerializer,
                                             GoodSerializers,
                                             GoodTypeSerializers,
+                                            UserInfoCheckSerializer,
                                             UserInfoSerializer,
+                                            WithdrawReasonSerializer,
+                                            WithdrawSerializer,
                                             personalFormSerializer,
                                             personalSerializer)
+from apps.tools.auth_check import is_leader_or_secretary
 from apps.tools.decorators import check_secretary_permission
 from apps.tools.param_check import (check_apply_update_param, check_param_id,
                                     check_param_page, check_param_size,
@@ -41,6 +45,8 @@ from django.db.models import Q
 # 开发框架中通过中间件默认是需要登录态的，如有不需要登录的，可添加装饰器login_exempt
 # 装饰器引入 from blueapps.account.decorators import login_exempt
 from django.views.decorators.http import require_GET, require_POST
+from rest_framework import viewsets
+from rest_framework.decorators import action
 
 
 @require_GET
@@ -461,66 +467,58 @@ def upload_img(request):
     return get_result({"message": "上传图片成功", "data": {"pic_url": pic_url}})
 
 
-@require_POST
-def add_withdraw_apply(request):
-    """提交退回物资申请"""
-    req = json.loads(request.body)
-    username = request.user.username
-    check_withdraws_seralizers = CheckWithdrawsSeralizers(data=req)
-    if not check_withdraws_seralizers.is_valid():
-        message = get_error_message(check_withdraws_seralizers)
-        return get_result({"code": 1, "result": False, "message": message})
-    ids = check_withdraws_seralizers.validated_data.get("good_ids")
-    reason_id = check_withdraws_seralizers.validated_data.get("reason_id")
-    province = check_withdraws_seralizers.validated_data.get("province", None)
-    city = check_withdraws_seralizers.validated_data.get("city", None)
-    if province and (province != '0' and province != 0):
-        if not city or city == '0' or city == 0:
-            position = province
+class WithdrawReasonViewSet(viewsets.ModelViewSet):
+    queryset = WithdrawReason.objects.all()
+    serializer_class = WithdrawReasonSerializer
+
+    def list(self, request, *args, **kwargs):
+        withdraw_reason_list = [reason.to_json() for reason in self.queryset]
+        return get_result({'data': withdraw_reason_list})
+
+
+class WithdrawViewSet(viewsets.ModelViewSet):
+    queryset = Withdraw.objects.all()
+    serializer_class = WithdrawSerializer
+
+    @action(methods=['POST'], detail=False)
+    def add_withdraw_apply(self, request):
+        """提交退回物资申请"""
+        req = request.data
+        print('req', req)
+        username = request.user.username
+        check_withdraws_seralizers = CheckWithdrawsSeralizers(data=req)
+        if not check_withdraws_seralizers.is_valid():
+            message = get_error_message(check_withdraws_seralizers)
+            return get_result({"code": 1, "result": False, "message": message})
+        ids = check_withdraws_seralizers.validated_data.get("good_ids")
+        reason_id = check_withdraws_seralizers.validated_data.get("reason_id")
+        province = check_withdraws_seralizers.validated_data.get("province", None)
+        city = check_withdraws_seralizers.validated_data.get("city", None)
+        if province and (province != '0' and province != 0):
+            if not city or city == '0' or city == 0:
+                position = province
+            else:
+                position = province + '/' + city
         else:
-            position = province + '/' + city
-    else:
-        position = '无'
-    remark = check_withdraws_seralizers.validated_data.get("remark", '')
-    good_ids = GroupApply.objects.filter(id__in=ids, status=2, username=username).values_list("id", flat=True)
-    if not set(ids).issubset(good_ids):
-        return get_result({"code": 1, "result": False, "message": "个人物资不存在，或商品不是正在使用状态"})
-    if not WithdrawReason.objects.filter(id=reason_id).exists():
-        return get_result({"code": 1, "result": False, "message": "退回原因不存在"})
-    # 创建需要批量添加的withdraw数组
-    withdraw_list = []
-    for good_id in good_ids:
-        withdraw = Withdraw(good_apply_id=good_id, username=username, reason_id=reason_id,
-                            position=position, remark=remark)
-        withdraw_list.append(withdraw)
-    with transaction.atomic():
-        # 修改个人物资状态
-        GroupApply.objects.filter(id__in=list(good_ids)).update(status=1)
-        # 批量添加物资退回表
-        Withdraw.objects.bulk_create(withdraw_list)
-    return get_result({"message": "退回商品申请提交成功"})
-
-
-@require_GET
-def get_withdraw_reason(request):
-    """获取所有退库原因"""
-    withdraw_reasons = WithdrawReason.objects.all()
-    withdraw_reason_list = [reason.to_json() for reason in withdraw_reasons]
-    return get_result({"data": withdraw_reason_list})
-
-
-@require_POST
-def get_user_info(request):
-    username = request.user.username  # 获取用户名
-    user = UserInfo.objects.filter(username=username).first()  # 获取用户对象
-    if not user:  # 用户不存在则创建
-        user = UserInfo(username=username)
-        user.save()
-    user_info = {
-        'phone': user.phone,
-        'position': user.position
-    }
-    return get_result({'code': 200, 'data': user_info})
+            position = '无'
+        remark = check_withdraws_seralizers.validated_data.get("remark", '')
+        good_ids = GroupApply.objects.filter(id__in=ids, status=2, username=username).values_list("id", flat=True)
+        if not set(ids).issubset(good_ids):
+            return get_result({"code": 1, "result": False, "message": "个人物资不存在，或商品不是正在使用状态"})
+        if not WithdrawReason.objects.filter(id=reason_id).exists():
+            return get_result({"code": 1, "result": False, "message": "退回原因不存在"})
+        # 创建需要批量添加的withdraw数组
+        withdraw_list = []
+        for good_id in good_ids:
+            withdraw = Withdraw(good_apply_id=good_id, username=username, reason_id=reason_id,
+                                position=position, remark=remark)
+            withdraw_list.append(withdraw)
+        with transaction.atomic():
+            # 修改个人物资状态
+            GroupApply.objects.filter(id__in=list(good_ids)).update(status=1)
+            # 批量添加物资退回表
+            Withdraw.objects.bulk_create(withdraw_list)
+        return get_result({"message": "退回商品申请提交成功"})
 
 
 @require_POST
@@ -535,7 +533,7 @@ def edit_user_info(request):
         'phone': phone,
         'position': position
     }
-    user_info_serializer = UserInfoSerializer(data=user_info)
+    user_info_serializer = UserInfoCheckSerializer(data=user_info)
     if user_info_serializer.is_valid():  # 参数校验
         UserInfo.objects.filter(username=username).update(
             phone=user_info.get('phone'), position=user_info.get('position'))
@@ -582,3 +580,23 @@ def del_pics(request):
                 storage.delete(file_path)
         return get_result({'message': '删除成功'})
     return get_result({'message': '删除失败'})
+
+
+class UserInfoViewSet(viewsets.ModelViewSet):
+    queryset = UserInfo.objects.all()
+    serializer_class = UserInfoSerializer
+
+    def list(self, request, *args, **kwargs):
+        user_info = {
+            'phone': self.queryset.filter(username=request.user.username).first().phone,
+            'position': self.queryset.filter(username=request.user.username).first().position,
+            'isScretary': False,
+            'isLeader': False
+        }
+        flag, leader_or_secretary = is_leader_or_secretary(request)
+        if flag:
+            if leader_or_secretary == 0:
+                user_info['isScretary'] = True
+            elif leader_or_secretary == 1:
+                user_info['isLeader'] = True
+        return get_result({'data': user_info})
