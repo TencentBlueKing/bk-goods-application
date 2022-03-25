@@ -559,5 +559,3 @@ good_purchase/*
 import_cart_excel/*
 import_err_excel/*
 personal_goods/*
-apply_dict/src/public-path.js
-frontend/src/public-path.js
