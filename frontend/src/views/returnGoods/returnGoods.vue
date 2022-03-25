@@ -129,10 +129,10 @@
 
 <script>
     const getPersonalGoodsUrl = '/get_personal_goods/' // 获取个人物资接口
-    const getPositionsUrl = '/get_root_position_list' // 获取一级地区接口
-    const getSubPositionListUrl = '/get_sub_position_list' // 获取子地点接口
-    const getWithdrawReasonsUrl = '/get_withdraw_reason' // 获取所有地区接口
-    const returnGoodsUrl = '/add_withdraw_apply' // 退库接口
+    const getPositionsUrl = 'position/get_root_position_list/' // 获取一级地区接口
+    const getSubPositionListUrl = 'position/get_sub_position_list/' // 获取子地点接口
+    const getWithdrawReasonsUrl = '/withdraw_reason/' // 获取所有地区接口
+    const returnGoodsUrl = '/withdraw/add_withdraw_apply/' // 退库接口
     export default {
         data () {
             return {

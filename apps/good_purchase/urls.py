@@ -11,15 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from django.conf.urls import url
-from django.urls import path
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
 
-# from apps.tools.derive_excel import derive_excel
 from ..tools import del_excel, derive_excel, import_cart_excel
-# from apps.tools.del_excel import del_excel
-# from apps.tools.import_excel import import_excel
 from . import views
 
-urlpatterns = (
+urlpatterns = [
     path("get_good_detail", views.get_good_detail),  # 商品详情
     path("get_shopping_cart", views.get_shopping_cart),  # 获取购物车信息
     path("delete_cart_goods", views.delete_cart_goods),  # 删除购物车信息
@@ -38,13 +36,20 @@ urlpatterns = (
     path("add_good_type", views.add_good_type),  # 新增商品类型信息
     path("down_good", views.down_good),  # 下架商品
     path("upload_img", views.upload_img),  # 上传图片
-    path("get_withdraw_reason", views.get_withdraw_reason),  # 获取所有退回商品原因
-    path("add_withdraw_apply", views.add_withdraw_apply),  # 提交退回商品申请
     url(r"^get_personal_goods/$", views.get_personal_goods),  # 获取个人物资接口
     path("get_good_status_list", views.get_good_status_list),  # 获取物资状态列表
-    path('get_user_info', views.get_user_info),  # 获取用户信息
     path('edit_user_info', views.edit_user_info),  # 修改用户信息
     path('confirm_receipt', views.confirm_receipt),  # 确认收货
     path('get_good_code_list', views.get_good_code_list),  # 获取商品编码列表
     path('del_pics', views.del_pics)  # 删除图片
-)
+]
+
+router = DefaultRouter()
+router.register(r'withdraw', views.WithdrawViewSet, basename="withdraw")
+router.register(r'withdraw_reason', views.WithdrawReasonViewSet, basename="withdraw_reason")
+router.register(r'user_info', views.UserInfoViewSet, basename="user_info")
+
+
+urlpatterns += [
+    path('', include(router.urls))
+]
