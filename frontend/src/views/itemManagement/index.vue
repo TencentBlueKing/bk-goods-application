@@ -1,7 +1,11 @@
 <template>
     <div class="itemManagement-wrapper">
         <div class="header">
-            <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span>物品管理</span></bk-tag></bk-divider>
+            <bk-divider align="left"
+                ><bk-tag type="filled" style="font-size: 13px"
+                    ><span>物品管理</span></bk-tag
+                ></bk-divider
+            >
         </div>
         <!-- <div class="title-wapper">
             <bk-breadcrumb>
@@ -11,38 +15,56 @@
         <div class="header-wrapper">
             <div class="fun-bar">
                 <span>物品编号：</span>
-                <bk-input :clearable="true" v-model="unSubmitSearch.goodCode"></bk-input>
+                <bk-input
+                    :clearable="true"
+                    v-model="unSubmitSearch.goodCode"
+                ></bk-input>
             </div>
             <div class="fun-bar">
                 <span>物品名称：</span>
-                <bk-input :clearable="true" v-model="unSubmitSearch.goodName"></bk-input>
+                <bk-input
+                    :clearable="true"
+                    v-model="unSubmitSearch.goodName"
+                ></bk-input>
             </div>
             <div class="fun-bar">
-                <span style="width:72px;">物品类别：</span>
-                <bk-select :disabled="false" v-model="unSubmitSearch.goodTypeId" style="width:200px;"
+                <span style="width: 72px">物品类别：</span>
+                <bk-select
+                    :disabled="false"
+                    v-model="unSubmitSearch.goodTypeId"
+                    style="width: 200px"
                     searchable
                 >
+                    <bk-option :key="0" :id="0" :name="'全部'"> </bk-option>
                     <bk-option
-                        :key="0"
-                        :id="0"
-                        :name="'全部'">
-                    </bk-option>
-                    <bk-option v-for="goodType in goodTypeList"
+                        v-for="goodType in goodTypeList"
                         :key="goodType.id"
                         :id="goodType.id"
-                        :name="goodType.type_name">
+                        :name="goodType.type_name"
+                    >
                     </bk-option>
                 </bk-select>
             </div>
 
-            <bk-button :theme="'primary'" :title="'搜索按钮'" class="mr10 search-btn" @click="searchGoodsInfo">
+            <bk-button
+                :theme="'primary'"
+                :title="'搜索按钮'"
+                class="mr10 search-btn"
+                @click="searchGoodsInfo"
+            >
                 搜索
             </bk-button>
-            <bk-button :theme="'primary'" :title="'添加按钮'" class="mr10 add-btn" @click="clickAddGood">
+            <bk-button
+                :theme="'primary'"
+                :title="'添加按钮'"
+                class="mr10 add-btn"
+                @click="clickAddGood"
+            >
                 添加
             </bk-button>
         </div>
-        <bk-dialog v-model="goodDialog.visiable"
+        <bk-dialog
+            v-model="goodDialog.visiable"
             theme="primary"
             :header-position="goodDialog.headerPosition"
             :z-index="1100"
@@ -50,20 +72,50 @@
             class="good-dialog"
         >
             <div class="form-wrapper">
-                <bk-form :model="goodFormData" :rules="rules" :ext-cls="'good-form'" ref="checkForm">
-                    <bk-form-item :label-width="80" label="物品编码" :required="true" :property="'good_code'" :icon-offset="145">
-                        <bk-input v-model="goodFormData.good_code" placeholder="请输入1到30个以内的字符" style="width: 70%"></bk-input>
+                <bk-form
+                    :model="goodFormData"
+                    :rules="rules"
+                    :ext-cls="'good-form'"
+                    ref="checkForm"
+                >
+                    <bk-form-item
+                        :label-width="80"
+                        label="物品编码"
+                        :required="true"
+                        :property="'good_code'"
+                        :icon-offset="145"
+                    >
+                        <bk-input
+                            v-model="goodFormData.good_code"
+                            placeholder="请输入1到30个以内的字符"
+                            style="width: 70%"
+                        ></bk-input>
                     </bk-form-item>
-                    <bk-form-item :label-width="80" label="物品类型" :required="true" :property="'good_type_id'" style="width: 74.5%" :icon-offset="25">
-                        <bk-select :disabled="false" v-model="goodFormData.good_type_id"
+                    <bk-form-item
+                        :label-width="80"
+                        label="物品类型"
+                        :required="true"
+                        :property="'good_type_id'"
+                        style="width: 74.5%"
+                        :icon-offset="25"
+                    >
+                        <bk-select
+                            :disabled="false"
+                            v-model="goodFormData.good_type_id"
                             searchable
                         >
-                            <bk-option v-for="goodType in goodTypeList"
+                            <bk-option
+                                v-for="goodType in goodTypeList"
                                 :key="goodType.id"
                                 :id="goodType.id"
-                                :name="goodType.type_name">
+                                :name="goodType.type_name"
+                            >
                             </bk-option>
-                            <div slot="extension" @click="addGoodTypeDialog.visiable = true" style="cursor: pointer;">
+                            <div
+                                slot="extension"
+                                @click="addGoodTypeDialog.visiable = true"
+                                style="cursor: pointer"
+                            >
                                 <i class="bk-icon icon-plus-circle"></i>新增
                             </div>
                         </bk-select>
@@ -76,23 +128,58 @@
                     >
                         <div class="add-type-wrapper">
                             <span style="width: 20%">类型名称：</span>
-                            <bk-input :clearable="true" v-model="addGoodTypeDialog.typeName" style="width: 65%"></bk-input>
+                            <bk-input
+                                :clearable="true"
+                                v-model="addGoodTypeDialog.typeName"
+                                style="width: 65%"
+                            ></bk-input>
                         </div>
                         <div slot="footer">
-                            <bk-button :theme="'primary'" :title="'确认'" class="mr10" @click="submitAddGoodType">
+                            <bk-button
+                                :theme="'primary'"
+                                :title="'确认'"
+                                class="mr10"
+                                @click="submitAddGoodType"
+                            >
                                 确认
                             </bk-button>
-                            <bk-button :theme="'default'" :title="'取消'" class="mr10" @click="addGoodTypeDialog.visiable = false">
+                            <bk-button
+                                :theme="'default'"
+                                :title="'取消'"
+                                class="mr10"
+                                @click="addGoodTypeDialog.visiable = false"
+                            >
                                 取消
                             </bk-button>
                         </div>
                     </bk-dialog>
-                    <bk-form-item :label-width="80" label="参考价" ext-cls="price-wrapper" :required="true" :property="'price'" :icon-offset="165">
-                        <bk-input type="number" precision="2" v-model="goodFormData.price" title="保留两位小数" style="width: 70%">
+                    <bk-form-item
+                        :label-width="80"
+                        label="参考价"
+                        ext-cls="price-wrapper"
+                        :required="true"
+                        :property="'price'"
+                        :icon-offset="165"
+                    >
+                        <bk-input
+                            type="number"
+                            precision="2"
+                            v-model="goodFormData.price"
+                            title="保留两位小数"
+                            style="width: 70%"
+                        >
                             <template slot="prepend">
                                 <div class="group-text">
-                                    <span v-bk-tooltips="toolTips.top" class="top-start">
-                                        <i class="bk-icon icon-info-circle-shape"></i>
+                                    <span
+                                        v-bk-tooltips="toolTips.top"
+                                        class="top-start"
+                                    >
+                                        <i
+                                            class="
+                                                bk-icon
+                                                icon-info-circle-shape
+                                            "
+                                        ></i>
                                     </span>
                                 </div>
                             </template>
@@ -100,7 +187,12 @@
                     </bk-form-item>
                     <div class="remark-wrapper">
                         <span style="margin: 0 25px 0 15px">备注</span>
-                        <bk-input type="textarea" v-model="goodFormData.remark" placeholder="请输入物品备注" style="width: 80%"></bk-input>
+                        <bk-input
+                            type="textarea"
+                            v-model="goodFormData.remark"
+                            placeholder="请输入物品备注"
+                            style="width: 80%"
+                        ></bk-input>
                     </div>
                     <!-- <bk-form-item :label-width="80" label="参考图" ext-cls="pics-wrapper" :required="true" :property="'pics'">
                         <bk-upload
@@ -115,14 +207,35 @@
                     </bk-form-item> -->
                 </bk-form>
                 <bk-container :col="12" :gutter="4" style="width: 50%">
-                    <bk-form :model="goodFormData" :rules="rules" :ext-cls="'good-form'" ref="checkForm">
+                    <bk-form
+                        :model="goodFormData"
+                        :rules="rules"
+                        :ext-cls="'good-form'"
+                        ref="checkForm"
+                    >
                         <bk-row style="margin-bottom: 20px">
-                            <bk-form-item :label-width="80" label="物品名称" :required="true" :property="'good_name'" :icon-offset="145">
-                                <bk-input v-model="goodFormData.good_name" placeholder="请输入物品名称（50字以内）" style="width: 70%"></bk-input>
+                            <bk-form-item
+                                :label-width="80"
+                                label="物品名称"
+                                :required="true"
+                                :property="'good_name'"
+                                :icon-offset="145"
+                            >
+                                <bk-input
+                                    v-model="goodFormData.good_name"
+                                    placeholder="请输入物品名称（50字以内）"
+                                    style="width: 70%"
+                                ></bk-input>
                             </bk-form-item>
                         </bk-row>
                         <bk-row>
-                            <bk-form-item :label-width="80" label="参考图" ext-cls="pics-wrapper" :required="true" :property="'pics'">
+                            <bk-form-item
+                                :label-width="80"
+                                label="参考图"
+                                ext-cls="pics-wrapper"
+                                :required="true"
+                                :property="'pics'"
+                            >
                                 <bk-upload
                                     :theme="'picture'"
                                     :with-credentials="true"
@@ -158,17 +271,37 @@
                 />
             </div>
             <div slot="footer">
-                <bk-button :theme="'primary'" :title="'确认'" class="mr10" @click="submitAddOrUpdateGood">
+                <bk-button
+                    :theme="'primary'"
+                    :title="'确认'"
+                    class="mr10"
+                    @click="submitAddOrUpdateGood"
+                >
                     确认
                 </bk-button>
-                <bk-button :theme="'default'" :title="'取消'" class="mr10" @click="cancelGoodDialog">
+                <bk-button
+                    :theme="'default'"
+                    :title="'取消'"
+                    class="mr10"
+                    @click="cancelGoodDialog"
+                >
                     取消
                 </bk-button>
             </div>
         </bk-dialog>
-        <div class="goods-info-load" v-bkloading="{ isLoading: isGoodsInfoLoad, theme: 'primary', zIndex: 10 }"></div>
+        <div
+            class="goods-info-load"
+            v-bkloading="{
+                isLoading: isGoodsInfoLoad,
+                theme: 'primary',
+                zIndex: 10,
+            }"
+        ></div>
         <div class="goods-info-table">
-            <bk-table v-show="!isGoodsInfoLoad" v-if="getGoodsFlag" style="margin-top: 20px;"
+            <bk-table
+                v-show="!isGoodsInfoLoad"
+                v-if="getGoodsFlag"
+                style="margin-top: 20px"
                 max-height="400"
                 :data="goodsInfo.goodList"
                 :pagination="goodsInfo.pagination"
@@ -176,16 +309,43 @@
                 @row-mouse-enter="handleRowMouseEnter"
                 @row-mouse-leave="handleRowMouseLeave"
                 @page-change="handlePageChange"
-                @page-limit-change="handlePageLimitChange">
-                <bk-table-column type="index" label="序列" width="60"></bk-table-column>
-                <bk-table-column label="物品编号" prop="good_code"></bk-table-column>
-                <bk-table-column label="物品名称" prop="good_name"></bk-table-column>
-                <bk-table-column label="物品类型" prop="good_tye_name"></bk-table-column>
+                @page-limit-change="handlePageLimitChange"
+            >
+                <bk-table-column
+                    type="index"
+                    label="序列"
+                    width="60"
+                ></bk-table-column>
+                <bk-table-column
+                    label="物品编号"
+                    prop="good_code"
+                ></bk-table-column>
+                <bk-table-column
+                    label="物品名称"
+                    prop="good_name"
+                ></bk-table-column>
+                <bk-table-column
+                    label="物品类型"
+                    prop="good_tye_name"
+                ></bk-table-column>
                 <bk-table-column label="参考价" prop="price"></bk-table-column>
                 <bk-table-column label="操作" width="150">
                     <template slot-scope="props">
-                        <bk-button class="mr10" theme="primary" text :disabled="props.row.status === '创建中'" @click="clickEditGood(props.row)">编辑</bk-button>
-                        <bk-button class="mr10" theme="primary" text @click="clickDownGood(props.row)">下架</bk-button>
+                        <bk-button
+                            class="mr10"
+                            theme="primary"
+                            text
+                            :disabled="props.row.status === '创建中'"
+                            @click="clickEditGood(props.row)"
+                            >编辑</bk-button
+                        >
+                        <bk-button
+                            class="mr10"
+                            theme="primary"
+                            text
+                            @click="clickDownGood(props.row)"
+                            >下架</bk-button
+                        >
                     </template>
                 </bk-table-column>
             </bk-table>
@@ -304,7 +464,8 @@
                         content: '两位小数',
                         showOnInit: true,
                         placements: ['top']
-                    } },
+                    }
+                },
                 picsLimit: 6,
                 goodsCodeList: [],
                 del_pics: []
@@ -320,13 +481,15 @@
             // 后端请求函数
             getGoods () {
                 this.isGoodsInfoLoad = true
-                this.$http.get('/get_good_list'
-                    + '?good_code=' + this.submitSearchInput.goodCode
-                    + '&good_name=' + this.submitSearchInput.goodName
-                    + '&good_type_id=' + this.submitSearchInput.goodTypeId
-                    + '&page=' + this.goodsInfo.pagination.current
-                    + '&size=' + this.goodsInfo.pagination.limit
-                ).then(res => {
+                this.$http.get('/get_good_list', {
+                    params: {
+                        good_code: this.submitSearchInput.goodCode,
+                        good_name: this.submitSearchInput.goodName,
+                        good_type_id: this.submitSearchInput.goodTypeId,
+                        page: this.goodsInfo.pagination.current,
+                        size: this.goodsInfo.pagination.limit
+                    }
+                }).then(res => {
                     if (res.result) {
                         this.getGoodsFlag = false
                         this.goodsInfo.totalNum = res.data.total_num
@@ -377,7 +540,11 @@
                 console.log('this.unSubmitSearch.goodCode == ', this.unSubmitSearch.goodCode)
             },
             getGoodInfo (goodId) {
-                this.$http.get('/get_good_detail?good_id=' + goodId).then(res => {
+                this.$http.get('/get_good_detail', {
+                    params: {
+                        good_id: goodId
+                    }
+                }).then(res => {
                     if (res.result) {
                         this.goodFormData.good_code = res.data.good_code
                         this.goodFormData.good_name = res.data.good_name
@@ -471,7 +638,11 @@
             },
             // 下架物品
             downGood (goodId) {
-                this.$http.get('/down_good?id=' + goodId).then(res => {
+                this.$http.get('/down_good', {
+                    params: {
+                        id: goodId
+                    }
+                }).then(res => {
                     const config = {
                         'offsetY': 80,
                         'delay': 2000
@@ -676,97 +847,106 @@
 </script>
 
 <style scoped lang="postcss">
-@import './index.css';
-/* .title-wapper{
-    margin-top: 10px;
-} */
-.header-wrapper {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    margin-top: 30px;
-    .fun-bar {
+    @import "./index.css";
+    /* .title-wapper{
+        margin-top: 10px;
+    } */
+    .header-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-top: 30px;
+        .fun-bar {
+            display: flex;
+            align-items: center;
+            margin-right: 20px;
+            span {
+                width: 100px;
+            }
+        }
+    }
+    .add-type-wrapper {
         display: flex;
         align-items: center;
-        margin-right: 20px;
         span {
             width: 100px;
         }
     }
-}
-.add-type-wrapper {
-    display: flex;
-    align-items: center;
-    span {
-        width: 100px;
-    }
-}
-.goods-info-table /deep/ .bk-table .bk-table-header-wrapper .bk-table-header {
-    width: 100% !important;
-}
-.goods-info-table /deep/ .bk-table .bk-table-body-wrapper .bk-table-body {
-    width: 100% !important;
-}
-.goods-info-table /deep/ .bk-table .bk-table-body-wrapper .bk-table-empty-block {
-    width: 100% !important;
-}
-
-.good-dialog /deep/ .bk-dialog-wrapper .bk-dialog{
-    width: 80% !important;
-    top: 100px;
-    .bk-dialog-content{
+    .goods-info-table /deep/ .bk-table .bk-table-header-wrapper .bk-table-header {
         width: 100% !important;
-        left: 0 !important;
     }
-}
-.good-dialog /deep/ .bk-dialog-body {
-    height: 600px;
-    overflow: auto;
-    .form-wrapper {
-        display: flex;
-        flex-wrap: wrap;
-        .good-form{
-            flex: 1;
-            /* width: 40%; */
-            margin-right: 20px;
-            .bk-form-item .bk-form-content .bk-form-control /deep/ .bk-input-text {
-                width: 100%;
+    .goods-info-table /deep/ .bk-table .bk-table-body-wrapper .bk-table-body {
+        width: 100% !important;
+    }
+    .goods-info-table
+        /deep/
+        .bk-table
+        .bk-table-body-wrapper
+        .bk-table-empty-block {
+        width: 100% !important;
+    }
+
+    .good-dialog /deep/ .bk-dialog-wrapper .bk-dialog {
+        width: 80% !important;
+        top: 100px;
+        .bk-dialog-content {
+            width: 100% !important;
+            left: 0 !important;
+        }
+    }
+    .good-dialog /deep/ .bk-dialog-body {
+        height: 600px;
+        overflow: auto;
+        .form-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            .good-form {
+                flex: 1;
+                /* width: 40%; */
+                margin-right: 20px;
+                .bk-form-item
+                    .bk-form-content
+                    .bk-form-control
+                    /deep/
+                    .bk-input-text {
+                    width: 100%;
+                }
+                .bk-form-item .bk-form-content .bk-form-control .group-box {
+                    border-right: none;
+                    .group-text {
+                        padding: 0 4px;
+                    }
+                }
             }
-            .bk-form-item .bk-form-content .bk-form-control .group-box {
-                border-right: none;
-                .group-text {
-                    padding: 0 4px;
+            .remark-wrapper {
+                display: flex;
+                flex: 1;
+                margin: 20px 0 0 0;
+                span {
+                    width: 40px;
                 }
             }
         }
-        .remark-wrapper {
+        .text-wrapper {
             display: flex;
-            flex: 1;
-            margin: 20px 0 0 0;
+            margin-top: 20px;
             span {
-                width: 40px;
+                width: 80px;
             }
         }
     }
-    .text-wrapper {
+
+    .pic-wrapper {
         display: flex;
         margin-top: 20px;
         span {
-            width: 80px;
+            margin-right: 24px;
+            width: 56px;
+            text-align: right;
         }
     }
-}
-
-.pic-wrapper {
-    display: flex;
-    margin-top: 20px;
-    span {
-        margin-right: 24px;
-        width: 56px;
-        text-align: right;
+    /deep/ .bk-dialog-wrapper .bk-dialog-header .bk-dialog-header-inner,
+    .bk-dialog-wrapper .bk-dialog-header p {
+        font-size: 20px;
     }
-}
-/deep/ .bk-dialog-wrapper .bk-dialog-header .bk-dialog-header-inner, .bk-dialog-wrapper .bk-dialog-header p{
-    font-size: 20px;
-}
 </style>
