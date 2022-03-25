@@ -1,11 +1,15 @@
 <template>
     <div class="applyManagement-wrapper">
-        <div class="header">
-            <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span>申请管理</span></bk-tag></bk-divider>
-        </div>
         <div class="condition-form">
-            <bk-form :label-width="130" :model="formData" ref="infoForm">
-                <bk-container :col="12" :margin="6">
+            <bk-form
+                :label-width="130"
+                :model="formData"
+                ref="infoForm"
+            >
+                <bk-container
+                    :col="12"
+                    :margin="6"
+                >
                     <bk-row>
                         <bk-col :span="9">
                             <bk-row class="condition-form-row">
@@ -14,17 +18,21 @@
                                         <bk-form-item
                                             label="申请人"
                                             :property="'applicant'"
-                                            class="applicant-item">
+                                            class="applicant-item"
+                                        >
                                             <bk-select v-model="formData.applicant">
                                                 <bk-option
                                                     key="0"
                                                     id="0"
-                                                    name="全部">
+                                                    name="全部"
+                                                >
                                                 </bk-option>
-                                                <bk-option v-for="option in applicantList"
+                                                <bk-option
+                                                    v-for="option in applicantList"
                                                     :key="option.id"
                                                     :id="option.username"
-                                                    :name="option.username">
+                                                    :name="option.username"
+                                                >
                                                 </bk-option>
                                             </bk-select>
                                         </bk-form-item>
@@ -35,8 +43,16 @@
                                         <bk-form-item
                                             label="开始时间"
                                             :property="'startDate'"
-                                            :icon-offset="35">
-                                            <bk-date-picker :options="startDateOptions" placeholder="请选择" :timer="false" v-model="formData.startDate" :disabled="false" style="width: 100%">
+                                            :icon-offset="35"
+                                        >
+                                            <bk-date-picker
+                                                :options="startDateOptions"
+                                                placeholder="请选择"
+                                                :timer="false"
+                                                v-model="formData.startDate"
+                                                :disabled="false"
+                                                style="width: 100%"
+                                            >
                                             </bk-date-picker>
                                         </bk-form-item>
                                     </div>
@@ -46,29 +62,44 @@
                                         <bk-form-item
                                             label="结束时间"
                                             :property="'endDate'"
-                                            :icon-offset="0">
-                                            <bk-date-picker :options="endDateOptions" placeholder="请选择" :timer="false" v-model="formData.endDate" :disabled="false" style="width: 100%">
+                                            :icon-offset="0"
+                                        >
+                                            <bk-date-picker
+                                                :options="endDateOptions"
+                                                placeholder="请选择"
+                                                :timer="false"
+                                                v-model="formData.endDate"
+                                                :disabled="false"
+                                                style="width: 100%"
+                                            >
                                             </bk-date-picker>
                                         </bk-form-item>
                                     </div>
                                 </bk-col>
                             </bk-row>
                             <bk-row class="condition-form-row">
-                                <bk-col :span="3" :offset="3">
+                                <bk-col
+                                    :span="3"
+                                    :offset="3"
+                                >
                                     <div class="campus">
                                         <bk-form-item
                                             label="校区"
-                                            :property="'campus'">
+                                            :property="'campus'"
+                                        >
                                             <bk-select v-model="formData.campus">
                                                 <bk-option
                                                     key="0"
                                                     id="0"
-                                                    name="全部">
+                                                    name="全部"
+                                                >
                                                 </bk-option>
-                                                <bk-option v-for="option in campusList"
+                                                <bk-option
+                                                    v-for="option in campusList"
                                                     :key="option.id"
                                                     :id="option.id"
-                                                    :name="option.name">
+                                                    :name="option.name"
+                                                >
                                                 </bk-option>
                                             </bk-select>
                                         </bk-form-item>
@@ -78,17 +109,21 @@
                                     <div class="college">
                                         <bk-form-item
                                             label="学院"
-                                            :property="'college'">
+                                            :property="'college'"
+                                        >
                                             <bk-select v-model="formData.college">
                                                 <bk-option
                                                     key="0"
                                                     id="0"
-                                                    name="全部">
+                                                    name="全部"
+                                                >
                                                 </bk-option>
-                                                <bk-option v-for="option in collegeList"
+                                                <bk-option
+                                                    v-for="option in collegeList"
                                                     :key="option.id"
                                                     :id="option.id"
-                                                    :name="option.name">
+                                                    :name="option.name"
+                                                >
                                                 </bk-option>
                                             </bk-select>
                                         </bk-form-item>
@@ -98,7 +133,13 @@
                         </bk-col>
                         <bk-col :span="3">
                             <div style="text-align: center;line-height: 90px;">
-                                <bk-button size="large" :outline="true" theme="primary" title="查询" @click.stop.prevent="search">查询</bk-button>
+                                <bk-button
+                                    size="large"
+                                    :outline="true"
+                                    theme="primary"
+                                    title="查询"
+                                    @click.stop.prevent="search"
+                                >查询</bk-button>
                             </div>
                         </bk-col>
                     </bk-row>
@@ -107,14 +148,37 @@
         </div>
         <div class="applyTable">
             <div class="more-options">
-                <bk-dropdown-menu @show="dropdownShow" @hide="dropdownHide" ref="dropdown">
-                    <div class="dropdown-trigger-btn" style="padding-left: 19px;" slot="dropdown-trigger">
+                <bk-dropdown-menu
+                    @show="dropdownShow"
+                    @hide="dropdownHide"
+                    ref="dropdown"
+                >
+                    <div
+                        class="dropdown-trigger-btn"
+                        style="padding-left: 19px;"
+                        slot="dropdown-trigger"
+                    >
                         <span>批量操作</span>
                         <i :class="['bk-icon icon-angle-down',{ 'icon-flip': isDropdownShow }]"></i>
                     </div>
-                    <ul class="bk-dropdown-list" slot="dropdown-content">
-                        <li><a href="javascript:;" @click="agree" class="multi-agree">批量同意</a></li>
-                        <li><a href="javascript:;" @click="disagree" class="multi-disagree">批量拒绝</a></li>
+                    <ul
+                        class="bk-dropdown-list"
+                        slot="dropdown-content"
+                    >
+                        <li>
+                            <a
+                                href="javascript:;"
+                                @click="agree"
+                                class="multi-agree"
+                            >批量同意</a>
+                        </li>
+                        <li>
+                            <a
+                                href="javascript:;"
+                                @click="disagree"
+                                class="multi-disagree"
+                            >批量拒绝</a>
+                        </li>
                     </ul>
                 </bk-dropdown-menu>
             </div>
@@ -128,25 +192,64 @@
                 @row-mouse-enter="handleRowMouseEnter"
                 @row-mouse-leave="handleRowMouseLeave"
                 @page-change="handlePageChange"
-                @page-limit-change="handlePageLimitChange">
-                <bk-table-column type="selection" width="60"></bk-table-column>
-                <bk-table-column label="使用人" prop="apply_user"></bk-table-column>
-                <bk-table-column label="物品编码" prop="good_code"></bk-table-column>
-                <bk-table-column label="物品名称" prop="good_name"></bk-table-column>
+                @page-limit-change="handlePageLimitChange"
+            >
+                <bk-table-column
+                    type="selection"
+                    width="60"
+                ></bk-table-column>
+                <bk-table-column
+                    label="使用人"
+                    prop="apply_user"
+                ></bk-table-column>
+                <bk-table-column
+                    label="物品编码"
+                    prop="good_code"
+                ></bk-table-column>
+                <bk-table-column
+                    label="物品名称"
+                    prop="good_name"
+                ></bk-table-column>
                 <!-- <bk-table-column label="物品类型" prop="goodType"></bk-table-column> -->
-                <bk-table-column label="数量" prop="num"></bk-table-column>
-                <bk-table-column label="申请时间" prop="apply_time"></bk-table-column>
-                <bk-table-column label="地址" prop="position"></bk-table-column>
-                <bk-table-column label="申请原因" prop="reason"></bk-table-column>
-                <bk-table-column label="操作" width="150">
+                <bk-table-column
+                    label="数量"
+                    prop="num"
+                ></bk-table-column>
+                <bk-table-column
+                    label="申请时间"
+                    prop="apply_time"
+                ></bk-table-column>
+                <bk-table-column
+                    label="地址"
+                    prop="position"
+                ></bk-table-column>
+                <bk-table-column
+                    label="申请原因"
+                    prop="reason"
+                ></bk-table-column>
+                <bk-table-column
+                    label="操作"
+                    width="150"
+                >
                     <template slot-scope="props">
-                        <bk-button class="mr10" theme="primary" text @click="singleAgree(props.row)">同意</bk-button>
-                        <bk-button class="mr10" theme="primary" text @click="singleDisagree(props.row)">拒绝</bk-button>
+                        <bk-button
+                            class="mr10"
+                            theme="primary"
+                            text
+                            @click="singleAgree(props.row)"
+                        >同意</bk-button>
+                        <bk-button
+                            class="mr10"
+                            theme="primary"
+                            text
+                            @click="singleDisagree(props.row)"
+                        >拒绝</bk-button>
                     </template>
                 </bk-table-column>
             </bk-table>
             <div class="confirm-agree-dialog">
-                <bk-dialog v-model="dialogVisible"
+                <bk-dialog
+                    v-model="dialogVisible"
                     :render-directive="'show'"
                     theme="primary"
                     :width="700"
@@ -154,11 +257,25 @@
                     :header-position="'center'"
                     :confirm-fn="confirm()"
                     :ok-text="getOkText()"
-                    :title="getDialogTitle()">
+                    :title="getDialogTitle()"
+                >
                     <div class="input-remark">
-                        <bk-form :label-width="100" :model="remark" :rules="rules" ref="remark">
-                            <bk-form-item label="备注" :required="true" :property="'inputRemark'">
-                                <bk-input type="textarea" v-model="remark" placeholder="请输入"></bk-input>
+                        <bk-form
+                            :label-width="100"
+                            :model="remark"
+                            :rules="rules"
+                            ref="remark"
+                        >
+                            <bk-form-item
+                                label="备注"
+                                :required="true"
+                                :property="'inputRemark'"
+                            >
+                                <bk-input
+                                    type="textarea"
+                                    v-model="remark"
+                                    placeholder="请输入"
+                                ></bk-input>
                             </bk-form-item>
                         </bk-form>
                     </div>
@@ -169,11 +286,10 @@
 </template>
 
 <script>
-    const getRootPositionListUrl = '/get_root_position_list' // 获取根地点接口
-    const getSubPositionListUrl = '/get_sub_position_list' // 获取子地点接口
-    const examineApplyUrl = '/examine_apply' // 审核申请
-    const getApplyUrl = '/get_goods_apply' // 获取查询集接口
-    const getApplyUserUrl = '/get_apply_users' // 获取组员接口
+    import {
+        getRootPositionListUrl, getSubPositionListUrl, examineApplyUrl,
+        getApplyUrl, getApplyUserUrl
+    } from '@/pattern'
 
     export default {
         data () {
@@ -258,7 +374,7 @@
             this.username = this.$store.state.user.username
             this.loadData()
         },
-        mounted () {},
+        mounted () { },
         methods: {
             loadData () {
                 this.getRootPositionList()
@@ -273,14 +389,16 @@
                 })
             },
             getApply () { // 获取申请列表
-                this.$http.get(getApplyUrl, { params: {
-                    apply_user: this.get_params.apply_user,
-                    position: this.get_params.position,
-                    start_time: this.get_params.start_time,
-                    end_time: this.get_params.end_time,
-                    page: this.get_params.page,
-                    size: this.get_params.size
-                } }).then(res => {
+                this.$http.get(getApplyUrl, {
+                    params: {
+                        apply_user: this.get_params.apply_user,
+                        position: this.get_params.position,
+                        start_time: this.get_params.start_time,
+                        end_time: this.get_params.end_time,
+                        page: this.get_params.page,
+                        size: this.get_params.size
+                    }
+                }).then(res => {
                     if (res) {
                         this.apply = res.data.apply_list
                         this.pagination.count = res.data.total_num
@@ -526,37 +644,35 @@
 </script>
 
 <style lang="postcss" scoped>
-.applyManagement-wrapper {
-    width: 95%;
-    margin: 0 auto;
-    overflow: hidden;
-    .condition-form {
-        padding: 30px 0 0 0;
-        .condition-form-row {
-            margin-bottom: 30px;
-            .applicant {
+    .applyManagement-wrapper {
+        margin-top: 10px;
+        .condition-form {
+            padding: 30px 0 0 0;
+            .condition-form-row {
+                margin-bottom: 30px;
+                .applicant {
+                }
+                .commit {
+                    text-align: center;
+                    line-height: 110px;
+                }
             }
-            .commit {
-                text-align: center;
-                line-height: 110px;
+        }
+        .applyTable {
+            text-align: right;
+            .more-options {
+                margin: 0 20px 10px 0;
+            }
+            .multi-agree:hover {
+                color: rgb(29, 206, 29);
+            }
+            .multi-disagree:hover {
+                color: red;
+            }
+            .confirm-agree-dialog {
+                .input-remark {
+                }
             }
         }
     }
-    .applyTable {
-        text-align: right;
-        .more-options {
-            margin: 0 20px 10px 0;
-        }
-        .multi-agree:hover {
-            color: rgb(29, 206, 29);
-        }
-        .multi-disagree:hover {
-            color: red;
-        }
-        .confirm-agree-dialog {
-            .input-remark {
-            }
-        }
-    }
-}
 </style>
