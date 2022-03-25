@@ -1,21 +1,33 @@
 <template>
     <div class="applyHome-wrapper">
-        <div class="header">
-            <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span>首页</span></bk-tag></bk-divider>
-        </div>
         <div class="switcher">
             <bk-tag style="margin-right: 10px">批量申请</bk-tag>
-            <bk-switcher v-model="showMultiImport" theme="primary"></bk-switcher>
+            <bk-switcher
+                v-model="showMultiImport"
+                theme="primary"
+            ></bk-switcher>
         </div>
-        <div class="info-table" v-if="showInfoForm">
-            <bk-form :label-width="130" :model="formData" :rules="rules" ref="infoForm">
-                <bk-container :col="12" :margin="6">
+        <div
+            class="info-table"
+            v-if="showInfoForm"
+        >
+            <bk-form
+                :label-width="130"
+                :model="formData"
+                :rules="rules"
+                ref="infoForm"
+            >
+                <bk-container
+                    :col="12"
+                    :margin="6"
+                >
                     <bk-row class="info-table-row">
                         <bk-col :span="3">
                             <div class="applicant">
                                 <bk-form-item
                                     label="申请人"
-                                    :property="'applicant'">
+                                    :property="'applicant'"
+                                >
                                     <bk-tag>{{ formData.applicant }}</bk-tag>
                                 </bk-form-item>
                             </div>
@@ -24,7 +36,8 @@
                             <div class="group-leaders">
                                 <bk-form-item
                                     :label="getInfoTableLabel()"
-                                    :property="'leaders'">
+                                    :property="'leaders'"
+                                >
                                     <bk-tag>{{ formData.leaders }}</bk-tag>
                                 </bk-form-item>
                             </div>
@@ -34,8 +47,12 @@
                                 <bk-form-item
                                     label="申请物品名"
                                     :required="true"
-                                    :property="'goodName'">
-                                    <bk-input v-model="formData.goodName" placeholder=""></bk-input>
+                                    :property="'goodName'"
+                                >
+                                    <bk-input
+                                        v-model="formData.goodName"
+                                        placeholder=""
+                                    ></bk-input>
                                 </bk-form-item>
                             </div>
                         </bk-col>
@@ -44,8 +61,12 @@
                                 <bk-form-item
                                     label="申请物品编号"
                                     :required="true"
-                                    :property="'goodCode'">
-                                    <bk-input v-model="formData.goodCode" placeholder=""></bk-input>
+                                    :property="'goodCode'"
+                                >
+                                    <bk-input
+                                        v-model="formData.goodCode"
+                                        placeholder=""
+                                    ></bk-input>
                                 </bk-form-item>
                             </div>
                         </bk-col>
@@ -56,12 +77,15 @@
                                 <bk-form-item
                                     label="校区"
                                     :required="true"
-                                    :property="'campus'">
+                                    :property="'campus'"
+                                >
                                     <bk-select v-model="formData.campus">
-                                        <bk-option v-for="option in campusList"
+                                        <bk-option
+                                            v-for="option in campusList"
                                             :key="option.id"
                                             :id="option.id"
-                                            :name="option.name">
+                                            :name="option.name"
+                                        >
                                         </bk-option>
                                     </bk-select>
                                 </bk-form-item>
@@ -72,12 +96,15 @@
                                 <bk-form-item
                                     label="学院"
                                     :required="true"
-                                    :property="'college'">
+                                    :property="'college'"
+                                >
                                     <bk-select v-model="formData.college">
-                                        <bk-option v-for="option in collegeList"
+                                        <bk-option
+                                            v-for="option in collegeList"
                                             :key="option.id"
                                             :id="option.id"
-                                            :name="option.name">
+                                            :name="option.name"
+                                        >
                                         </bk-option>
                                     </bk-select>
                                 </bk-form-item>
@@ -88,8 +115,12 @@
                                 <bk-form-item
                                     label="具体地点"
                                     :required="true"
-                                    :property="'specificLocation'">
-                                    <bk-input v-model="formData.specificLocation" placeholder=""></bk-input>
+                                    :property="'specificLocation'"
+                                >
+                                    <bk-input
+                                        v-model="formData.specificLocation"
+                                        placeholder=""
+                                    ></bk-input>
                                 </bk-form-item>
                             </div>
                         </bk-col>
@@ -97,8 +128,14 @@
                             <div class="apply-num">
                                 <bk-form-item
                                     label="申请数量"
-                                    :property="'applyNum'">
-                                    <bk-input type="number" :min="1" :precision="precision" v-model="formData.num"></bk-input>
+                                    :property="'applyNum'"
+                                >
+                                    <bk-input
+                                        type="number"
+                                        :min="1"
+                                        :precision="precision"
+                                        v-model="formData.num"
+                                    ></bk-input>
                                 </bk-form-item>
                             </div>
                         </bk-col>
@@ -109,8 +146,16 @@
                                 <bk-form-item
                                     label="期望领用日期"
                                     :property="'getDate'"
-                                    :required="true">
-                                    <bk-date-picker placeholder="请选择" :options="dateOptions" :timer="false" v-model="formData.getDate" :disabled="false" style="width: 100%">
+                                    :required="true"
+                                >
+                                    <bk-date-picker
+                                        placeholder="请选择"
+                                        :options="dateOptions"
+                                        :timer="false"
+                                        v-model="formData.getDate"
+                                        :disabled="false"
+                                        style="width: 100%"
+                                    >
                                     </bk-date-picker>
                                 </bk-form-item>
                             </div>
@@ -120,8 +165,12 @@
                                 <bk-form-item
                                     :required="true"
                                     label="申请原因"
-                                    :property="'applyReason'">
-                                    <bk-input type="textarea" v-model="formData.applyReason"></bk-input>
+                                    :property="'applyReason'"
+                                >
+                                    <bk-input
+                                        type="textarea"
+                                        v-model="formData.applyReason"
+                                    ></bk-input>
                                 </bk-form-item>
                             </div>
                         </bk-col>
@@ -129,14 +178,23 @@
                     <bk-row class="info-table-row">
                         <bk-col :span="12">
                             <div class="commit">
-                                <bk-button size="medium" :outline="true" theme="primary" title="提交申请" @click.stop.prevent="commitApply">提交申请</bk-button>
+                                <bk-button
+                                    size="medium"
+                                    :outline="true"
+                                    theme="primary"
+                                    title="提交申请"
+                                    @click.stop.prevent="commitApply"
+                                >提交申请</bk-button>
                             </div>
                         </bk-col>
                     </bk-row>
                 </bk-container>
             </bk-form>
         </div>
-        <div class="multi-import-page" v-show="showMultiImport">
+        <div
+            class="multi-import-page"
+            v-show="showMultiImport"
+        >
             <div class="success-apply">
                 <bk-table
                     :data="successApply"
@@ -147,14 +205,33 @@
                     @row-mouse-enter="handleRowMouseEnter"
                     @row-mouse-leave="handleRowMouseLeave"
                     @page-change="handlePageChange"
-                    @page-limit-change="handlePageLimitChange">
-                    <bk-table-column type="selection" width="60"></bk-table-column>
-                    <bk-table-column label="使用人" prop="applicant"></bk-table-column>
+                    @page-limit-change="handlePageLimitChange"
+                >
+                    <bk-table-column
+                        type="selection"
+                        width="60"
+                    ></bk-table-column>
+                    <bk-table-column
+                        label="使用人"
+                        prop="applicant"
+                    ></bk-table-column>
                     <!-- <bk-table-column label="导员" prop="leaders"></bk-table-column> -->
-                    <bk-table-column label="物品编码" prop="goodCode"></bk-table-column>
-                    <bk-table-column label="物品名称" prop="goodName"></bk-table-column>
-                    <bk-table-column label="数量" prop="num"></bk-table-column>
-                    <bk-table-column label="期望领用日期" prop="getDate"></bk-table-column>
+                    <bk-table-column
+                        label="物品编码"
+                        prop="goodCode"
+                    ></bk-table-column>
+                    <bk-table-column
+                        label="物品名称"
+                        prop="goodName"
+                    ></bk-table-column>
+                    <bk-table-column
+                        label="数量"
+                        prop="num"
+                    ></bk-table-column>
+                    <bk-table-column
+                        label="期望领用日期"
+                        prop="getDate"
+                    ></bk-table-column>
                     <!-- <bk-table-column label="校区" prop="campus"></bk-table-column>
                     <bk-table-column label="学院" prop="college"></bk-table-column>
                     <bk-table-column label="具体地点" prop="specificLocation"></bk-table-column>
@@ -162,10 +239,20 @@
                 </bk-table>
             </div>
             <div class="multi-commit">
-                <bk-container :col="12" :gutter="4">
+                <bk-container
+                    :col="12"
+                    :gutter="4"
+                >
                     <bk-row>
                         <bk-col :span="11">
-                            <bk-button style="margin: 4px 10% 0 0" size="medium" :outline="true" theme="primary" title="提交申请" @click.stop.prevent="commitMultiApply">提交申请</bk-button>
+                            <bk-button
+                                style="margin: 4px 10% 0 0"
+                                size="medium"
+                                :outline="true"
+                                theme="primary"
+                                title="提交申请"
+                                @click.stop.prevent="commitMultiApply"
+                            >提交申请</bk-button>
                         </bk-col>
                         <bk-col :span="1">
                             <div class="select-file">
@@ -185,21 +272,28 @@
                 </bk-container>
             </div>
             <div class="input-more">
-                <bk-dialog v-model="inputVisible"
+                <bk-dialog
+                    v-model="inputVisible"
                     theme="primary"
                     :width="700"
                     :mask-close="false"
                     :header-position="'center'"
                     :confirm-fn="confirmMultiCommit"
                     ok-text="确定提交"
-                    title="请完善信息">
-                    <bk-form :label-width="130" ref="inputForm">
-                        <bk-container :col="12" :margin="6">
+                    title="请完善信息"
+                >
+                    <bk-form
+                        :label-width="130"
+                        ref="inputForm"
+                    >
+                        <bk-container
+                            :col="12"
+                            :margin="6"
+                        >
                             <bk-row style="margin: 25px;">
                                 <bk-col :span="12">
                                     <div class="leaders">
-                                        <bk-form-item
-                                            label="导员">
+                                        <bk-form-item label="导员">
                                             <bk-tag>{{ multiInput.leaders }}</bk-tag>
                                         </bk-form-item>
                                     </div>
@@ -211,12 +305,15 @@
                                         <bk-form-item
                                             label="校区"
                                             :required="true"
-                                            :property="'multiCampus'">
+                                            :property="'multiCampus'"
+                                        >
                                             <bk-select v-model="multiInput.campus">
-                                                <bk-option v-for="option in campusList"
+                                                <bk-option
+                                                    v-for="option in campusList"
                                                     :key="option.id"
                                                     :id="option.id"
-                                                    :name="option.name">
+                                                    :name="option.name"
+                                                >
                                                 </bk-option>
                                             </bk-select>
                                         </bk-form-item>
@@ -229,12 +326,15 @@
                                         <bk-form-item
                                             label="学院"
                                             :required="true"
-                                            :property="'multiCollege'">
+                                            :property="'multiCollege'"
+                                        >
                                             <bk-select v-model="multiInput.college">
-                                                <bk-option v-for="option in collegeList"
+                                                <bk-option
+                                                    v-for="option in collegeList"
                                                     :key="option.id"
                                                     :id="option.id"
-                                                    :name="option.name">
+                                                    :name="option.name"
+                                                >
                                                 </bk-option>
                                             </bk-select>
                                         </bk-form-item>
@@ -247,8 +347,12 @@
                                         <bk-form-item
                                             label="具体地点"
                                             :required="true"
-                                            :property="'multiSpecificLocation'">
-                                            <bk-input v-model="multiInput.specificLocation" placeholder=""></bk-input>
+                                            :property="'multiSpecificLocation'"
+                                        >
+                                            <bk-input
+                                                v-model="multiInput.specificLocation"
+                                                placeholder=""
+                                            ></bk-input>
                                         </bk-form-item>
                                     </div>
                                 </bk-col>
@@ -259,8 +363,12 @@
                                         <bk-form-item
                                             :required="true"
                                             label="申请原因"
-                                            :property="'multiApplyReason'">
-                                            <bk-input type="textarea" v-model="multiInput.applyReason"></bk-input>
+                                            :property="'multiApplyReason'"
+                                        >
+                                            <bk-input
+                                                type="textarea"
+                                                v-model="multiInput.applyReason"
+                                            ></bk-input>
                                         </bk-form-item>
                                     </div>
                                 </bk-col>
@@ -275,13 +383,10 @@
 
 <script>
     import { mapGetters } from 'vuex'
-
-    const delFilesUrl = '/del_excel' // 删除已生成的excel文件接口
-    const analysisExcelUrl = '/analysis_apply_excel' // 解析excel文件数据接口
-    const getRootPositionListUrl = 'position/get_root_position_list/' // 获取根地点接口
-    const getSubPositionListUrl = 'position/get_sub_position_list/' // 获取子地点接口
-    const getLeadersUrl = '/get_leader' // 获取导员接口
-    const commitApplyUrl = 'apply/submit_apply_list/' // 提交申请接口
+    import {
+        delFilesUrl, analysisExcelUrl, getRootPositionListUrl,
+        getSubPositionListUrl, getLeadersUrl, commitApplyUrl
+    } from '@/pattern'
 
     export default {
         data () {
@@ -422,7 +527,7 @@
             this.loadData() // 创建实例时加载数据
         },
         mounted () {
-            
+
         },
         methods: {
             loadData () {
@@ -725,45 +830,42 @@
 </script>
 
 <style lang="postcss" scoped>
-.applyHome-wrapper {
-    width: 95%;
-    margin: 0 auto;
-    overflow: hidden;
-    .switcher {
-        padding: 15px 0 0 0;
-    }
-    .info-table {
-        width: 100%;
-        padding: 30px 0;
-        overflow: hidden;
-        height:calc(100vh - 280px);
-        .info-table-row {
-            margin-bottom: 50px;
-            .commit {
-                text-align: right;
-            }
-            .more-options {
-                text-align: right;
-                padding: 10px 0 0 0;
-                /deep/ .bk-dropdown-content {
-                    padding: 0;
+    .applyHome-wrapper {
+        .switcher {
+            padding: 15px 0px 0px 0px;
+        }
+        .info-table {
+            width: 100%;
+            padding: 30px 0;
+            overflow: hidden;
+            height: calc(100vh - 280px);
+            .info-table-row {
+                margin-bottom: 50px;
+                .commit {
+                    text-align: right;
                 }
-                /deep/ .bk-dropdown-menu .bk-dropdown-list>li>a {
-                    padding: 0;
+                .more-options {
+                    text-align: right;
+                    padding: 10px 0 0 0;
+                    /deep/ .bk-dropdown-content {
+                        padding: 0;
+                    }
+                    /deep/ .bk-dropdown-menu .bk-dropdown-list > li > a {
+                        padding: 0;
+                    }
                 }
             }
         }
-    }
-    .multi-import-page {
-        padding: 15px 0 0 0;
-        width: 100%;
-        .multi-commit {
-            margin: 30px 0;
-            text-align: right;
-            /deep/ .bk-upload.button .file-wrapper {
+        .multi-import-page {
+            padding: 15px 0 0 0;
+            width: 100%;
+            .multi-commit {
+                margin: 30px 0;
+                text-align: right;
+                /deep/ .bk-upload.button .file-wrapper {
                     font-size: 14px;
                 }
+            }
         }
     }
-}
 </style>
