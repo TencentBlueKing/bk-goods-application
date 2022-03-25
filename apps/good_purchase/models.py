@@ -1,18 +1,10 @@
+# 商品类型表
+from apps.abstract_models.TimeBasic import TimeBasic
 from django.db import models
 
 # Create your models here.
 
 
-# 时间抽象表
-class TimeBasic(models.Model):
-    create_time = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
-    update_time = models.DateTimeField(auto_now=True, verbose_name="修改时间")
-
-    class Meta:
-        abstract = True
-
-
-# 商品类型表
 class GoodType(models.Model):
     type_name = models.CharField(max_length=20, unique=True, verbose_name="类型名称")
 

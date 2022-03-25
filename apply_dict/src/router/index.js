@@ -13,35 +13,43 @@ import preload from '@/common/preload'
 Vue.use(VueRouter)
 
 const MainEntry = () => import(/* webpackChunkName: 'entry' */'@/views')
-const applyHome = () => import(/* webpackChunkName: 'applyHome' */'@/views/applyHome/applyHome.vue')
-const applyManagement = () => import(/* webpackChunkName: 'applyManagement' */'@/views/applyManagement/applyManagement.vue')
+const applyHome = () => import(/* webpackChunkName: 'applyHome' */'@/views/main/applyHome.vue')
+const applyManagement = () => import(/* webpackChunkName: 'applyManagement' */'@/views/main/applyManagement.vue')
 const NotFound = () => import(/* webpackChunkName: 'none' */'@/views/404')
-const applyHistory = () => import(/* webpackChunkName: 'applyHistory' */'@/views/applyHistory/applyHistory.vue')
+const applyHistory = () => import(/* webpackChunkName: 'applyHistory' */'@/views/main/applyHistory.vue')
 
 const routes = [
     {
         path: window.PROJECT_CONFIG.SITE_URL,
         name: 'appMain',
         component: MainEntry,
-        alias: '',
         children: [
             {
                 path: 'applyHome',
-                alias: '',
+                alias: '首页',
                 name: 'applyHome',
-                component: applyHome
+                component: applyHome,
+                meta: {
+                    alias: '首页'
+                }
             },
             {
                 path: 'applyManagement',
-                alias: '',
+                alias: '申请管理',
                 name: 'applyManagement',
-                component: applyManagement
+                component: applyManagement,
+                meta: {
+                    alias: '申请管理'
+                }
             },
             {
                 path: 'applyHistory',
-                alias: '',
+                alias: '历史记录',
                 name: 'applyHistory',
-                component: applyHistory
+                component: applyHistory,
+                meta: {
+                    alias: '历史记录'
+                }
             }
         ]
     },

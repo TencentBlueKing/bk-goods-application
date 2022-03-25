@@ -1,6 +1,7 @@
 import re
 
-from apps.good_purchase.models import Good, GoodType, GroupApply, UserInfo
+from apps.good_purchase.models import (Good, GoodType, GroupApply, UserInfo,
+                                       Withdraw, WithdrawReason)
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
 from rest_framework import serializers
@@ -125,7 +126,7 @@ class delExcelSerializer(serializers.Serializer):
             return value
 
 
-class UserInfoSerializer(serializers.Serializer):
+class UserInfoCheckSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=30, required=True,
                                      error_messages={'max_length': '用户名过长',
                                                      'required': '必须传入用户名',
@@ -150,3 +151,25 @@ class ConfirmReceiptSerializer(serializers.Serializer):
                                                                    error_messages={'min_value': '个人物资存在不合法id',
                                                                                    'invalid': '物资id类型不合法'}),
                                     )
+
+
+class WithdrawSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Withdraw
+        fields = ['good_apply_id', 'username', 'reason_id', 'position', 'remark', 'status']
+
+
+class WithdrawReasonSerializer(serializers.ModelSerializer):
+    reason_name = serializers.CharField(max_length=20, source='reason_type')
+
+    class Meta:
+        model = WithdrawReason
+        fields = ['id', 'reason_name']
+
+
+class UserInfoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserInfo
+        fields = ['id', 'username', 'position', 'phone']

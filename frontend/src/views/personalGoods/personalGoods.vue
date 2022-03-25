@@ -193,8 +193,8 @@
     const getPersonalGoodsUrl = '/get_personal_goods/' // 获取个人物资接口
     const getTypesUrl = '/get_good_type_list' // 获取所有类型接口
     const getStatusUrl = '/get_good_status_list' // 获取所有物品状态接口
-    const getPositionsUrl = '/get_root_position_list' // 获取一级地区接口
-    const getSubPositionListUrl = '/get_sub_position_list' // 获取子地点接口
+    const getPositionsUrl = 'position/get_root_position_list/t' // 获取一级地区接口
+    const getSubPositionListUrl = 'position/get_sub_position_list/' // 获取子地点接口
     const deriveExcelUrl = '/derive_excel' // 生成excel文件并导出接口
     const delFilesUrl = '/del_excel' // 删除已生成的excel文件接口
     const confirmReceiptUrl = '/confirm_receipt'

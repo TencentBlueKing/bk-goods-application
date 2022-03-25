@@ -1,32 +1,54 @@
 <template>
     <div class="applyHistory-wrapper">
-        <div class="header">
-            <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span>历史记录</span></bk-tag></bk-divider>
-        </div>
         <div class="condition-form">
-            <bk-form :label-width="130" :model="formData" ref="infoForm">
-                <bk-container :col="12" :margin="6">
+            <bk-form
+                :label-width="130"
+                :model="formData"
+                ref="infoForm"
+            >
+                <bk-container
+                    :col="12"
+                    :margin="6"
+                >
                     <bk-row>
                         <bk-col :span="9">
                             <bk-row class="condition-form-row">
                                 <bk-col :span="3">
                                     <div class="goodName">
-                                        <bk-form-item label="物品名称" :property="'goodName'">
-                                            <bk-input v-model="formData.good_name" placeholder="请输入"></bk-input>
+                                        <bk-form-item
+                                            label="物品名称"
+                                            :property="'goodName'"
+                                        >
+                                            <bk-input
+                                                v-model="formData.good_name"
+                                                placeholder="请输入"
+                                            ></bk-input>
                                         </bk-form-item>
                                     </div>
                                 </bk-col>
                                 <bk-col :span="3">
                                     <div class="goodCode">
-                                        <bk-form-item label="物品编号" :property="'goodCode'">
-                                            <bk-input v-model="formData.good_code" placeholder="请输入"></bk-input>
+                                        <bk-form-item
+                                            label="物品编号"
+                                            :property="'goodCode'"
+                                        >
+                                            <bk-input
+                                                v-model="formData.good_code"
+                                                placeholder="请输入"
+                                            ></bk-input>
                                         </bk-form-item>
                                     </div>
                                 </bk-col>
                                 <bk-col :span="3">
                                     <div class="applyReason">
-                                        <bk-form-item label="申请原因" :property="'applyReason'">
-                                            <bk-input v-model="formData.apply_reason" placeholder="请输入"></bk-input>
+                                        <bk-form-item
+                                            label="申请原因"
+                                            :property="'applyReason'"
+                                        >
+                                            <bk-input
+                                                v-model="formData.apply_reason"
+                                                placeholder="请输入"
+                                            ></bk-input>
                                         </bk-form-item>
                                     </div>
                                 </bk-col>
@@ -37,8 +59,16 @@
                                         <bk-form-item
                                             label="开始时间"
                                             :property="'startDate'"
-                                            :icon-offset="35">
-                                            <bk-date-picker :options="startDateOptions" placeholder="请选择" :timer="false" v-model="formData.start_date" :disabled="false" style="width: 100%">
+                                            :icon-offset="35"
+                                        >
+                                            <bk-date-picker
+                                                :options="startDateOptions"
+                                                placeholder="请选择"
+                                                :timer="false"
+                                                v-model="formData.start_date"
+                                                :disabled="false"
+                                                style="width: 100%"
+                                            >
                                             </bk-date-picker>
                                         </bk-form-item>
                                     </div>
@@ -48,8 +78,16 @@
                                         <bk-form-item
                                             label="结束时间"
                                             :property="'endDate'"
-                                            :icon-offset="0">
-                                            <bk-date-picker :options="endDateOptions" placeholder="请选择" :timer="false" v-model="formData.end_date" :disabled="false" style="width: 100%">
+                                            :icon-offset="0"
+                                        >
+                                            <bk-date-picker
+                                                :options="endDateOptions"
+                                                placeholder="请选择"
+                                                :timer="false"
+                                                v-model="formData.end_date"
+                                                :disabled="false"
+                                                style="width: 100%"
+                                            >
                                             </bk-date-picker>
                                         </bk-form-item>
                                     </div>
@@ -58,17 +96,21 @@
                                     <div class="status">
                                         <bk-form-item
                                             label="状态"
-                                            :property="'status'">
+                                            :property="'status'"
+                                        >
                                             <bk-select v-model="formData.status">
                                                 <bk-option
                                                     key="999"
                                                     id="999"
-                                                    name="全部">
+                                                    name="全部"
+                                                >
                                                 </bk-option>
-                                                <bk-option v-for="option in statusList"
+                                                <bk-option
+                                                    v-for="option in statusList"
                                                     :key="option.id"
                                                     :id="option.id"
-                                                    :name="option.name">
+                                                    :name="option.name"
+                                                >
                                                 </bk-option>
                                             </bk-select>
                                         </bk-form-item>
@@ -78,7 +120,13 @@
                         </bk-col>
                         <bk-col :span="3">
                             <div style="text-align: center;line-height: 90px;">
-                                <bk-button size="large" :outline="true" theme="primary" title="查询" @click.stop.prevent="search">查询</bk-button>
+                                <bk-button
+                                    size="large"
+                                    :outline="true"
+                                    theme="primary"
+                                    title="查询"
+                                    @click.stop.prevent="search"
+                                >查询</bk-button>
                             </div>
                         </bk-col>
                     </bk-row>
@@ -87,13 +135,30 @@
         </div>
         <div class="historyTable">
             <div class="more-options">
-                <bk-dropdown-menu @show="dropdownShow" @hide="dropdownHide" ref="dropdown">
-                    <div class="dropdown-trigger-btn" style="padding-left: 19px;" slot="dropdown-trigger">
+                <bk-dropdown-menu
+                    @show="dropdownShow"
+                    @hide="dropdownHide"
+                    ref="dropdown"
+                >
+                    <div
+                        class="dropdown-trigger-btn"
+                        style="padding-left: 19px;"
+                        slot="dropdown-trigger"
+                    >
                         <span>批量操作</span>
                         <i :class="['bk-icon icon-angle-down',{ 'icon-flip': isDropdownShow }]"></i>
                     </div>
-                    <ul class="bk-dropdown-list" slot="dropdown-content">
-                        <li><a href="javascript:;" @click="exportData" class="multi-export">导出数据</a></li>
+                    <ul
+                        class="bk-dropdown-list"
+                        slot="dropdown-content"
+                    >
+                        <li>
+                            <a
+                                href="javascript:;"
+                                @click="exportData"
+                                class="multi-export"
+                            >导出数据</a>
+                        </li>
                     </ul>
                 </bk-dropdown-menu>
             </div>
@@ -107,26 +172,79 @@
                 @row-mouse-enter="handleRowMouseEnter"
                 @row-mouse-leave="handleRowMouseLeave"
                 @page-change="handlePageChange"
-                @page-limit-change="handlePageLimitChange">
-                <bk-table-column type="selection" width="60"></bk-table-column>
-                <bk-table-column label="物品名称" prop="good_name" width="150"></bk-table-column>
-                <bk-table-column label="物品编码" prop="good_code"></bk-table-column>
-                <bk-table-column label="申请时间" prop="create_time" width="160"></bk-table-column>
-                <bk-table-column label="数量" prop="num" width="55"></bk-table-column>
-                <bk-table-column label="申请原因" prop="reason"></bk-table-column>
-                <bk-table-column label="状态" prop="status" width="110"></bk-table-column>
-                <bk-table-column label="审核人" prop="reviewer" width="120"></bk-table-column>
-                <bk-table-column label="审核日期" prop="review_time" width="180"></bk-table-column>
-                <bk-table-column label="备注" prop="reason"></bk-table-column>
-                <bk-table-column label="操作" width="150">
+                @page-limit-change="handlePageLimitChange"
+            >
+                <bk-table-column
+                    type="selection"
+                    width="60"
+                ></bk-table-column>
+                <bk-table-column
+                    label="物品名称"
+                    prop="good_name"
+                    width="150"
+                ></bk-table-column>
+                <bk-table-column
+                    label="物品编码"
+                    prop="good_code"
+                ></bk-table-column>
+                <bk-table-column
+                    label="申请时间"
+                    prop="create_time"
+                    width="160"
+                ></bk-table-column>
+                <bk-table-column
+                    label="数量"
+                    prop="num"
+                    width="55"
+                ></bk-table-column>
+                <bk-table-column
+                    label="申请原因"
+                    prop="reason"
+                ></bk-table-column>
+                <bk-table-column
+                    label="状态"
+                    prop="status"
+                    width="110"
+                ></bk-table-column>
+                <bk-table-column
+                    label="审核人"
+                    prop="reviewer"
+                    width="120"
+                ></bk-table-column>
+                <bk-table-column
+                    label="审核日期"
+                    prop="review_time"
+                    width="180"
+                ></bk-table-column>
+                <bk-table-column
+                    label="备注"
+                    prop="reason"
+                ></bk-table-column>
+                <bk-table-column
+                    label="操作"
+                    width="150"
+                >
                     <template slot-scope="props">
-                        <bk-button class="mr10" theme="primary" text @click="editHistory(props.row)" :disabled="props.row.status !== '导员审核中'">编辑</bk-button>
-                        <bk-button class="mr10" theme="primary" text @click="deleteHistory(props.row)" :disabled="props.row.status === '管理员审核中'">删除</bk-button>
+                        <bk-button
+                            class="mr10"
+                            theme="primary"
+                            text
+                            @click="editHistory(props.row)"
+                            :disabled="props.row.status !== '导员审核中'"
+                        >编辑</bk-button>
+                        <bk-button
+                            class="mr10"
+                            theme="primary"
+                            text
+                            @click="deleteHistory(props.row)"
+                            :disabled="props.row.status === '管理员审核中'"
+                        >删除</bk-button>
                     </template>
                 </bk-table-column>
             </bk-table>
             <div class="edit-history-dialog">
-                <bk-dialog v-model="editDialogVisible"
+                <bk-dialog
+                    v-model="editDialogVisible"
                     :render-directive="'show'"
                     theme="primary"
                     :width="700"
@@ -134,22 +252,43 @@
                     :header-position="'center'"
                     :confirm-fn="confirmEdit"
                     ok-text="确定修改"
-                    title="编辑申请记录">
+                    title="编辑申请记录"
+                >
                     <div>
-                        <bk-form :label-width="100" :model="remark" :rules="rules" ref="remark">
-                            <bk-container :col="12" :margin="6">
+                        <bk-form
+                            :label-width="100"
+                            :model="remark"
+                            :rules="rules"
+                            ref="remark"
+                        >
+                            <bk-container
+                                :col="12"
+                                :margin="6"
+                            >
                                 <bk-row style="margin: 0 0 30px 0;">
                                     <bk-col :span="6">
                                         <div>
-                                            <bk-form-item label="物品名称" :property="'goodName'">
-                                                <bk-input v-model="editFormData.good_name" placeholder="请输入"></bk-input>
+                                            <bk-form-item
+                                                label="物品名称"
+                                                :property="'goodName'"
+                                            >
+                                                <bk-input
+                                                    v-model="editFormData.good_name"
+                                                    placeholder="请输入"
+                                                ></bk-input>
                                             </bk-form-item>
                                         </div>
                                     </bk-col>
                                     <bk-col :span="6">
                                         <div>
-                                            <bk-form-item label="物品编号" :property="'goodCode'">
-                                                <bk-input v-model="editFormData.good_code" placeholder="请输入"></bk-input>
+                                            <bk-form-item
+                                                label="物品编号"
+                                                :property="'goodCode'"
+                                            >
+                                                <bk-input
+                                                    v-model="editFormData.good_code"
+                                                    placeholder="请输入"
+                                                ></bk-input>
                                             </bk-form-item>
                                         </div>
                                     </bk-col>
@@ -157,16 +296,26 @@
                                 <bk-row style="margin: 0 0 30px 0;">
                                     <bk-col :span="6">
                                         <div>
-                                            <bk-form-item label="申请原因" :property="'applyReason'">
-                                                <bk-input v-model="editFormData.reason" placeholder="请输入"></bk-input>
+                                            <bk-form-item
+                                                label="申请原因"
+                                                :property="'applyReason'"
+                                            >
+                                                <bk-input
+                                                    v-model="editFormData.reason"
+                                                    placeholder="请输入"
+                                                ></bk-input>
                                             </bk-form-item>
                                         </div>
                                     </bk-col>
                                     <bk-col :span="6">
                                         <div class="apply-num">
-                                            <bk-form-item
-                                                label="申请数量">
-                                                <bk-input type="number" :min="1" :precision="precision" v-model="editFormData.num"></bk-input>
+                                            <bk-form-item label="申请数量">
+                                                <bk-input
+                                                    type="number"
+                                                    :min="1"
+                                                    :precision="precision"
+                                                    v-model="editFormData.num"
+                                                ></bk-input>
                                             </bk-form-item>
                                         </div>
                                     </bk-col>
@@ -177,7 +326,8 @@
                 </bk-dialog>
             </div>
             <div class="delete-confirm-dialog">
-                <bk-dialog v-model="deleteDialogVisible"
+                <bk-dialog
+                    v-model="deleteDialogVisible"
                     :render-directive="'show'"
                     theme="primary"
                     :width="700"
@@ -185,7 +335,8 @@
                     :header-position="'center'"
                     :confirm-fn="confirmDelete"
                     ok-text="确定删除"
-                    title="确定删除记录？">
+                    title="确定删除记录？"
+                >
                 </bk-dialog>
             </div>
         </div>
@@ -193,12 +344,10 @@
 </template>
 
 <script>
-    const deriveExcelUrl = '/derive_excel' // 导出数据接口
-    const getGoodApplyListUrl = '/get_self_good_apply_list' // 获取申请列表接口
-    const getGoodApplyByIdUrl = '/get_good_apply' // 根据id查找单个apply
-    const editApplyUrl = '/update_good_apply' // 更新apply信息
-    const deleteApplyUrl = '/delete_good_apply' // 删除apply
-    const getApplyStatusUrl = '/get_apply_status' // 获取所有申请状态
+    import {
+        deriveExcelUrl, getGoodApplyListUrl, getGoodApplyByIdUrl,
+        editApplyUrl, deleteApplyUrl, getApplyStatusUrl
+    } from '@/pattern'
 
     export default {
         data () {
@@ -284,16 +433,18 @@
                 })
             },
             getGoodApplyList () {
-                this.$http.get(getGoodApplyListUrl, { params: {
-                    start_time: this.get_params.start_time,
-                    end_time: this.get_params.end_time,
-                    good_code: this.get_params.good_code,
-                    good_name: this.get_params.good_name,
-                    reason: this.get_params.reason,
-                    status: this.get_params.status,
-                    page: this.get_params.page,
-                    size: this.get_params.size
-                } }).then(res => {
+                this.$http.get(getGoodApplyListUrl, {
+                    params: {
+                        start_time: this.get_params.start_time,
+                        end_time: this.get_params.end_time,
+                        good_code: this.get_params.good_code,
+                        good_name: this.get_params.good_name,
+                        reason: this.get_params.reason,
+                        status: this.get_params.status,
+                        page: this.get_params.page,
+                        size: this.get_params.size
+                    }
+                }).then(res => {
                     this.history = res.data.apply_list
                     this.pagination.count = res.data.total_num
                 })
@@ -325,9 +476,11 @@
             },
             editHistory (row) {
                 this.editDialogVisible = true
-                this.$http.get(getGoodApplyByIdUrl, { params: {
-                    id: row.id
-                } }).then(res => {
+                this.$http.get(getGoodApplyByIdUrl, {
+                    params: {
+                        id: row.id
+                    }
+                }).then(res => {
                     if (res) {
                         console.log('id_apply', res)
                         // this.editFormData.good_name = res.data.good_name
@@ -381,9 +534,11 @@
             },
             confirmDelete () {
                 this.deleteDialogVisible = false
-                this.$http.get(deleteApplyUrl, { params: {
-                    id: this.deleteApplyId
-                } }).then(res => {
+                this.$http.get(deleteApplyUrl, {
+                    params: {
+                        id: this.deleteApplyId
+                    }
+                }).then(res => {
                     if (res.result === true) {
                         this.handleError({ theme: 'success' }, res.message)
                         this.getGoodApplyList()
@@ -504,31 +659,20 @@
 </script>
 
 <style lang="postcss" scoped>
-.applyHistory-wrapper {
-    width: 95%;
-    margin: 0 auto;
-    overflow: hidden;
-    height:calc(100vh - 200px);
-    /* height: 1000px; */
-    .condition-form {
-        padding: 30px 0 0 0;
-        .condition-form-row {
-            margin-bottom: 15px;
-        }
-    }
-    .historyTable {
-        text-align: right;
-        .more-options {
-            margin: 0 10px 10px 0;
-            .multi-export:hover {
-
+    .applyHistory-wrapper {
+        .condition-form {
+            padding: 30px 0 0 0;
+            .condition-form-row {
+                margin-bottom: 15px;
             }
         }
-        .edit-history-dialog {
-            .edit-table-row {
-                
+        .historyTable {
+            text-align: right;
+            .more-options {
+                margin: 0 10px 10px 0;
+                .multi-export:hover {
+                }
             }
         }
     }
-}
 </style>
