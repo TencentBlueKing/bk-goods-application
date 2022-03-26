@@ -312,7 +312,8 @@ def edit_user_info(request):
     username = request.user.username  # 获取用户名
     if not UserInfo.objects.filter(username=username).exists():
         raise BusinessException(StatusEnums.USER_NOT_EXIST_ERROR)
-    req = request.data
+    req = json.loads(request.body)
+    print(req)
     phone = req.get('phone')
     position = req.get('position')
     user_info = {
@@ -324,7 +325,7 @@ def edit_user_info(request):
     if user_info_serializer.is_valid():  # 参数校验
         UserInfo.objects.filter(username=username).update(
             phone=user_info.get('phone'), position=user_info.get('position'))
-        return get_result({'code': 200, 'message': '修改成功'})
+        return get_result({'code': 200, 'message': '修改成功了'})
     err_msg = get_error_message(user_info_serializer)
     return get_result({'result': False, 'message': err_msg})
 
