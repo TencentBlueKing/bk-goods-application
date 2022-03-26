@@ -149,8 +149,8 @@
         <div class="applyTable">
             <div class="more-options">
                 <bk-dropdown-menu
-                    @show="dropdownShow"
-                    @hide="dropdownHide"
+                    @show="isDropdownShow = true"
+                    @hide="isDropdownShow = false"
                     ref="dropdown"
                 >
                     <div
@@ -286,6 +286,7 @@
 </template>
 
 <script>
+    import { mapState } from 'vuex'
     import {
         getRootPositionListUrl, getSubPositionListUrl, examineApplyUrl,
         getApplyUrl, getApplyUserUrl
@@ -304,7 +305,7 @@
                     campus: 0,
                     college: 0
                 },
-                get_params: { // 获取申请时提交的参数
+                getParams: { // 获取申请时提交的参数
                     size: 10,
                     page: 1,
                     start_time: '',
@@ -338,10 +339,15 @@
                 endDateOptions: {}
             }
         },
+        computed: {
+            ...mapState({
+                userInfo: state => state.user.userInfo
+            })
+        },
         watch: {
-            'formData.startDate': function (val) {
+            'formData.startDate' (val) {
                 this.endDateOptions = {
-                    disabledDate: function (date) {
+                    disabledDate (date) {
                         if (date < val.setDate(val.getDate())) {
                             return true
                         }
@@ -349,9 +355,9 @@
                     }
                 }
             },
-            'formData.endDate': function (val) {
+            'formData.endDate' (val) {
                 this.startDateOptions = {
-                    disabledDate: function (date) {
+                    disabledDate (date) {
                         if (date > val.setDate(val.getDate())) {
                             return true
                         }
@@ -371,7 +377,6 @@
             }
         },
         created () {
-            this.username = this.$store.state.user.username
             this.loadData()
         },
         mounted () { },
@@ -390,14 +395,7 @@
             },
             getApply () { // 获取申请列表
                 this.$http.get(getApplyUrl, {
-                    params: {
-                        apply_user: this.get_params.apply_user,
-                        position: this.get_params.position,
-                        start_time: this.get_params.start_time,
-                        end_time: this.get_params.end_time,
-                        page: this.get_params.page,
-                        size: this.get_params.size
-                    }
+                    params: this.getParams
                 }).then(res => {
                     if (res) {
                         this.apply = res.data.apply_list
@@ -489,48 +487,24 @@
                 }
             },
             search () { // 按下查询按钮时触发
-                if (this.formData.startDate) {
-                    this.get_params.start_time = this.dateFormat('YYYY-mm-dd', this.formData.startDate)
-                } else {
-                    this.get_params.start_time = ''
-                }
-                if (this.formData.endDate) {
-                    const tempDate = new Date(Date.parse(this.formData.endDate))
-                    tempDate.setDate(tempDate.getDate() + 1)
-                    this.get_params.end_time = this.dateFormat('YYYY-mm-dd', tempDate)
-                } else {
-                    this.get_params.end_time = ''
-                }
-                if (this.formData.applicant === 0 || this.formData.applicant === '0') {
-                    this.get_params.apply_user = ''
-                } else {
-                    this.get_params.apply_user = this.formData.applicant
-                }
+                this.getParams.start_time = this.formData.startDate ? this.moment(this.formData.startDate).format('YYYY-MM-DD') : ''
+                this.getParams.end_time = this.formData.endDate ? this.moment(this.formData.endDate).format('YYYY-MM-DD') : ''
+                this.getParams.apply_user = this.formData.applicant || ''
                 let campus = ''
                 let college = ''
                 if (this.formData.campus === 0 || this.formData.campus === '0') {
                     campus = ''
                 } else {
-                    const campusObj = this.campusList.find(this.formDataCampusLocationIdToName)
-                    if (campusObj) {
-                        campus = campusObj.name
-                    } else {
-                        campus = ''
-                    }
+                    campus = this.campusList.find(obj => obj.id === this.formData.campus).name || ''
                 }
                 if (this.formData.college === 0 || this.formData.college === '0') {
                     college = ''
                 } else {
-                    const collegeObj = this.collegeList.find(this.formDataCollegeLocationIdToName)
-                    if (collegeObj) {
-                        college = collegeObj.name
-                    } else {
-                        college = ''
-                    }
+                    college = this.collegeList.find(obj => obj.id === this.formData.college).name || ''
                 }
-                this.get_params.position = (!campus && !college) ? '' : campus + ',' + college
+                this.getParams.position = (!campus && !college) ? '' : campus + ',' + college
                 this.pagination.current = 1
-                this.get_params.page = this.pagination.current
+                this.getParams.page = this.pagination.current
                 this.getApply()
             },
             getParentCode (val) { // 获取校区的编码
@@ -591,53 +565,19 @@
             },
             handlePageLimitChange () { // 修改每页多少条数据触发函数
                 this.pagination.limit = arguments[0]
-                this.get_params.size = this.pagination.limit
+                this.getParams.size = this.pagination.limit
                 this.pagination.current = 1
-                this.get_params.page = this.pagination.current
+                this.getParams.page = this.pagination.current
                 this.selected.selectedRows = []
                 this.getApply()
             },
             handlePageChange (page) { // 修改当前页触发函数
                 this.pagination.current = page
-                this.get_params.page = this.pagination.current
+                this.getParams.page = this.pagination.current
                 this.getApply()
-            },
-            formDataCampusLocationIdToName (obj) {
-                return obj.id === this.formData.campus
-            },
-            formDataCollegeLocationIdToName (obj) {
-                return obj.id === this.formData.college
-            },
-            dropdownShow () {
-                this.isDropdownShow = true
-            },
-            dropdownHide () {
-                this.isDropdownShow = false
             },
             triggerHandler () {
                 this.$refs.dropdown.hide()
-            },
-            dateFormat (fmt, date) {
-                let ret
-                const opt = {
-                    'Y+': date.getFullYear().toString(), // 年
-                    'm+': (date.getMonth() + 1).toString(), // 月
-                    'd+': date.getDate().toString(), // 日
-                    'H+': date.getHours().toString(), // 时
-                    'M+': date.getMinutes().toString(), // 分
-                    'S+': date.getSeconds().toString() // 秒.
-                    // 有其他格式化字符需求可以继续添加，必须转化成字符串
-                }
-                for (const k in opt) {
-                    ret = new RegExp('(' + k + ')').exec(fmt)
-                    if (ret) {
-                        fmt = fmt.replace(ret[1], (ret[1].length === 1) ? (opt[k]) : (opt[k].padStart(ret[1].length, '0')))
-                    }
-                }
-                return fmt
-            },
-            refresh () { // 刷新页面
-                this.$router.go(0)
             }
         }
     }

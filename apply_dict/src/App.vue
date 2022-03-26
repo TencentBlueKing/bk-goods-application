@@ -14,7 +14,6 @@
             <template slot="header">
                 <div class="monitor-navigation-header">
                     <ol class="header-nav">
-                        <!-- <div v-show="(curIsAdmin === true || curIsLeader === true)" v-for="(item,index) in header.list" :key="item.id" theme="light navigation-message" :arrow="false" offset="0, -5" placement="bottom"> -->
                         <div
                             v-for="(item,index) in header.list"
                             :key="item.id"
@@ -44,7 +43,7 @@
                         :tippy-options="{ 'hideOnClick': false }"
                     >
                         <div class="header-user">
-                            {{ username }}
+                            {{ userInfo.username }}
                             <i class="bk-icon icon-down-shape"></i>
                         </div>
                         <template slot="content">
@@ -98,20 +97,15 @@
 </template>
 
 <script>
-    import { mapGetters } from 'vuex'
-
+    import { mapState } from 'vuex'
     import { bus } from '@/common/bus'
-
     import userCenter from './views/main/userCenter.vue'
-
-    const judgeIdentityUrl = '/if_leader_or_secretary'
 
     export default {
         name: 'monitor-navigation',
         components: { userCenter },
         data () {
             return {
-                username: 'admin',
                 routerKey: +new Date(),
                 systemCls: 'mac',
                 nav: {
@@ -164,27 +158,20 @@
             }
         },
         computed: {
-            ...mapGetters(['mainContentLoading']),
+            ...mapState({
+                userInfo: state => state.user.userInfo
+            }),
             curHeaderNav () {
                 return this.header.list[this.header.active] || {}
-            },
-            curIsAdmin () {
-                return this.$store.getters.isAdmin === undefined ? false : this.$store.getters.isAdmin
-            },
-            curIsLeader () {
-                return this.$store.getters.isLeader === undefined ? false : this.$store.getters.isLeader
             }
         },
         created () {
-            this.username = this.$store.state.user.username
             const platform = window.navigator.platform.toLowerCase()
             if (platform.indexOf('win') === 0) {
                 this.systemCls = 'win'
             }
         },
         mounted () {
-            // 获取用户身份信息
-            this.getUserIdentity()
             bus.$on('show-login-modal', data => {
                 self.$refs.bkAuth.showLoginModal(data)
             })
@@ -201,50 +188,6 @@
             },
             findApplyManagement (obj) {
                 return obj.id === 2
-            },
-            getUserIdentity () {
-                const username = this.$store.state.user.username
-                let isAdmin = false
-                let isLeader = false
-                if (username === undefined) {
-                    this.$bkMessage({
-                        message: '用户身份信息获取失败',
-                        offsetY: 80,
-                        theme: 'warning'
-                    })
-                    return
-                }
-                this.$http.get(judgeIdentityUrl).then((res) => {
-                    if (res.result !== null) {
-                        if (res.data.identity === 0) {
-                            // console.log('res.data.identity', res.data.identity)
-                            isAdmin = true
-                            this.$store.dispatch('setUserIdentity', isAdmin)
-                            if (isAdmin === true) {
-                                this.header.list.find(this.findApplyManagement).show = true
-                            }
-                        } else if (res.data.identity === 1) {
-                            // console.log('res.data.identity', res.data.identity)
-                            isLeader = true
-                            this.$store.dispatch('setUserLeaderIdentity', isLeader)
-                            if (isLeader === true) {
-                                this.header.list.find(this.findApplyManagement).show = true
-                            }
-                        }
-                    } else {
-                        this.$bkMessage({
-                            message: res.message,
-                            offsetY: 80,
-                            theme: 'error'
-                        })
-                    }
-                }).catch(() => {
-                    this.$bkMessage({
-                        message: 'if_admin',
-                        offsetY: 80,
-                        theme: 'error'
-                    })
-                })
             },
             PUSH (item) {
                 if (item.name === '个人中心') {
