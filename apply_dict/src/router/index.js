@@ -23,10 +23,10 @@ const routes = [
         path: window.PROJECT_CONFIG.SITE_URL,
         name: 'appMain',
         component: MainEntry,
+        redirect: 'applyHome',
         children: [
             {
                 path: 'applyHome',
-                alias: '首页',
                 name: 'applyHome',
                 component: applyHome,
                 meta: {
@@ -35,7 +35,6 @@ const routes = [
             },
             {
                 path: 'applyManagement',
-                alias: '申请管理',
                 name: 'applyManagement',
                 component: applyManagement,
                 meta: {
@@ -44,7 +43,6 @@ const routes = [
             },
             {
                 path: 'applyHistory',
-                alias: '历史记录',
                 name: 'applyHistory',
                 component: applyHistory,
                 meta: {
@@ -77,7 +75,7 @@ let canceling = true
 let pageMethodExecuting = true
 
 router.beforeEach(async (to, from, next) => {
-    if (store.state.isAdmin !== true && store.state.isLeader !== true && to.name === 'applyManagement') {
+    if (!store.state.user.userInfo.isSecretary && !store.state.user.userInfo.isLeader && to.name === 'applyManagement') {
         router.push({ name: 'applyHome' })
     }
     canceling = true
