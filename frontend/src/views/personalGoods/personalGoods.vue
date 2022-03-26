@@ -2,9 +2,9 @@
     <div class="personalGoods-wrapper">
         <div class="header">
             <bk-divider align="left"
-                ><bk-tag type="filled" style="font-size: 13px"
-                    ><span>个人物资查询</span></bk-tag
-                ></bk-divider
+            ><bk-tag type="filled" style="font-size: 13px"
+            ><span>个人物资查询</span></bk-tag
+            ></bk-divider
             >
         </div>
         <!-- <div class="breadCrumb">
@@ -73,7 +73,7 @@
                                         title="查询"
                                         :outline="true"
                                         @click="search"
-                                        >查询数据</bk-button
+                                    >查询数据</bk-button
                                     >
                                 </bk-form-item>
                             </div>
