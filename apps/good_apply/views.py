@@ -13,6 +13,8 @@ specific language governing permissions and limitations under the License.
 import datetime
 import os
 
+from django.http import JsonResponse
+
 from apps.good_apply.models import Apply, Position, Review
 from apps.good_apply.serializers import (ApplyCheckSerializers,
                                          ApplyPostSerializers,
@@ -24,7 +26,7 @@ from apps.tools.decorators import check_leader_or_secretary_permission
 from apps.tools.param_check import (check_param_id, check_param_page,
                                     check_param_size, check_param_str,
                                     get_error_message)
-from apps.tools.response import get_result
+from apps.tools.response import get_result, success_code
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
 from blueapps.utils import get_client_by_request
@@ -58,7 +60,7 @@ class PositionViewSet(viewsets.ModelViewSet):
         """获取一级地区"""
         positions = self.queryset.filter(parent_code__isnull=True)
         position_list = [position.to_json() for position in positions]
-        return get_result({"data": position_list})
+        return JsonResponse(success_code(position_list))
 
     @action(methods=['get'], detail=False)
     def get_sub_position_list(self, request):
@@ -68,7 +70,7 @@ class PositionViewSet(viewsets.ModelViewSet):
             return get_result({'result': False, 'message': '上级地区代码参数不合法'})
         positions = Position.objects.filter(parent_code=parent_code)
         position_list = [position.to_json() for position in positions]
-        return get_result({"data": position_list})
+        return JsonResponse(success_code(position_list))
 
 
 class ApplyViewSet(viewsets.ModelViewSet):
@@ -147,7 +149,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
             if reviews:
                 Review.objects.bulk_create(reviews)
 
-        return get_result({"message": "物资申请提交成功"})
+        return JsonResponse(success_code({}))
 
     def list(self, request, *args, **kwargs):
         """
@@ -212,7 +214,9 @@ class ApplyViewSet(viewsets.ModelViewSet):
 
         data = {"total_num": applys.count(),
                 "apply_list": [apply.to_json() for apply in cur_applys]}
-        return get_result({'data': data})
+        return JsonResponse(success_code(data))
+
+
 
     @action(methods=['POST'], detail=False)
     def get_self_good_apply_list(self, request):
@@ -304,7 +308,8 @@ class ApplyViewSet(viewsets.ModelViewSet):
                 "review_result": apply_info.result,
                 "review_reason": apply_info.review_reason
             })
-        return get_result({"data": {"total_num": len(apply_infos), "apply_list": apply_list}})
+        return JsonResponse(success_code({"data": {"total_num": len(apply_infos), "apply_list": apply_list}}))
+
 
     @action(methods=['POST'], detail=False)
     def examine_apply(self, request):
@@ -377,13 +382,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
                 Review.objects.bulk_create(review_list)
 
         if model == 'reject' or model == 'agree':
-            result = {
-                "code": 200,
-                "result": True,
-                "message": '审核成功',
-                "data": {}
-            }
-            return get_result(result)
+            return JsonResponse(success_code({}))
 
     @action(methods=['POST'], detail=False)
     def update_good_apply(self, request):
@@ -408,7 +407,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
                  "reason": validated_data.get('reason')}
         # 更新
         Apply.objects.filter(id=apply_id).update(**apply, update_time=datetime.datetime.now())
-        return get_result({"message": "修改物资申请信息成功"})
+        return JsonResponse(success_code({}))
 
     @action(methods=['POST'], detail=False)
     def stop_good_apply(self, request):
@@ -422,7 +421,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
         if not (apply[0].status == 1 or apply[0].status == 2):
             return get_result({"message": "物资申请不处于审核状态"})
         apply.update(status=0, update_time=datetime.datetime.now())
-        return get_result({"message": "物资申请终止成功"})
+        return JsonResponse(success_code({}))
 
     @action(methods=['POST'], detail=False)
     def delete_good_apply(self, request):
@@ -436,7 +435,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
         if apply[0].status == 2:
             return get_result({"code": 1, "result": False, "message": "物资申请处于审核状态，不可删除"})
         apply.delete()
-        return get_result({"message": "物资申请删除成功"})
+        return JsonResponse(success_code({}))
 
     @action(methods=['GET'], detail=False)
     def get_apply_status(self, request):
@@ -444,7 +443,8 @@ class ApplyViewSet(viewsets.ModelViewSet):
         apply_status_list = []
         for item in Apply.STATUS_TYPE:
             apply_status_list.append({'id': item[0], 'name': item[1]})
-        return get_result({"data": apply_status_list})
+        return JsonResponse(success_code(apply_status_list))
+
 
 
 @require_GET
@@ -464,7 +464,7 @@ def get_apply_users(request, leader_or_secretary):
                  for user in get_users_in_group(request, group_id=6)]
     else:  # 导员
         users = sub_users_in_group(request, username=request.user.username, group_id=6)
-    return get_result({"data": users})
+    return JsonResponse(success_code(users))
 
 
 def get_leaders_fun(request, username):
@@ -496,6 +496,6 @@ def get_leader(request):
     if leaders:
         return get_result({"message": "获取成功", "data": ','.join(leaders)})
     elif leader_or_secretary == 0:
-        return get_result({"message": "获取成功", "code": "220"})
+        return JsonResponse(success_code({}))
     else:
         return get_result({"code": "400", "message": "获取失败"})
