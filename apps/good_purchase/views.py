@@ -484,7 +484,6 @@ class WithdrawViewSet(viewsets.ModelViewSet):
     def add_withdraw_apply(self, request):
         """提交退回物资申请"""
         req = request.data
-        print('req', req)
         username = request.user.username
         check_withdraws_seralizers = CheckWithdrawsSeralizers(data=req)
         if not check_withdraws_seralizers.is_valid():
