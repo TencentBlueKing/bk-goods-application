@@ -22,7 +22,11 @@ def analysis_apply_excel(request):
     def handle_excel_data(rows, CANNOT_APPLY):  # 处理传入的列表数据，判断是否加入部门所需物资表
         validated_list = []  # 存放GroupApply对象
         for row_index, row in enumerate(rows):
-            if row_index == 0:  # 标题行跳过
+            if row_index == 0:  # 标题行
+                title = ['使用人', '物品编码', '物品名称', '数量', '参考单价', '需求地点', '期望领用日期', '标准领用日期', '备注',
+                         '配送方式', '验收人', '收货信息']
+                if row != title:
+                    return ['文件格式错误']
                 continue
             apply_user = row[0]
             good_code = row[1]
@@ -131,7 +135,16 @@ def analysis_apply_excel(request):
         else:
             raise BusinessException(StatusEnums.IMPORT_FILE_EMPTY_ERROR)
 
-    if not CANNOT_APPLY:
+    if success_list == ['文件格式错误']:
+        result = {
+            "code": 400,
+            "result": False,
+            "message": success_list[0],
+            "data": {}
+        }
+        return get_result(result)
+
+    elif not CANNOT_APPLY:
         result = {
             "code": 200,
             "result": True,
@@ -145,7 +158,7 @@ def analysis_apply_excel(request):
         can_not_apply_file_url = generate_can_not_apply_excel(CANNOT_APPLY, username)
         result = {
             "code": StatusEnums.IMPORT_ERROR.code,
-            "result": True,
+            "result": False,
             "message": "部分/全部excel数据" + StatusEnums.IMPORT_ERROR.errmsg,
             "data": {
                 'created_fail_list': CANNOT_APPLY,
