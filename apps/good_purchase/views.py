@@ -313,7 +313,6 @@ def edit_user_info(request):
     if not UserInfo.objects.filter(username=username).exists():
         raise BusinessException(StatusEnums.USER_NOT_EXIST_ERROR)
     req = json.loads(request.body)
-    print(req)
     phone = req.get('phone')
     position = req.get('position')
     user_info = {
