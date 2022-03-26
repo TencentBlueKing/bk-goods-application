@@ -367,6 +367,8 @@ class UserInfoViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         user_info = {
+            'id': self.queryset.filter(username=request.user.username).first().id,
+            'username': request.user.username,
             'phone': self.queryset.filter(username=request.user.username).first().phone,
             'position': self.queryset.filter(username=request.user.username).first().position,
             'isScretary': False,

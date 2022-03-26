@@ -1,11 +1,11 @@
 <template>
     <div class="bk-exception bk-exception-center" v-show="show">
-        <img :src="image">
+        <img :src="image" />
         <template v-if="$slots.message">
             <slot name="message"></slot>
         </template>
         <template v-else>
-            <h2 class="exception-text">{{message}}</h2>
+            <h2 class="exception-text">{{ message }}</h2>
         </template>
     </div>
 </template>

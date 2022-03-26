@@ -131,17 +131,12 @@
 </template>
 
 <script>
-    import { getPositionsUrl, getUserInfoUrl, editUserInfoUrl } from '@/pattern'
+    import { getPositionsUrl, editUserInfoUrl } from '@/pattern'
+    import { mapState } from 'vuex'
 
     export default {
         data () {
             return {
-                userInfo: {
-                    username: '',
-                    phone: '',
-                    position: 0
-                },
-                cacheUserInfo: '',
                 editable: true,
                 locationList: '',
                 submitDialogVisible: false,
@@ -180,13 +175,15 @@
                 }
             }
         },
-        created () {
+        computed: {
+            ...mapState({
+                userInfo: state => state.user.userInfo,
+                globalLoading: state => state.patient.loading
+            })
         },
         methods: {
             loadData () {
-                this.userInfo.username = this.$store.state.user.username
                 this.getPosition()
-                this.getUserInfo()
             },
             getPosition () { // 获得所有地点
                 this.$http.get(getPositionsUrl).then(res => {
@@ -199,26 +196,10 @@
                     }
                 })
             },
-            getUserInfo () {
-                this.$http.post(getUserInfoUrl).then(res => {
-                    if (res) {
-                        if (res && res.result === true) {
-                            this.userInfo.phone = res.data.phone
-                            console.log('res.data.position', res.data.position)
-                            this.userInfo.position = res.data.position || ''
-                            console.log('this.userInfo.position', this.userInfo.position)
-                        } else if (res && res.result === false) {
-                            this.handleError({ theme: 'error' }, res.message)
-                        }
-                    }
-                })
-            },
             editInfo () {
-                this.cacheUserInfo = JSON.stringify(this.userInfo)
                 this.editable = false
             },
             cancelEdit () {
-                this.userInfo = JSON.parse(this.cacheUserInfo)
                 this.editable = true
                 this.$refs.userInfo.clearError()
             },
@@ -228,10 +209,7 @@
                 })
             },
             submitEdit () {
-                const editForm = new FormData()
-                editForm.append('phone', this.userInfo['phone'])
-                editForm.append('position', this.userInfo['position'])
-                this.$http.post(editUserInfoUrl, editForm, { headers: { 'Content-Type': 'multipart/form-data' } }).then(res => {
+                this.$http.post(editUserInfoUrl, { phone: this.userInfo.phone, position: this.userInfo.position }).then(res => {
                     if (res) {
                         if (res && res.result === true) {
                             this.handleError({ theme: 'success' }, res.message)
@@ -243,14 +221,6 @@
                         }
                     }
                 })
-            },
-            checkPhone (val) {
-                if (val) {
-                    if (!(/^1(3|4|5|6|7|8|9)\d{9}$/.test(val))) {
-                        return false
-                    }
-                }
-                return true
             },
             handleError (config, message) { // 遇到后台报自定义错误时上方弹窗提醒
                 config.message = message
