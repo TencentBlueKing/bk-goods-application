@@ -1,7 +1,7 @@
 import re
 
-from apps.good_purchase.models import (Good, GoodType, GroupApply, UserInfo,
-                                       Withdraw, WithdrawReason, Cart)
+from apps.good_purchase.models import (Cart, Good, GoodType, GroupApply,
+                                       UserInfo, Withdraw, WithdrawReason)
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
 from rest_framework import serializers
@@ -174,9 +174,9 @@ class UserInfoSerializer(serializers.ModelSerializer):
         model = UserInfo
         fields = ['id', 'username', 'position', 'phone']
 
+
 class CartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cart
-        fields = ['id','good_code','good_name','good_type_id','good_type_name','price','num','status']
-
+        fields = ['id', 'good_code', 'good_name', 'good_type_id', 'good_type_name', 'price', 'num', 'status']

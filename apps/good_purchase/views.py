@@ -16,20 +16,20 @@ import uuid
 from datetime import datetime
 from tempfile import NamedTemporaryFile
 
-from django.http import JsonResponse
-
 from apps.good_purchase.models import (Cart, Good, GoodType, GroupApply,
                                        UserInfo, Withdraw, WithdrawReason)
-from apps.good_purchase.serializers import (CheckWithdrawsSeralizers,
+from apps.good_purchase.serializers import (CartSerializer,
+                                            CheckWithdrawsSeralizers,
                                             ConfirmReceiptSerializer,
                                             GoodSerializers,
                                             GoodTypeSerializers,
+                                            GroupApplySerializers,
                                             UserInfoCheckSerializer,
                                             UserInfoSerializer,
                                             WithdrawReasonSerializer,
                                             WithdrawSerializer,
                                             personalFormSerializer,
-                                            personalSerializer, CartSerializer, GroupApplySerializers)
+                                            personalSerializer)
 from apps.tools.auth_check import is_leader_or_secretary
 from apps.tools.decorators import check_secretary_permission
 from apps.tools.param_check import (check_apply_update_param, check_param_id,
@@ -44,12 +44,12 @@ from django.core.files.base import File
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
+from django.http import JsonResponse
 # 开发框架中通过中间件默认是需要登录态的，如有不需要登录的，可添加装饰器login_exempt
 # 装饰器引入 from blueapps.account.decorators import login_exempt
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_POST
 from rest_framework import viewsets
 from rest_framework.decorators import action
-
 
 
 @require_POST
@@ -92,7 +92,6 @@ class WithdrawReasonViewSet(viewsets.ModelViewSet):
         return JsonResponse(success_code(withdraw_reason_list))
 
 
-
 class WithdrawViewSet(viewsets.ModelViewSet):
     queryset = Withdraw.objects.all()
     serializer_class = WithdrawSerializer
@@ -106,7 +105,7 @@ class WithdrawViewSet(viewsets.ModelViewSet):
         check_withdraws_seralizers = CheckWithdrawsSeralizers(data=req)
         if not check_withdraws_seralizers.is_valid():
             message = get_error_message(check_withdraws_seralizers)
-            return get_result({"code": 1, "result": False, "message": message})
+            return get_result({"code": 7400, "result": False, "message": message})
         ids = check_withdraws_seralizers.validated_data.get("good_ids")
         reason_id = check_withdraws_seralizers.validated_data.get("reason_id")
         province = check_withdraws_seralizers.validated_data.get("province", None)
@@ -121,9 +120,9 @@ class WithdrawViewSet(viewsets.ModelViewSet):
         remark = check_withdraws_seralizers.validated_data.get("remark", '')
         good_ids = GroupApply.objects.filter(id__in=ids, status=2, username=username).values_list("id", flat=True)
         if not set(ids).issubset(good_ids):
-            return get_result({"code": 1, "result": False, "message": "个人物资不存在，或商品不是正在使用状态"})
+            raise BusinessException(StatusEnums.SENDBACK_ERROR)
         if not WithdrawReason.objects.filter(id=reason_id).exists():
-            return get_result({"code": 1, "result": False, "message": "退回原因不存在"})
+            raise BusinessException(StatusEnums.DRAWBACK_ERROR)
         # 创建需要批量添加的withdraw数组
         withdraw_list = []
         for good_id in good_ids:
@@ -149,7 +148,7 @@ def del_pics(request):
             if storage.exists(file_path):
                 storage.delete(file_path)
         return get_result({'message': '删除成功'})
-    return get_result({'message': '删除失败'})
+    raise BusinessException(StatusEnums.MYDELETE_ERROR)
 
 
 class UserInfoViewSet(viewsets.ModelViewSet):
@@ -174,7 +173,7 @@ class UserInfoViewSet(viewsets.ModelViewSet):
         return JsonResponse(success_code(user_info))
 
     @action(methods=['post'], detail=False)
-    def edit_user_info(self,request):
+    def edit_user_info(self, request):
         username = request.user.username  # 获取用户名
         if not UserInfo.objects.filter(username=username).exists():
             raise BusinessException(StatusEnums.USER_NOT_EXIST_ERROR)
@@ -190,7 +189,7 @@ class UserInfoViewSet(viewsets.ModelViewSet):
         if user_info_serializer.is_valid():  # 参数校验
             UserInfo.objects.filter(username=username).update(
                 phone=user_info.get('phone'), position=user_info.get('position'))
-            return get_result({'code':200,'message':'修改成功'})
+            return get_result({'code': 200, 'message': '修改成功'})
         err_msg = get_error_message(user_info_serializer)
         return get_result({'result': False, 'message': err_msg})
 
@@ -200,20 +199,19 @@ class CartViewSet(viewsets.ModelViewSet):
     serializer_class = CartSerializer
 
     @action(methods=['get'], detail=False)
-    def get_shopping_cart(self,request):
+    def get_shopping_cart(self, request):
         """
         获取购物车信息
         """
         username = request.user
         good_list = Cart.objects.filter(username=username)
         if not good_list.exists():
-            return get_result({"code": 200, "data": [], "message": "购物车为空"})
+            raise BusinessException(StatusEnums.BLANK_ERROR)
         cart_list = get_cart_result(good_list, source="shop")
         return JsonResponse(success_code(cart_list))
 
-
     @action(methods=['post'], detail=False)
-    def delete_cart_goods(self,request):
+    def delete_cart_goods(self, request):
         """
         删除购物车中物资
         """
@@ -223,16 +221,14 @@ class CartViewSet(viewsets.ModelViewSet):
         if not isinstance(cart_id_list, list):
             cart_all_id = Cart.objects.filter(username=username).values_list("id", flat=True)
             if not set(cart_id_list).issubset(set(cart_all_id)):
-                return get_result({"code": 4005, "result": False, "message": "物资删除参数错误"})
+                raise BusinessException(StatusEnums.CART_ADX_ERROR)
         if not Cart.objects.filter(id__in=cart_id_list, username=username).exists():
-            return get_result({"code": 4004, "result": False, "message": "购物车中不存在该物资导致删除失败"})
+            raise BusinessException(StatusEnums.CART_NULL_ERROR)
         Cart.objects.filter(id__in=cart_id_list).delete()
-        # return JsonResponse(success_code({}))
         return get_result({"code": 200, "message": "删除成功"})
 
-
     @action(methods=['POST'], detail=False)
-    def update_cart_goods(self,request):
+    def update_cart_goods(self, request):
         """
         更新购物车物资数量信息
         """
@@ -244,7 +240,7 @@ class CartViewSet(viewsets.ModelViewSet):
                 update_goods_ids.append(update_goods["id"])
             cart_all_id = Cart.objects.values_list("id", flat=True)
             if not set(update_goods_ids).issubset(set(cart_all_id)):
-                return get_result({"code": 4004, "result": False, "message": "物资不存在，导致数量更新失败。"})
+                raise BusinessException(StatusEnums.CART_UPDATE_ERROR)
             all_goods = []
             for good in update_goods_list:
                 temp_good = Cart.objects.get(id=good["id"])
@@ -253,11 +249,11 @@ class CartViewSet(viewsets.ModelViewSet):
                 all_goods.append(temp_good)
             Cart.objects.bulk_update(all_goods, ['num', 'update_time'])
         else:
-            return get_result({"code": 4005, "result": False, "message": "物资数量参数异常"})
+            raise BusinessException(StatusEnums.CART_NUM_ERROR)
         return get_result({"code": 200, "message": "修改成功"})
 
     @action(methods=['POST'], detail=False)
-    def add_cart_goods(self,request):
+    def add_cart_goods(self, request):
         """
         物资加入购物车物
         """
@@ -267,7 +263,7 @@ class CartViewSet(viewsets.ModelViewSet):
         if isinstance(good_info['num'], int) and good_info['num'] > 0:
             temp_good = Cart.objects.filter(good_id=good_info["id"], username=username)
         else:
-            return get_result({"code": 4005, "result": False, "message": "物资数量参数错误"})
+            raise BusinessException(StatusEnums.CART_NUM_ERROR)
         if temp_good.exists():
             num = int(temp_good[0].num) + int(good_info["num"])
             Cart.objects.filter(good_id=good_info["id"]).update(num=num, update_time=datetime.now())
@@ -281,7 +277,7 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
     serializer_class = GroupApplySerializers
 
     @action(methods=['get'], detail=False)
-    def get_group_apply(self,request):
+    def get_group_apply(self, request):
         """
         获取组内物资信息
         """
@@ -289,26 +285,25 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
         if not apply_list.exists():
             return get_result({"code": 200, "data": [], "message": "申请状态为购买中的列表为空"})
         cart_list = get_cart_result(apply_list, source="apply")
-        return JsonResponse(success_code({}))
-
+        return get_result({"code": 200, "data": cart_list, "message": "获取成功"})
 
     @action(methods=['post'], detail=False)
-    def delete_group_apply(self,request):
+    def delete_group_apply(self, request):
         """
         删除组内物资
         """
         req = request.data
         apply_id = req.get("applyId")
         if not check_param_id(apply_id):
-            return get_result({"code": 4005, "result": False, "message": "组内物资删除参数错误"})
+            raise BusinessException(StatusEnums.CART_ADX_ERROR)
         try:
             GroupApply.objects.get(id=apply_id).delete()
         except GroupApply.DoesNotExist:
-            return get_result({"code": 4004, "result": False, "message": "组内物资删除失败"})
+            raise BusinessException(StatusEnums.CART_DELETE_ERROR)
         return get_result({"code": 200, "message": "删除成功"})
 
     @action(methods=['post'], detail=False)
-    def update_group_apply(self,request):
+    def update_group_apply(self, request):
         """
         更新申请物资数量信息
         """
@@ -321,7 +316,7 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
                 update_apply_ids.append(update_apply["id"])
             all_apply_id = GroupApply.objects.values_list("id", flat=True)
             if not set(update_apply_ids).issubset(set(all_apply_id)):
-                return get_result({"code": 4004, "result": False, "message": "该物资申请不存在，导致数量更新失败。"})
+                raise BusinessException(StatusEnums.CART_UPDATE_ERROR2)
             all_applies = []
             for apply in apply_list:
                 temp_apply = GroupApply.objects.get(id=apply["id"])
@@ -335,20 +330,21 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
             else:
                 GroupApply.objects.bulk_update(all_applies, ['num', 'update_time'])
         else:
-            return get_result({"code": 4005, "result": False, "message": "更新组内物资接口参数异常"})
+            raise BusinessException(StatusEnums.ADX_UPDATE_ERROR)
         return get_result({"code": 200, "message": "修改成功"})
 
     @action(methods=['get'], detail=False)
-    def get_personal_goods(self,request):
+    def get_personal_goods(self, request):
         """
         获取个人物资
         """
         # 获取params
         username = request.user.username
-        form = request.GET.get('form', None)
-        page_limit = int(request.GET.get('pageLimit', 10))
-        page = int(request.GET.get('page', 1))
-        id_list = request.GET.get('idList', None)
+        req = request.data
+        form = req.get('form', None)
+        page_limit = int(req.get('pageLimit', 10))
+        page = int(req.get('page', 1))
+        id_list = req.get('idList', None)
 
         personal_serializer = personalSerializer(data={
             "username": username
@@ -362,7 +358,7 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
         unnecessary_goods = []  # 用于记录被过滤掉的物品
 
         # 获取form的内容
-        form = json.loads(form)
+        form = request.data
         name = form.get('name')
         code = form.get('code')
         location = form.get('city')
@@ -425,10 +421,8 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
 
         return JsonResponse(success_code(serializer_data))
 
-
-
     @action(methods=['GET'], detail=False)
-    def get_good_status_list(self,request):
+    def get_good_status_list(self, request):
         """
         获取物资状态列表
         """
@@ -437,11 +431,8 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
             good_status_list.append({'id': item[0], 'status_name': item[1]})
         return JsonResponse(success_code(good_status_list))
 
-
     @action(methods=['post'], detail=False)
-    def confirm_receipt(request):
-        body = request.body
-        # body = json.loads(body)
+    def confirm_receipt(self, request):
         body = request.data
         id_list = body.get('idList')
         serializer = ConfirmReceiptSerializer(data={"id_list": id_list})
@@ -456,7 +447,6 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
         return JsonResponse(success_code({}))
 
 
-
 class GoodViewSet(viewsets.ModelViewSet):
     queryset = Good.objects.all()
     serializer_class = GoodSerializers
@@ -469,15 +459,15 @@ class GoodViewSet(viewsets.ModelViewSet):
         good_id = request.GET.get("good_id", 0)
         # 校验参数
         if not check_param_id(good_id):
-            return get_result({"code": 1, "result": False, "message": "good_id参数校验出错"})
+            raise BusinessException(StatusEnums. GOODID_ERROR)
         try:
             good = Good.objects.get(id=good_id, status=1).to_json()
         except Good.DoesNotExist:
-            return get_result({"code": 1, "result": False, "message": "商品不存在"})
+            raise BusinessException(StatusEnums.NOTFOUND_ERROR)
         return JsonResponse(success_code(good))
 
     @action(methods=['get'], detail=False)
-    def get_good_list(self,request):
+    def get_good_list(self, request):
         """
         获取商品列表
         """
@@ -501,7 +491,7 @@ class GoodViewSet(viewsets.ModelViewSet):
             if good_type_id > 0:
                 query = query & Q(good_type_id=good_type_id)
         except ValueError:
-            get_result({"code": 1, "result": False, "message": "商品类型参数不合法"})
+            raise BusinessException(StatusEnums.CART_TYPE_ERROR)
         # 分页
         page = request.GET.get('page', 1)
         page = check_param_page(page)
@@ -517,34 +507,33 @@ class GoodViewSet(viewsets.ModelViewSet):
                 "good_list": [good.to_json() for good in cur_goods]}  # ！这里还是for循环内部查询了数据库
         return JsonResponse(success_code(data))
 
-
     @check_secretary_permission
     @action(methods=['post'], detail=False)
-    def add_good(self,request):
+    def add_good(self, request):
         """添加商品"""
-        good = json.loads(request.body)
+        good = request.data
         # 参数校验
         good_serializers = GoodSerializers(data=good)
         if not good_serializers.is_valid():
             message = get_error_message(good_serializers)
-            return get_result({"code": 1, "result": False, "message": message})  # 输出错误方式
+            return get_result({"code": 7100, "result": False, "message": message})  # 输出错误方式
         # 检查商品编码是否存在
         good_code = good_serializers.validated_data.get("good_code")
         if Good.objects.filter(good_code=good_code, status=1).exists():
-            return get_result({"code": 1, "result": False, "message": "商品编码已存在"})
+            raise BusinessException(StatusEnums.INPUT_GOODS_ERROR)
         # 检验商品类型是否存在
         good_type_id = good_serializers.validated_data.get("good_type_id")
         if not GoodType.objects.filter(id=good_type_id).exists():
-            return get_result({"code": 1, "result": False, "message": "商品类型不存在"})
+            raise BusinessException(StatusEnums.CARTTYPE_NULL_ERROR)
         with transaction.atomic():
             Good.objects.create(**good)
         return get_result({"message": "新增商品成功"})
 
     @check_secretary_permission
     @action(methods=['post'], detail=False)
-    def update_good(self,request):
+    def update_good(self, request):
         """修改商品信息"""
-        good = json.loads(request.body)
+        good = request.data
         # 参数校验
         good_serializers = GoodSerializers(data=good)
         if not good_serializers.is_valid():
@@ -553,43 +542,43 @@ class GoodViewSet(viewsets.ModelViewSet):
         # 校验id
         good_id = good.get("id", 0)
         if not check_param_id(good_id):
-            return get_result({"code": 1, "result": False, "message": "商品id不合法"})
+            raise BusinessException(StatusEnums.GOOD_ID_ERROR)
         # 校验商品是否存在
         if not Good.objects.filter(id=good_id, status=1).exists():
-            return get_result({"code": 1, "result": False, "message": "商品不存在"})
+            raise BusinessException(StatusEnums.CART_NO_ERROR)
         # 检验商品编码是否重复(good_code相同，但id不同的商品)
         good_code = good_serializers.validated_data.get("good_code")
         if Good.objects.filter(Q(good_code=good_code) & ~Q(id=good_id) & Q(status=1)).exists():
-            return get_result({"code": 1, "result": False, "message": "商品编号已存在"})
+            raise BusinessException(StatusEnums.INPUT_GOODS_ERROR)
         # 校验商品类型是否存在
         good_type_id = good_serializers.validated_data.get("good_type_id")
         if not GoodType.objects.filter(id=good_type_id).exists():
-            return get_result({"code": 1, "result": False, "message": "商品类型不存在"})
+            raise BusinessException(StatusEnums.CARTTYPE_NULL_ERROR)
         # 更新数据
         Good.objects.filter(id=good_id).update(**good, update_time=datetime.now())
         return get_result({"message": "修改商品信息成功"})
 
     @check_secretary_permission
     @action(methods=['post'], detail=False)
-    def down_good(self,request):
+    def down_good(self, request):
         """商品下架"""
-        good_id = request.GET.get("id", 0)
+        req = request.data
+        good_id = req.get("id", 0)
         # 校验参数
         if not check_param_id(good_id):
-            return get_result({"code": 1, "result": False, "message": "good_id参数校验出错"})
+            raise BusinessException(StatusEnums.GOODID_ERROR)
         # 校验商品是否存在
         if not Good.objects.filter(id=good_id, status=1).exists():
-            return get_result({"code": 1, "result": False, "message": "商品不存在"})
+            raise BusinessException(StatusEnums.CART_NO_ERROR)
         Good.objects.filter(id=good_id).update(status=0)
         return get_result({"message": "下架商品成功"})
 
     @action(methods=['get'], detail=False)
-    def get_good_code_list(self,request):
+    def get_good_code_list(self, request):
         """获取商品编码列表"""
         good_list = Good.objects.all()
         good_type_list = [good_item.good_code for good_item in good_list]
         return JsonResponse(success_code(good_type_list))
-
 
 
 class GoodTypeViewSet(viewsets.ModelViewSet):
@@ -598,24 +587,23 @@ class GoodTypeViewSet(viewsets.ModelViewSet):
 
     @check_secretary_permission
     @action(methods=['POST'], detail=False)
-    def add_good_type(self,request):
+    def add_good_type(self, request):
         """新增商品类型"""
-        req = json.loads(request.body)
+        req = request.data
         # 参数校验
         good_type_serializers = GoodTypeSerializers(data=req)
         if not good_type_serializers.is_valid():
             message = get_error_message(good_type_serializers)
-            return get_result({"code": 1, "result": False, "message": message})
+            return get_result({"code": 7100, "result": False, "message": message})
         # 验证该商品类型是否存在
         type_name = good_type_serializers.validated_data.get("type_name")
         if GoodType.objects.filter(type_name=type_name).exists():
-            return get_result({"code": 1, "result": False, "message": "商品类型名称已存在"})
+            raise BusinessException(StatusEnums.INPUT_TYPE_ERROR)
         good_type = GoodType.objects.create(type_name=type_name)
         return get_result({"message": "新增商品类型成功", "data": {"id": good_type.id}})
 
-
     @action(methods=['get'], detail=False)
-    def get_good_type_list(self,request):
+    def get_good_type_list(self, request):
         """获取商品类别列表"""
         good_types = GoodType.objects.all()
         good_type_list = [good_type.to_json() for good_type in good_types]
