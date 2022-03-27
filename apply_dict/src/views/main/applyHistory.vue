@@ -448,6 +448,7 @@
                     page: this.getParams.page,
                     size: this.getParams.size
                 }).then(res => {
+                    console.log(res)
                     this.history = res.data.apply_list
                     this.pagination.count = res.data.total_num
                 })
