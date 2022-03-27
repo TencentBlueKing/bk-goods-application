@@ -18,7 +18,10 @@ def import_cart_excel(request):
     def handle_excel_data(rows, CANNOT_ADD, err_msg):  # 处理传入的列表数据，判断是否加入部门所需物资表
         group_apply_create_list = []  # 存放GroupApply对象
         for row_index, row in enumerate(rows):
-            if row_index == 0:  # 标题行跳过
+            if row_index == 0:  # 标题行
+                title = ['使用人', '物品编码', '数量', '需求地点', '期望领用日期', '备注', '物品名称']
+                if row != title:
+                    return ['文件格式错误']
                 continue
 
             gapply_item = row
@@ -104,7 +107,7 @@ def import_cart_excel(request):
             row = [table.cell(i, index).value for index in range(1, table.max_column + 1)]
             rows.append(row)
         if len(rows) > 1:
-            handle_excel_data(rows, CANNOT_ADD, err_msg)  # 处理数据
+            receive_handle_result = handle_excel_data(rows, CANNOT_ADD, err_msg)  # 处理数据
         else:
             raise BusinessException(StatusEnums.IMPORT_FILE_EMPTY_ERROR)
 
@@ -117,9 +120,18 @@ def import_cart_excel(request):
         for row_idx in range(table.nrows):
             rows.append(table.row_values(row_idx))
         if len(rows) > 1:
-            handle_excel_data(rows, CANNOT_ADD, err_msg)  # 处理数据
+            receive_handle_result = handle_excel_data(rows, CANNOT_ADD, err_msg)  # 处理数据
         else:
             raise BusinessException(StatusEnums.IMPORT_FILE_EMPTY_ERROR)
+
+    if receive_handle_result == ['文件格式错误']:
+        result = {
+            "code": 400,
+            "result": False,
+            "message": receive_handle_result,
+            "data": {}
+        }
+        return get_result(result)
 
     if not CANNOT_ADD:
         result = {

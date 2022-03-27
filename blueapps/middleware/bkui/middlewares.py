@@ -22,6 +22,7 @@ class BkuiPageMiddleware(object):
         self.get_response = get_response
 
     def __call__(self, request):
+
         response = self.get_response(request)
 
         # 判断是否发生404的问题，及BKUI的

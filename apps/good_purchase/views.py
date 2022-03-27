@@ -100,7 +100,6 @@ class WithdrawViewSet(viewsets.ModelViewSet):
     def add_withdraw_apply(self, request):
         """提交退回物资申请"""
         req = request.data
-        print('req', req)
         username = request.user.username
         check_withdraws_seralizers = CheckWithdrawsSeralizers(data=req)
         if not check_withdraws_seralizers.is_valid():
@@ -471,13 +470,14 @@ class GoodViewSet(viewsets.ModelViewSet):
         """
         获取商品列表
         """
+        req_data = request.GET
         # 筛选项参数拼接查询条件
         query = Q(status=1)
         # 需要筛选的字段
         conditions = ('good_code', 'good_name')
         for condition in conditions:
             # 查询筛选值
-            condition_value = request.GET.get(condition, None)
+            condition_value = req_data.get(condition, None)
             if check_param_str(condition_value):
                 # 新建模糊查询筛选条件字典
                 new_query = {condition + '__contains': condition_value}
@@ -485,7 +485,7 @@ class GoodViewSet(viewsets.ModelViewSet):
                 query = query & Q(**new_query)
 
         # 商品类型筛选条件
-        good_type_id = request.GET.get("good_type_id", 0)
+        good_type_id = req_data.get("good_type_id", 0)
         try:
             good_type_id = int(good_type_id)
             if good_type_id > 0:
@@ -493,9 +493,9 @@ class GoodViewSet(viewsets.ModelViewSet):
         except ValueError:
             raise BusinessException(StatusEnums.CART_TYPE_ERROR)
         # 分页
-        page = request.GET.get('page', 1)
+        page = req_data.get('page', 1)
         page = check_param_page(page)
-        size = request.GET.get('size', 10)
+        size = req_data.get('size', 10)
         size = check_param_size(size)
         # 查询
         goods = Good.objects.filter(query).order_by("-update_time")
