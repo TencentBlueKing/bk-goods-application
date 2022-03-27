@@ -63,7 +63,8 @@ class PositionViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False)
     def get_sub_position_list(self, request):
         """（根据上级地区代码）获取下级地区"""
-        parent_code = request.GET.get('parent_code', None)
+        req_data = request.GET
+        parent_code = req_data.get('parent_code', None)
         if not check_param_str(parent_code):
             return get_result({'result': False, 'message': '上级地区代码参数不合法'})
         positions = Position.objects.filter(parent_code=parent_code)
@@ -157,6 +158,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
         flag, leader_or_secretary = is_leader_or_secretary(request)
         if not flag:
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)
+        req_data = request.GET
         if leader_or_secretary == 0:
             # 秘书, 查询审核中
             query = Q(status=2)
@@ -170,7 +172,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
             user_usernames.append(uesrname)
 
         # 申请人-查询条件
-        apply_user = request.GET.get('apply_user', None)
+        apply_user = req_data.get('apply_user', None)
         if check_param_str(apply_user):
             if apply_user in user_usernames:
                 query = query & Q(apply_user=apply_user)
@@ -181,13 +183,13 @@ class ApplyViewSet(viewsets.ModelViewSet):
             query = query & Q(apply_user__in=user_usernames)
 
         # 地点-模糊查询
-        position = request.GET.get('position', None)
+        position = req_data.get('position', None)
         if check_param_str(position):
             query = query & Q(position__contains=position)
 
         # 时间-范围查询
-        start_time = request.GET.get('start_time')
-        end_time = request.GET.get('end_time')
+        start_time = req_data.get('start_time')
+        end_time = req_data.get('end_time')
 
         if start_time and end_time:
             if not start_time <= end_time:
@@ -200,9 +202,9 @@ class ApplyViewSet(viewsets.ModelViewSet):
         query = query & Q(create_time__range=(start_time, end_time))
 
         # 分页
-        page = request.GET.get('page', 1)
+        page = req_data.get('page', 1)
         page = check_param_page(page)
-        size = request.GET.get('size', 10)
+        size = req_data.get('size', 10)
         size = check_param_size(size)
 
         # 查询
@@ -214,8 +216,8 @@ class ApplyViewSet(viewsets.ModelViewSet):
                 "apply_list": [apply.to_json() for apply in cur_applys]}
         return get_result({'data': data})
 
-    @action(methods=['POST'], detail=False)
-    def get_self_good_apply_list(self, request):
+    @action(methods=['GET'], detail=False)
+    def get_self_good_apply_list(self, request, *args, **kwargs):
         """
         查询自己的物资申请
         """
@@ -241,10 +243,10 @@ class ApplyViewSet(viewsets.ModelViewSet):
             "and apply.create_time between %s and %s "
         )
         params = [request.user.username]
-        req = request.data
+        req_data = request.GET
         # 时间-范围查询
-        start_time = req.get('start_time')
-        end_time = req.get('end_time')
+        start_time = req_data.get('start_time')
+        end_time = req_data.get('end_time')
 
         if start_time and end_time:
             if not start_time <= end_time:
@@ -261,7 +263,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
         conditions = ('good_code', 'good_name', 'reason')
         for condition in conditions:
             # 查询筛选值
-            condition_value = req.get(condition, None)
+            condition_value = req_data.get(condition, None)
             if check_param_str(condition_value):
                 # 新建模糊查询筛选条件
                 sql_str = sql_str + u"and apply.{} like '%%{}%%'".format(condition, condition_value)
@@ -269,21 +271,23 @@ class ApplyViewSet(viewsets.ModelViewSet):
                 # params.append(condition_value)
 
         # 审核状态查询
-        status = req.get('status', None)
+        status = req_data.get('status', None)
         if status and isinstance(status, int):
             sql_str = sql_str + 'and apply.status = {}'.format(status)
         elif status == 0:
             sql_str = sql_str + 'and apply.status = {}'.format(status)
 
         # 根据id查询
-        apply_id = req.get('id', None)
+        apply_id = req_data.get('id', None)
+        if apply_id:
+            apply_id = int(apply_id)
         if id and isinstance(apply_id, int):
             sql_str = sql_str + 'and apply.id = {}'.format(apply_id)
 
         # 分页
-        page = req.get('page', 1)
+        page = req_data.get('page', 1)
         page = check_param_page(page)
-        size = req.get('size', 10)
+        size = req_data.get('size', 10)
         size = check_param_size(size)
 
         apply_infos = Apply.objects.raw(sql_str, params)
@@ -385,7 +389,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
             }
             return get_result(result)
 
-    @action(methods=['POST'], detail=False)
+    @action(methods=['PATCH'], detail=False)
     def update_good_apply(self, request):
         """编辑物资申请"""
         apply = request.data
@@ -410,7 +414,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
         Apply.objects.filter(id=apply_id).update(**apply, update_time=datetime.datetime.now())
         return get_result({"message": "修改物资申请信息成功"})
 
-    @action(methods=['POST'], detail=False)
+    @action(methods=['PATCH'], detail=False)
     def stop_good_apply(self, request):
         """终止物资申请"""
         id = request.data.get("id")
@@ -424,13 +428,13 @@ class ApplyViewSet(viewsets.ModelViewSet):
         apply.update(status=0, update_time=datetime.datetime.now())
         return get_result({"message": "物资申请终止成功"})
 
-    @action(methods=['POST'], detail=False)
-    def delete_good_apply(self, request):
+    @action(methods=['DELETE'], detail=True)
+    def delete_good_apply(self, request, pk):
         """删除物资申请"""
-        id = request.data.get("id")
-        if not check_param_id(id):
+        apply_id = pk
+        if not check_param_id(apply_id):
             return get_result({"code": 1, "result": False, "message": "物资申请id不合法"})
-        apply = Apply.objects.filter(id=id)
+        apply = Apply.objects.filter(id=apply_id)
         if not apply.exists():
             return get_result({"code": 1, "result": False, "message": "物资申请不存在"})
         if apply[0].status == 2:

@@ -18,16 +18,18 @@ from tempfile import NamedTemporaryFile
 
 from apps.good_purchase.models import (Cart, Good, GoodType, GroupApply,
                                        UserInfo, Withdraw, WithdrawReason)
-from apps.good_purchase.serializers import (CheckWithdrawsSeralizers,
+from apps.good_purchase.serializers import (CartSerializer,
+                                            CheckWithdrawsSeralizers,
                                             ConfirmReceiptSerializer,
                                             GoodSerializers,
                                             GoodTypeSerializers,
+                                            GroupApplySerializers,
                                             UserInfoCheckSerializer,
                                             UserInfoSerializer,
                                             WithdrawReasonSerializer,
                                             WithdrawSerializer,
                                             personalFormSerializer,
-                                            personalSerializer, CartSerializer, GroupApplySerializers)
+                                            personalSerializer)
 from apps.tools.auth_check import is_leader_or_secretary
 from apps.tools.decorators import check_secretary_permission
 from apps.tools.param_check import (check_apply_update_param, check_param_id,
@@ -49,8 +51,6 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 
 
-
-
 @require_GET
 def get_personal_goods(request):
     """
@@ -58,10 +58,11 @@ def get_personal_goods(request):
     """
     # 获取params
     username = request.user.username
-    form = request.GET.get('form', None)
-    page_limit = int(request.GET.get('pageLimit', 10))
-    page = int(request.GET.get('page', 1))
-    id_list = request.GET.get('idList', None)
+    req_data = request.GET
+    form = req_data.get('form', None)
+    page_limit = int(req_data.get('pageLimit', 10))
+    page = int(req_data.get('page', 1))
+    id_list = req_data.get('idList', None)
 
     personal_serializer = personalSerializer(data={
         "username": username
@@ -145,7 +146,6 @@ def get_personal_goods(request):
     return get_result(data)
 
 
-
 @require_GET
 def get_good_status_list(request):
     """
@@ -155,7 +155,6 @@ def get_good_status_list(request):
     for item in GroupApply.STATUS_TYPE:
         good_status_list.append({'id': item[0], 'status_name': item[1]})
     return get_result({"data": good_status_list})
-
 
 
 #
@@ -270,7 +269,6 @@ class WithdrawViewSet(viewsets.ModelViewSet):
     def add_withdraw_apply(self, request):
         """提交退回物资申请"""
         req = request.data
-        print('req', req)
         username = request.user.username
         check_withdraws_seralizers = CheckWithdrawsSeralizers(data=req)
         if not check_withdraws_seralizers.is_valid():
@@ -388,7 +386,7 @@ class CartViewSet(viewsets.ModelViewSet):
     serializer_class = CartSerializer
 
     @action(methods=['get'], detail=False)
-    def get_shopping_cart(self,request):
+    def get_shopping_cart(self, request):
         """
         获取购物车信息
         """
@@ -400,7 +398,7 @@ class CartViewSet(viewsets.ModelViewSet):
         return get_result({"code": 200, "data": cart_list})
 
     @action(methods=['post'], detail=False)
-    def delete_cart_goods(self,request):
+    def delete_cart_goods(self, request):
         """
         删除购物车中物资
         """
@@ -417,7 +415,7 @@ class CartViewSet(viewsets.ModelViewSet):
         return get_result({"code": 200, "message": "删除成功"})
 
     @action(methods=['POST'], detail=False)
-    def update_cart_goods(self,request):
+    def update_cart_goods(self, request):
         """
         更新购物车物资数量信息
         """
@@ -442,7 +440,7 @@ class CartViewSet(viewsets.ModelViewSet):
         return get_result({"code": 200, "message": "修改成功"})
 
     @action(methods=['POST'], detail=False)
-    def add_cart_goods(self,request):
+    def add_cart_goods(self, request):
         """
         物资加入购物车物
         """
@@ -466,7 +464,7 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
     serializer_class = GroupApplySerializers
 
     @action(methods=['get'], detail=False)
-    def get_group_apply(self,request):
+    def get_group_apply(self, request):
         """
         获取组内物资信息
         """
@@ -477,7 +475,7 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
         return get_result({"code": 200, "data": cart_list, "message": "获取成功"})
 
     @action(methods=['post'], detail=False)
-    def delete_group_apply(self,request):
+    def delete_group_apply(self, request):
         """
         删除组内物资
         """
@@ -492,7 +490,7 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
         return get_result({"code": 200, "message": "删除成功"})
 
     @action(methods=['post'], detail=False)
-    def update_group_apply(self,request):
+    def update_group_apply(self, request):
         """
         更新申请物资数量信息
         """
@@ -530,9 +528,10 @@ class GoodViewSet(viewsets.ModelViewSet):
     @action(methods=['GET'], detail=False)
     def get_good_detail(self, request):
         """
-              根据商品id获取商品详情信息
-              """
-        good_id = request.GET.get("good_id", 0)
+        根据商品id获取商品详情信息
+        """
+        req_data = request.GET
+        good_id = req_data.get("good_id", 0)
         # 校验参数
         if not check_param_id(good_id):
             return get_result({"code": 1, "result": False, "message": "good_id参数校验出错"})
@@ -543,17 +542,18 @@ class GoodViewSet(viewsets.ModelViewSet):
         return get_result({"data": good})
 
     @action(methods=['get'], detail=False)
-    def get_good_list(self,request):
+    def get_good_list(self, request):
         """
         获取商品列表
         """
+        req_data = request.GET
         # 筛选项参数拼接查询条件
         query = Q(status=1)
         # 需要筛选的字段
         conditions = ('good_code', 'good_name')
         for condition in conditions:
             # 查询筛选值
-            condition_value = request.GET.get(condition, None)
+            condition_value = req_data.get(condition, None)
             if check_param_str(condition_value):
                 # 新建模糊查询筛选条件字典
                 new_query = {condition + '__contains': condition_value}
@@ -561,7 +561,7 @@ class GoodViewSet(viewsets.ModelViewSet):
                 query = query & Q(**new_query)
 
         # 商品类型筛选条件
-        good_type_id = request.GET.get("good_type_id", 0)
+        good_type_id = req_data.get("good_type_id", 0)
         try:
             good_type_id = int(good_type_id)
             if good_type_id > 0:
@@ -569,9 +569,9 @@ class GoodViewSet(viewsets.ModelViewSet):
         except ValueError:
             get_result({"code": 1, "result": False, "message": "商品类型参数不合法"})
         # 分页
-        page = request.GET.get('page', 1)
+        page = req_data.get('page', 1)
         page = check_param_page(page)
-        size = request.GET.get('size', 10)
+        size = req_data.get('size', 10)
         size = check_param_size(size)
         # 查询
         goods = Good.objects.filter(query).order_by("-update_time")
@@ -585,7 +585,7 @@ class GoodViewSet(viewsets.ModelViewSet):
 
     @check_secretary_permission
     @action(methods=['post'], detail=False)
-    def add_good(self,request):
+    def add_good(self, request):
         """添加商品"""
         good = json.loads(request.body)
         # 参数校验
@@ -607,7 +607,7 @@ class GoodViewSet(viewsets.ModelViewSet):
 
     @check_secretary_permission
     @action(methods=['post'], detail=False)
-    def update_good(self,request):
+    def update_good(self, request):
         """修改商品信息"""
         good = json.loads(request.body)
         # 参数校验
@@ -636,9 +636,10 @@ class GoodViewSet(viewsets.ModelViewSet):
 
     @check_secretary_permission
     @action(methods=['post'], detail=False)
-    def down_good(self,request):
+    def down_good(self, request):
         """商品下架"""
-        good_id = request.GET.get("id", 0)
+        req_data = request.GET
+        good_id = req_data.get("id", 0)
         # 校验参数
         if not check_param_id(good_id):
             return get_result({"code": 1, "result": False, "message": "good_id参数校验出错"})
@@ -649,7 +650,7 @@ class GoodViewSet(viewsets.ModelViewSet):
         return get_result({"message": "下架商品成功"})
 
     @action(methods=['get'], detail=False)
-    def get_good_code_list(self,request):
+    def get_good_code_list(self, request):
         """获取商品编码列表"""
         good_list = Good.objects.all()
         good_type_list = [good_item.good_code for good_item in good_list]
@@ -662,7 +663,7 @@ class GoodTypeViewSet(viewsets.ModelViewSet):
 
     @check_secretary_permission
     @action(methods=['POST'], detail=False)
-    def add_good_type(self,request):
+    def add_good_type(self, request):
         """新增商品类型"""
         req = json.loads(request.body)
         # 参数校验
@@ -678,7 +679,7 @@ class GoodTypeViewSet(viewsets.ModelViewSet):
         return get_result({"message": "新增商品类型成功", "data": {"id": good_type.id}})
 
     @action(methods=['get'], detail=False)
-    def get_good_type_list(self,request):
+    def get_good_type_list(self, request):
         """获取商品类别列表"""
         good_types = GoodType.objects.all()
         good_type_list = [good_type.to_json() for good_type in good_types]
