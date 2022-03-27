@@ -16,7 +16,7 @@ const config = {
  * @return {Promise} promise 对象
  */
 function getUser () {
-    return store.dispatch('userInfo', config)
+    return store.dispatch('user/userInfo', config)
 }
 
 export default function () {

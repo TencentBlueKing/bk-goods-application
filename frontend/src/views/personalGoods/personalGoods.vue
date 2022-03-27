@@ -2,9 +2,9 @@
     <div class="personalGoods-wrapper">
         <div class="header">
             <bk-divider align="left"
-                ><bk-tag type="filled" style="font-size: 13px"
-                    ><span>个人物资查询</span></bk-tag
-                ></bk-divider
+            ><bk-tag type="filled" style="font-size: 13px"
+            ><span>个人物资查询</span></bk-tag
+            ></bk-divider
             >
         </div>
         <!-- <div class="breadCrumb">
@@ -73,7 +73,7 @@
                                         title="查询"
                                         :outline="true"
                                         @click="search"
-                                        >查询数据</bk-button
+                                    >查询数据</bk-button
                                     >
                                 </bk-form-item>
                             </div>
@@ -266,14 +266,10 @@
 </template>
 
 <script>
-    const getPersonalGoodsUrl = '/get_personal_goods/' // 获取个人物资接口
-    const getTypesUrl = '/get_good_type_list' // 获取所有类型接口
-    const getStatusUrl = '/get_good_status_list' // 获取所有物品状态接口
-    const getPositionsUrl = 'position/get_root_position_list/t' // 获取一级地区接口
-    const getSubPositionListUrl = 'position/get_sub_position_list/' // 获取子地点接口
-    const deriveExcelUrl = '/derive_excel' // 生成excel文件并导出接口
-    const delFilesUrl = '/del_excel' // 删除已生成的excel文件接口
-    const confirmReceiptUrl = '/confirm_receipt'
+    import {
+        GET_GOOD_TYPE_LIST_URL, GET_ROOT_POSITION_LIST_URL, GET_SUB_POSITION_LIST_URL, DERIVE_EXCEL_URL, CONFIRM_RECEIPT_URL,
+        DEL_EXCEL_URL, GET_PERSONAL_GOODS_URL, GET_GOOD_STATUS_LIST_URL
+    } from '@/pattern'
     export default {
         data () {
             return {
@@ -328,7 +324,7 @@
                     return
                 }
                 const parentCode = this.getParentCode(val)
-                this.$http.get(getSubPositionListUrl, {
+                this.$http.get(GET_SUB_POSITION_LIST_URL, {
                     params: {
                         parent_code: parentCode
                     }
@@ -374,7 +370,7 @@
                 this.confirmReceiptDialogVisible = true
             },
             confirmReceipt () {
-                this.$http.post(confirmReceiptUrl, { idList: this.selected.selectedRows }).then(res => {
+                this.$http.post(CONFIRM_RECEIPT_URL, { idList: this.selected.selectedRows }).then(res => {
                     if (res && res.result === true) {
                         this.handleError({ theme: 'success' }, res.message)
                         this.selected.selectedRows = []
@@ -405,7 +401,7 @@
                     return
                 }
                 try {
-                    this.$http.post(deriveExcelUrl, { model: 1, dataList: this.selected }).then(res => {
+                    this.$http.post(DERIVE_EXCEL_URL, { model: 1, dataList: this.selected }).then(res => {
                         if (res && res.result === true) {
                             const link = document.createElement('a') // 生成a元素，用以实现下载功能
                             link.href = res.data.file_url
@@ -416,7 +412,7 @@
                             const dirName = res.data.file_url.split('/').slice(-2, -1)[0] // 获取文件夹名
                             this.fileCache.push([fileName, dirName])
                             this.sleep(30 * 60).then(() => { // 半小时后删除excel文件
-                                this.$http.post(delFilesUrl, { dirName: this.fileCache[0][1], fileName: this.fileCache[0][0] }).then(() => {
+                                this.$http.post(DEL_EXCEL_URL, { dirName: this.fileCache[0][1], fileName: this.fileCache[0][0] }).then(() => {
                                     this.fileCache.shift()
                                 })
                             })
@@ -430,7 +426,7 @@
             },
 
             getPersonalGoods () { // 获得个人物资
-                this.$http.get(getPersonalGoodsUrl, {
+                this.$http.get(GET_PERSONAL_GOODS_URL, {
                     params: {
                         form: this.get_params.form,
                         page: this.get_params.page,
@@ -449,7 +445,7 @@
                 })
             },
             getTypes () { // 获得物品类型
-                this.$http.get(getTypesUrl).then(res => {
+                this.$http.get(GET_GOOD_TYPE_LIST_URL).then(res => {
                     if (res) {
                         if (res && res.result === true) {
                             this.typeList = res.data
@@ -460,7 +456,7 @@
                 })
             },
             getStatus () { // 获得物资状态
-                this.$http.get(getStatusUrl).then(res => {
+                this.$http.get(GET_GOOD_STATUS_LIST_URL).then(res => {
                     if (res) {
                         if (res && res.result === true) {
                             this.statusList = res.data
@@ -471,7 +467,7 @@
                 })
             },
             getPosition () { // 获得所有地点
-                this.$http.get(getPositionsUrl).then(res => {
+                this.$http.get(GET_ROOT_POSITION_LIST_URL).then(res => {
                     if (res) {
                         if (res && res.result === true) {
                             this.provinceList = res.data
