@@ -135,7 +135,7 @@ class WithdrawViewSet(viewsets.ModelViewSet):
             GroupApply.objects.filter(id__in=list(good_ids)).update(status=1)
             # 批量添加物资退回表
             Withdraw.objects.bulk_create(withdraw_list)
-        return JsonResponse(success_code({}))
+        return get_result({"message": "退回商品申请提交成功"})
 
 
 @check_secretary_permission
@@ -148,7 +148,7 @@ def del_pics(request):
         for file_path in file_paths:
             if storage.exists(file_path):
                 storage.delete(file_path)
-        return JsonResponse(success_code({}))
+        return get_result({'message': '删除成功'})
     return get_result({'message': '删除失败'})
 
 
@@ -190,7 +190,7 @@ class UserInfoViewSet(viewsets.ModelViewSet):
         if user_info_serializer.is_valid():  # 参数校验
             UserInfo.objects.filter(username=username).update(
                 phone=user_info.get('phone'), position=user_info.get('position'))
-            return JsonResponse(success_code({}))
+            return get_result({'code':200,'message':'修改成功'})
         err_msg = get_error_message(user_info_serializer)
         return get_result({'result': False, 'message': err_msg})
 
@@ -228,7 +228,7 @@ class CartViewSet(viewsets.ModelViewSet):
             return get_result({"code": 4004, "result": False, "message": "购物车中不存在该物资导致删除失败"})
         Cart.objects.filter(id__in=cart_id_list).delete()
         # return JsonResponse(success_code({}))
-        return JsonResponse(success_code({}))
+        return get_result({"code": 200, "message": "删除成功"})
 
 
     @action(methods=['POST'], detail=False)
@@ -254,7 +254,7 @@ class CartViewSet(viewsets.ModelViewSet):
             Cart.objects.bulk_update(all_goods, ['num', 'update_time'])
         else:
             return get_result({"code": 4005, "result": False, "message": "物资数量参数异常"})
-        return JsonResponse(success_code({}))
+        return get_result({"code": 200, "message": "修改成功"})
 
     @action(methods=['POST'], detail=False)
     def add_cart_goods(self,request):
@@ -273,7 +273,7 @@ class CartViewSet(viewsets.ModelViewSet):
             Cart.objects.filter(good_id=good_info["id"]).update(num=num, update_time=datetime.now())
         else:
             Cart.objects.create(good_id=good_info['id'], username=username, num=good_info['num'])
-        return JsonResponse(success_code({}))
+        return get_result({"code": 200, "message": "物资成功加入购物车"})
 
 
 class GroupApplyViewSet(viewsets.ModelViewSet):
@@ -305,7 +305,7 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
             GroupApply.objects.get(id=apply_id).delete()
         except GroupApply.DoesNotExist:
             return get_result({"code": 4004, "result": False, "message": "组内物资删除失败"})
-        return JsonResponse(success_code({}))
+        return get_result({"code": 200, "message": "删除成功"})
 
     @action(methods=['post'], detail=False)
     def update_group_apply(self,request):
@@ -336,7 +336,7 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
                 GroupApply.objects.bulk_update(all_applies, ['num', 'update_time'])
         else:
             return get_result({"code": 4005, "result": False, "message": "更新组内物资接口参数异常"})
-        return JsonResponse(success_code({}))
+        return get_result({"code": 200, "message": "修改成功"})
 
     @action(methods=['get'], detail=False)
     def get_personal_goods(self,request):
@@ -538,7 +538,7 @@ class GoodViewSet(viewsets.ModelViewSet):
             return get_result({"code": 1, "result": False, "message": "商品类型不存在"})
         with transaction.atomic():
             Good.objects.create(**good)
-        return JsonResponse(success_code({}))
+        return get_result({"message": "新增商品成功"})
 
     @check_secretary_permission
     @action(methods=['post'], detail=False)
@@ -567,7 +567,7 @@ class GoodViewSet(viewsets.ModelViewSet):
             return get_result({"code": 1, "result": False, "message": "商品类型不存在"})
         # 更新数据
         Good.objects.filter(id=good_id).update(**good, update_time=datetime.now())
-        return JsonResponse(success_code({}))
+        return get_result({"message": "修改商品信息成功"})
 
     @check_secretary_permission
     @action(methods=['post'], detail=False)
@@ -581,7 +581,7 @@ class GoodViewSet(viewsets.ModelViewSet):
         if not Good.objects.filter(id=good_id, status=1).exists():
             return get_result({"code": 1, "result": False, "message": "商品不存在"})
         Good.objects.filter(id=good_id).update(status=0)
-        return JsonResponse(success_code({}))
+        return get_result({"message": "下架商品成功"})
 
     @action(methods=['get'], detail=False)
     def get_good_code_list(self,request):
@@ -611,7 +611,7 @@ class GoodTypeViewSet(viewsets.ModelViewSet):
         if GoodType.objects.filter(type_name=type_name).exists():
             return get_result({"code": 1, "result": False, "message": "商品类型名称已存在"})
         good_type = GoodType.objects.create(type_name=type_name)
-        return JsonResponse(success_code({"id": good_type.id}))
+        return get_result({"message": "新增商品类型成功", "data": {"id": good_type.id}})
 
 
     @action(methods=['get'], detail=False)

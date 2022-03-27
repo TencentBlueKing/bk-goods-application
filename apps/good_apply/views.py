@@ -149,7 +149,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
             if reviews:
                 Review.objects.bulk_create(reviews)
 
-        return JsonResponse(success_code({}))
+        return get_result({"message": "物资申请提交成功"})
 
     def list(self, request, *args, **kwargs):
         """
@@ -382,7 +382,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
                 Review.objects.bulk_create(review_list)
 
         if model == 'reject' or model == 'agree':
-            return JsonResponse(success_code({}))
+            return get_result({"message": "审核成功"})
 
     @action(methods=['POST'], detail=False)
     def update_good_apply(self, request):
@@ -407,7 +407,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
                  "reason": validated_data.get('reason')}
         # 更新
         Apply.objects.filter(id=apply_id).update(**apply, update_time=datetime.datetime.now())
-        return JsonResponse(success_code({}))
+        return get_result({"message": "修改物资申请信息成功"})
 
     @action(methods=['POST'], detail=False)
     def stop_good_apply(self, request):
@@ -421,7 +421,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
         if not (apply[0].status == 1 or apply[0].status == 2):
             return get_result({"message": "物资申请不处于审核状态"})
         apply.update(status=0, update_time=datetime.datetime.now())
-        return JsonResponse(success_code({}))
+        return get_result({"message": "物资申请终止成功"})
 
     @action(methods=['POST'], detail=False)
     def delete_good_apply(self, request):
@@ -435,7 +435,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
         if apply[0].status == 2:
             return get_result({"code": 1, "result": False, "message": "物资申请处于审核状态，不可删除"})
         apply.delete()
-        return JsonResponse(success_code({}))
+        return get_result({"message": "物资申请删除成功"})
 
     @action(methods=['GET'], detail=False)
     def get_apply_status(self, request):
