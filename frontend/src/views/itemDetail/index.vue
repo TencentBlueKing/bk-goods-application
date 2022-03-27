@@ -53,7 +53,7 @@
                     <div
                         class="pic-slide-btn"
                         :class="{
-                            'ban-btn': slideIndex.nowEnd === goodPicList.length,
+                            'ban-btn': slideIndex.nowEnd === goodPicList.length
                         }"
                         @click="picSlide('backward')"
                     >

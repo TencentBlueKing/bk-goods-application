@@ -24,13 +24,14 @@ from apps.tools.decorators import check_leader_or_secretary_permission
 from apps.tools.param_check import (check_param_id, check_param_page,
                                     check_param_size, check_param_str,
                                     get_error_message)
-from apps.tools.response import get_result
+from apps.tools.response import get_result, success_code
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
 from blueapps.utils import get_client_by_request
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
+from django.http import JsonResponse
 from django.shortcuts import render
 # 开发框架中通过中间件默认是需要登录态的，如有不需要登录的，可添加装饰器login_exempt
 # 装饰器引入 from blueapps.account.decorators import login_exempt
@@ -58,18 +59,17 @@ class PositionViewSet(viewsets.ModelViewSet):
         """获取一级地区"""
         positions = self.queryset.filter(parent_code__isnull=True)
         position_list = [position.to_json() for position in positions]
-        return get_result({"data": position_list})
+        return JsonResponse(success_code(position_list))
 
     @action(methods=['get'], detail=False)
     def get_sub_position_list(self, request):
         """（根据上级地区代码）获取下级地区"""
-        req_data = request.GET
-        parent_code = req_data.get('parent_code', None)
+        parent_code = request.GET.get('parent_code', None)
         if not check_param_str(parent_code):
-            return get_result({'result': False, 'message': '上级地区代码参数不合法'})
+            raise BusinessException(StatusEnums.AREA_ERROR)
         positions = Position.objects.filter(parent_code=parent_code)
         position_list = [position.to_json() for position in positions]
-        return get_result({"data": position_list})
+        return JsonResponse(success_code(position_list))
 
 
 class ApplyViewSet(viewsets.ModelViewSet):
@@ -107,7 +107,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
         elif leader_or_secretary == 1:
             apply_status = 2
         if not isinstance(apply_list, list):
-            return get_result({'result': False, 'message': '物资申请列表参数不合法'})
+            raise BusinessException(StatusEnums.APPLY_GOODS_ERROR)
         # 拼接新增数据
         applys = []
         for apply in apply_list:
@@ -158,7 +158,6 @@ class ApplyViewSet(viewsets.ModelViewSet):
         flag, leader_or_secretary = is_leader_or_secretary(request)
         if not flag:
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)
-        req_data = request.GET
         if leader_or_secretary == 0:
             # 秘书, 查询审核中
             query = Q(status=2)
@@ -172,24 +171,24 @@ class ApplyViewSet(viewsets.ModelViewSet):
             user_usernames.append(uesrname)
 
         # 申请人-查询条件
-        apply_user = req_data.get('apply_user', None)
+        apply_user = request.GET.get('apply_user', None)
         if check_param_str(apply_user):
             if apply_user in user_usernames:
                 query = query & Q(apply_user=apply_user)
             else:
-                return get_result({"code": 1, "result": False, "message": u"您对-{}没有查询权限".format(apply_user)})
+                return get_result({"code": 4009, "result": False, "message": u"您对-{}没有查询权限".format(apply_user)})
         else:
             # 没有选择要查询的申请人
             query = query & Q(apply_user__in=user_usernames)
 
         # 地点-模糊查询
-        position = req_data.get('position', None)
+        position = request.GET.get('position', None)
         if check_param_str(position):
             query = query & Q(position__contains=position)
 
         # 时间-范围查询
-        start_time = req_data.get('start_time')
-        end_time = req_data.get('end_time')
+        start_time = request.GET.get('start_time')
+        end_time = request.GET.get('end_time')
 
         if start_time and end_time:
             if not start_time <= end_time:
@@ -202,9 +201,9 @@ class ApplyViewSet(viewsets.ModelViewSet):
         query = query & Q(create_time__range=(start_time, end_time))
 
         # 分页
-        page = req_data.get('page', 1)
+        page = request.GET.get('page', 1)
         page = check_param_page(page)
-        size = req_data.get('size', 10)
+        size = request.GET.get('size', 10)
         size = check_param_size(size)
 
         # 查询
@@ -214,10 +213,10 @@ class ApplyViewSet(viewsets.ModelViewSet):
 
         data = {"total_num": applys.count(),
                 "apply_list": [apply.to_json() for apply in cur_applys]}
-        return get_result({'data': data})
+        return JsonResponse(success_code(data))
 
-    @action(methods=['GET'], detail=False)
-    def get_self_good_apply_list(self, request, *args, **kwargs):
+    @action(methods=['POST'], detail=False)
+    def get_self_good_apply_list(self, request):
         """
         查询自己的物资申请
         """
@@ -243,10 +242,10 @@ class ApplyViewSet(viewsets.ModelViewSet):
             "and apply.create_time between %s and %s "
         )
         params = [request.user.username]
-        req_data = request.GET
+        req = request.data
         # 时间-范围查询
-        start_time = req_data.get('start_time')
-        end_time = req_data.get('end_time')
+        start_time = req.get('start_time')
+        end_time = req.get('end_time')
 
         if start_time and end_time:
             if not start_time <= end_time:
@@ -263,7 +262,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
         conditions = ('good_code', 'good_name', 'reason')
         for condition in conditions:
             # 查询筛选值
-            condition_value = req_data.get(condition, None)
+            condition_value = req.get(condition, None)
             if check_param_str(condition_value):
                 # 新建模糊查询筛选条件
                 sql_str = sql_str + u"and apply.{} like '%%{}%%'".format(condition, condition_value)
@@ -271,23 +270,21 @@ class ApplyViewSet(viewsets.ModelViewSet):
                 # params.append(condition_value)
 
         # 审核状态查询
-        status = req_data.get('status', None)
+        status = req.get('status', None)
         if status and isinstance(status, int):
             sql_str = sql_str + 'and apply.status = {}'.format(status)
         elif status == 0:
             sql_str = sql_str + 'and apply.status = {}'.format(status)
 
         # 根据id查询
-        apply_id = req_data.get('id', None)
-        if apply_id:
-            apply_id = int(apply_id)
+        apply_id = req.get('id', None)
         if id and isinstance(apply_id, int):
             sql_str = sql_str + 'and apply.id = {}'.format(apply_id)
 
         # 分页
-        page = req_data.get('page', 1)
+        page = req.get('page', 1)
         page = check_param_page(page)
-        size = req_data.get('size', 10)
+        size = req.get('size', 10)
         size = check_param_size(size)
 
         apply_infos = Apply.objects.raw(sql_str, params)
@@ -308,7 +305,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
                 "review_result": apply_info.result,
                 "review_reason": apply_info.review_reason
             })
-        return get_result({"data": {"total_num": len(apply_infos), "apply_list": apply_list}})
+        return JsonResponse(success_code({"data": {"total_num": len(apply_infos), "apply_list": apply_list}}))
 
     @action(methods=['POST'], detail=False)
     def examine_apply(self, request):
@@ -323,13 +320,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
 
         # 校验数据
         if not check_param_str(remark):
-            result = {
-                "code": 400,
-                "result": False,
-                "message": "备注必须为字符串",
-                "data": {}
-            }
-            return get_result(result)
+            raise BusinessException(StatusEnums.REMARK_ERROR)
 
         apply_id_list_serializer = IDListSeralizers(data={'apply_id_list': apply_id_list})
 
@@ -381,25 +372,18 @@ class ApplyViewSet(viewsets.ModelViewSet):
                 Review.objects.bulk_create(review_list)
 
         if model == 'reject' or model == 'agree':
-            result = {
-                "code": 200,
-                "result": True,
-                "message": '审核成功',
-                "data": {}
-            }
-            return get_result(result)
+            return get_result({"message": "审核成功"})
 
-    @action(methods=['PATCH'], detail=False)
+    @action(methods=['POST'], detail=False)
     def update_good_apply(self, request):
         """编辑物资申请"""
         apply = request.data
         apply_id = apply.get("id")
         if not check_param_id(apply_id):
-            return get_result({"code": 1, "result": False, "message": "物资申请id不合法"})
+            raise BusinessException(StatusEnums.APPLY2_GOODS_ERROR)
         # 检查物资申请是否存在且该状态是否还可被修改
         if not Apply.objects.filter(id=apply_id, status=1).exists():
-            return get_result({"code": 1, "result": False,
-                               "message": "物资申请不存在或流程已被审核或已终止，信息不可修改"})  # ！ 被审核过的物资申请不不可以修改
+            raise BusinessException(StatusEnums.MODIFY_ERROR)
         # 修改参数校验
         apply_serializers = ApplyPostSerializers(data=apply)
         if not apply_serializers.is_valid():
@@ -414,31 +398,31 @@ class ApplyViewSet(viewsets.ModelViewSet):
         Apply.objects.filter(id=apply_id).update(**apply, update_time=datetime.datetime.now())
         return get_result({"message": "修改物资申请信息成功"})
 
-    @action(methods=['PATCH'], detail=False)
+    @action(methods=['POST'], detail=False)
     def stop_good_apply(self, request):
         """终止物资申请"""
         id = request.data.get("id")
         if not check_param_id(id):
-            return get_result({"code": 1, "result": False, "message": "物资申请id不合法"})
+            raise BusinessException(StatusEnums.APPLY2_GOODS_ERROR)
         apply = Apply.objects.filter(id=id)
         if not apply.exists():
-            return get_result({"code": 1, "result": False, "message": "物资申请不存在"})
+            raise BusinessException(StatusEnums.NOTFOUND_ERROR)
         if not (apply[0].status == 1 or apply[0].status == 2):
-            return get_result({"message": "物资申请不处于审核状态"})
+            raise BusinessException(StatusEnums.NODELETE_ERROR)
         apply.update(status=0, update_time=datetime.datetime.now())
         return get_result({"message": "物资申请终止成功"})
 
-    @action(methods=['DELETE'], detail=True)
-    def delete_good_apply(self, request, pk):
+    @action(methods=['POST'], detail=False)
+    def delete_good_apply(self, request):
         """删除物资申请"""
-        apply_id = pk
-        if not check_param_id(apply_id):
-            return get_result({"code": 1, "result": False, "message": "物资申请id不合法"})
-        apply = Apply.objects.filter(id=apply_id)
+        id = request.data.get("id")
+        if not check_param_id(id):
+            raise BusinessException(StatusEnums.APPLY2_GOODS_ERROR)
+        apply = Apply.objects.filter(id=id)
         if not apply.exists():
-            return get_result({"code": 1, "result": False, "message": "物资申请不存在"})
+            raise BusinessException(StatusEnums.NOAPPLY_ERROR)
         if apply[0].status == 2:
-            return get_result({"code": 1, "result": False, "message": "物资申请处于审核状态，不可删除"})
+            raise BusinessException(StatusEnums.DELETE_ERROR)
         apply.delete()
         return get_result({"message": "物资申请删除成功"})
 
@@ -448,7 +432,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
         apply_status_list = []
         for item in Apply.STATUS_TYPE:
             apply_status_list.append({'id': item[0], 'name': item[1]})
-        return get_result({"data": apply_status_list})
+        return JsonResponse(success_code(apply_status_list))
 
 
 @require_GET
@@ -468,7 +452,7 @@ def get_apply_users(request, leader_or_secretary):
                  for user in get_users_in_group(request, group_id=6)]
     else:  # 导员
         users = sub_users_in_group(request, username=request.user.username, group_id=6)
-    return get_result({"data": users})
+    return JsonResponse(success_code(users))
 
 
 def get_leaders_fun(request, username):
@@ -500,6 +484,6 @@ def get_leader(request):
     if leaders:
         return get_result({"message": "获取成功", "data": ','.join(leaders)})
     elif leader_or_secretary == 0:
-        return get_result({"message": "获取成功", "code": "220"})
+        return JsonResponse(success_code({}))
     else:
-        return get_result({"code": "400", "message": "获取失败"})
+        raise BusinessException(StatusEnums.HANDLE_ERROR)

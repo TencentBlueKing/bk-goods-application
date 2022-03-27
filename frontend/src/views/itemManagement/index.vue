@@ -2,9 +2,9 @@
     <div class="itemManagement-wrapper">
         <div class="header">
             <bk-divider align="left"
-                ><bk-tag type="filled" style="font-size: 13px"
-                    ><span>物品管理</span></bk-tag
-                ></bk-divider
+            ><bk-tag type="filled" style="font-size: 13px"
+            ><span>物品管理</span></bk-tag
+            ></bk-divider
             >
         </div>
         <!-- <div class="title-wapper">
@@ -294,7 +294,7 @@
             v-bkloading="{
                 isLoading: isGoodsInfoLoad,
                 theme: 'primary',
-                zIndex: 10,
+                zIndex: 10
             }"
         ></div>
         <div class="goods-info-table">
@@ -337,14 +337,14 @@
                             text
                             :disabled="props.row.status === '创建中'"
                             @click="clickEditGood(props.row)"
-                            >编辑</bk-button
+                        >编辑</bk-button
                         >
                         <bk-button
                             class="mr10"
                             theme="primary"
                             text
                             @click="clickDownGood(props.row)"
-                            >下架</bk-button
+                        >下架</bk-button
                         >
                     </template>
                 </bk-table-column>

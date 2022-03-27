@@ -66,7 +66,7 @@
 <script>
     const getPositionsUrl = 'position/get_root_position_list/' // 获取一级地区接口
     const getUserInfoUrl = '/user_info/' // 获取用户信息
-    const editUserInfoUrl = '/edit_user_info' // 修改用户信息
+    const editUserInfoUrl = '/user_info/edit_user_info/' // 修改用户信息
 
     export default {
         data () {
