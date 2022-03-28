@@ -158,26 +158,41 @@
                 }
                 this.$emit('showInput', true)
             },
+            addDataToTable (res) {
+                const data = res.data
+                for (let rowIndex = 0; rowIndex < data.success_list.length; rowIndex++) {
+                    const oneOfAllObj = {}
+                    oneOfAllObj.id = rowIndex + 1
+                    oneOfAllObj.applicant = data.success_list[rowIndex][0]
+                    oneOfAllObj.goodCode = data.success_list[rowIndex][1]
+                    oneOfAllObj.goodName = data.success_list[rowIndex][2]
+                    oneOfAllObj.num = data.success_list[rowIndex][3]
+                    oneOfAllObj.getDate = data.success_list[rowIndex][6]
+                    this.allSuccessApply.push(oneOfAllObj)
+                }
+            },
             upload (file) { // 上传文件函数
                 this.getBase64(file.fileObj.origin).then(res => {
                     const excelFile = res.split(',')[1] // 获取文件信息
                     const fileName = this.userInfo.username + '_' + file.fileObj.name // 获取文件名
                     this.$http.post(analysisExcelUrl, { file: excelFile, fileName: fileName }).then(res => {
-                        if (res && res.result === true) { // 全部导入成功
+                        if (res && res.result === true) {
+                            // 全部导入成功
                             this.handleError({ theme: 'success' }, res.message)
-                            const data = res.data
-                            for (let rowIndex = 0; rowIndex < data.success_list.length; rowIndex++) {
-                                const oneOfAllObj = {}
-                                oneOfAllObj.id = rowIndex + 1
-                                oneOfAllObj.applicant = data.success_list[rowIndex][0]
-                                oneOfAllObj.goodCode = data.success_list[rowIndex][1]
-                                oneOfAllObj.goodName = data.success_list[rowIndex][2]
-                                oneOfAllObj.num = data.success_list[rowIndex][3]
-                                oneOfAllObj.getDate = data.success_list[rowIndex][6]
-                                this.allSuccessApply.push(oneOfAllObj)
-                            }
+                            this.addDataToTable(res)
                         } else if (res && res.result === false) { // 有错误
-                            this.handleError({ theme: 'error' }, res.message)
+                            if (res.code === 5003) {
+                                // 存在导入失败物品
+                                this.handleError({ theme: 'warning' }, '存在申请导入失败')
+                                const link = document.createElement('a')
+                                link.href = res.data.file_url
+                                document.body.appendChild(link)
+                                link.click()
+                                document.body.removeChild(link)
+                                this.addDataToTable(res)
+                            } else {
+                                this.handleError({ theme: 'error' }, res.message)
+                            }
                         }
                         this.excelFiles.push({ // 给上传组件绑定列表添加文件信息
                             name: fileName
@@ -186,8 +201,7 @@
                         this.getSuccessApply(this.pagination.current)
                         this.sleep(2).then(() => {
                             const delDirPath = 'analysis_apply_excel' // 后台存放导入文件路径
-                            this.$http.post(delFilesUrl, { dirName: delDirPath, fileName: fileName }).then(() => { // 导入后删除文件
-                            })
+                            this.$http.post(delFilesUrl, { dirName: delDirPath, fileName: fileName })
                         })
                     })
                 })
