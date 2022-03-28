@@ -1,248 +1,17 @@
 <template>
     <div class="applyHistory-wrapper">
         <div class="condition-form">
-            <bk-form
-                :label-width="130"
-                :model="formData"
-                ref="infoForm"
-            >
-                <bk-container
-                    :col="12"
-                    :margin="6"
-                >
-                    <bk-row>
-                        <bk-col :span="9">
-                            <bk-row class="condition-form-row">
-                                <bk-col :span="3">
-                                    <div class="goodName">
-                                        <bk-form-item
-                                            label="物品名称"
-                                            :property="'goodName'"
-                                        >
-                                            <bk-input
-                                                v-model="formData.good_name"
-                                                placeholder="请输入"
-                                            ></bk-input>
-                                        </bk-form-item>
-                                    </div>
-                                </bk-col>
-                                <bk-col :span="3">
-                                    <div class="goodCode">
-                                        <bk-form-item
-                                            label="物品编号"
-                                            :property="'goodCode'"
-                                        >
-                                            <bk-input
-                                                v-model="formData.good_code"
-                                                placeholder="请输入"
-                                            ></bk-input>
-                                        </bk-form-item>
-                                    </div>
-                                </bk-col>
-                                <bk-col :span="3">
-                                    <div class="applyReason">
-                                        <bk-form-item
-                                            label="申请原因"
-                                            :property="'applyReason'"
-                                        >
-                                            <bk-input
-                                                v-model="formData.apply_reason"
-                                                placeholder="请输入"
-                                            ></bk-input>
-                                        </bk-form-item>
-                                    </div>
-                                </bk-col>
-                            </bk-row>
-                            <bk-row class="condition-form-row">
-                                <bk-col :span="3">
-                                    <div class="start-date">
-                                        <bk-form-item
-                                            label="开始时间"
-                                            :property="'startDate'"
-                                            :icon-offset="35"
-                                        >
-                                            <bk-date-picker
-                                                :options="startDateOptions"
-                                                placeholder="请选择"
-                                                :timer="false"
-                                                v-model="formData.startDate"
-                                                :disabled="false"
-                                                style="width: 100%"
-                                            >
-                                            </bk-date-picker>
-                                        </bk-form-item>
-                                    </div>
-                                </bk-col>
-                                <bk-col :span="3">
-                                    <div class="end-date">
-                                        <bk-form-item
-                                            label="结束时间"
-                                            :property="'endDate'"
-                                            :icon-offset="0"
-                                        >
-                                            <bk-date-picker
-                                                :options="endDateOptions"
-                                                placeholder="请选择"
-                                                :timer="false"
-                                                v-model="formData.endDate"
-                                                :disabled="false"
-                                                style="width: 100%"
-                                            >
-                                            </bk-date-picker>
-                                        </bk-form-item>
-                                    </div>
-                                </bk-col>
-                                <bk-col :span="3">
-                                    <div class="status">
-                                        <bk-form-item
-                                            label="状态"
-                                            :property="'status'"
-                                        >
-                                            <bk-select v-model="formData.status">
-                                                <bk-option
-                                                    key="999"
-                                                    id="999"
-                                                    name="全部"
-                                                >
-                                                </bk-option>
-                                                <bk-option
-                                                    v-for="option in statusList"
-                                                    :key="option.id"
-                                                    :id="option.id"
-                                                    :name="option.name"
-                                                >
-                                                </bk-option>
-                                            </bk-select>
-                                        </bk-form-item>
-                                    </div>
-                                </bk-col>
-                            </bk-row>
-                        </bk-col>
-                        <bk-col :span="3">
-                            <div style="text-align: center;line-height: 90px;">
-                                <bk-button
-                                    size="large"
-                                    :outline="true"
-                                    theme="primary"
-                                    title="查询"
-                                    @click.stop.prevent="search"
-                                >查询</bk-button>
-                            </div>
-                        </bk-col>
-                    </bk-row>
-                </bk-container>
-            </bk-form>
+            <history-form
+                @search="handleSearch"
+                ref="historyForm"
+            ></history-form>
         </div>
         <div class="historyTable">
-            <div class="more-options">
-                <bk-dropdown-menu
-                    @show="dropdownShow"
-                    @hide="dropdownHide"
-                    ref="dropdown"
-                >
-                    <div
-                        class="dropdown-trigger-btn"
-                        style="padding-left: 19px;"
-                        slot="dropdown-trigger"
-                    >
-                        <span>批量操作</span>
-                        <i :class="['bk-icon icon-angle-down',{ 'icon-flip': isDropdownShow }]"></i>
-                    </div>
-                    <ul
-                        class="bk-dropdown-list"
-                        slot="dropdown-content"
-                    >
-                        <li>
-                            <a
-                                href="javascript:;"
-                                @click="exportData"
-                                class="multi-export"
-                            >导出数据</a>
-                        </li>
-                    </ul>
-                </bk-dropdown-menu>
-            </div>
-            <bk-table
-                height="430"
-                :data="history"
-                :size="medium"
-                :pagination="pagination"
-                @select="selectRow"
-                @select-all="selectAll"
-                @row-mouse-enter="handleRowMouseEnter"
-                @row-mouse-leave="handleRowMouseLeave"
-                @page-change="handlePageChange"
-                @page-limit-change="handlePageLimitChange"
-            >
-                <bk-table-column
-                    type="selection"
-                    width="60"
-                ></bk-table-column>
-                <bk-table-column
-                    label="物品名称"
-                    prop="good_name"
-                    width="150"
-                ></bk-table-column>
-                <bk-table-column
-                    label="物品编码"
-                    prop="good_code"
-                ></bk-table-column>
-                <bk-table-column
-                    label="申请时间"
-                    prop="create_time"
-                    width="160"
-                ></bk-table-column>
-                <bk-table-column
-                    label="数量"
-                    prop="num"
-                    width="55"
-                ></bk-table-column>
-                <bk-table-column
-                    label="申请原因"
-                    prop="reason"
-                ></bk-table-column>
-                <bk-table-column
-                    label="状态"
-                    prop="status"
-                    width="110"
-                ></bk-table-column>
-                <bk-table-column
-                    label="审核人"
-                    prop="reviewer"
-                    width="120"
-                ></bk-table-column>
-                <bk-table-column
-                    label="审核日期"
-                    prop="review_time"
-                    width="180"
-                >
-                </bk-table-column>
-                <bk-table-column
-                    label="备注"
-                    prop="reason"
-                ></bk-table-column>
-                <bk-table-column
-                    label="操作"
-                    width="150"
-                >
-                    <template slot-scope="props">
-                        <bk-button
-                            class="mr10"
-                            theme="primary"
-                            text
-                            @click="editHistory(props.row)"
-                            :disabled="props.row.status !== '导员审核中'"
-                        >编辑</bk-button>
-                        <bk-button
-                            class="mr10"
-                            theme="primary"
-                            text
-                            @click="deleteHistory(props.row)"
-                            :disabled="props.row.status === '管理员审核中'"
-                        >删除</bk-button>
-                    </template>
-                </bk-table-column>
-            </bk-table>
+            <history-table
+                @edit="editHistory"
+                @destroy="deleteHistory"
+                ref="historyTable"
+            ></history-table>
             <div class="edit-history-dialog">
                 <bk-dialog
                     v-model="editDialogVisible"
@@ -346,138 +115,32 @@
 
 <script>
     import {
-        deriveExcelUrl, getGoodApplyListUrl, getGoodApplyByIdUrl,
-        editApplyUrl, deleteApplyUrl, getApplyStatusUrl
+        editApplyUrl, deleteApplyUrl
     } from '@/pattern'
+    import HistoryForm from '@/components/apply/history/historyForm.vue'
+    import HistoryTable from '@/components/apply/history/historyTable.vue'
 
     export default {
+        components: {
+            HistoryForm,
+            HistoryTable
+        },
         data () {
             return {
-                endDateOptions: {}, // 禁用日期
-                startDateOptions: {}, // 禁用日期
-                formData: { // 查询条件表单数据
-                    good_name: '',
-                    good_code: '',
-                    apply_reason: '',
-                    startDate: '',
-                    endDate: '',
-                    status: 999
-                },
-                getParams: {
-                    good_name: '',
-                    good_code: '',
-                    reason: '',
-                    start_time: '',
-                    end_time: '',
-                    status: '',
-                    size: 10,
-                    page: 1
-                },
-                editFormData: {
-                    good_name: '',
-                    good_code: '',
-                    reason: '',
-                    num: 1
-                },
+                editFormData: {},
                 deleteApplyId: 0,
                 precision: 0,
                 editDialogVisible: false,
-                deleteDialogVisible: false,
-                isDropdownShow: false,
-                statusList: [],
-                history: [],
-                pagination: { // 分页器数据
-                    current: 1,
-                    count: 10,
-                    limit: 10
-                },
-                selected: {
-                    selectedRows: [] // 存放被选中行数
-                }
+                deleteDialogVisible: false
             }
-        },
-        watch: {
-            'formData.startDate' (val) {
-                if (val) {
-                    this.endDateOptions = {
-                        disabledDate (date) {
-                            if (date < val.setDate(val.getDate())) {
-                                return true
-                            }
-                            return false
-                        }
-                    }
-                }
-            },
-            'formData.endDate' (val) {
-                if (val) {
-                    this.startDateOptions = {
-                        disabledDate (date) {
-                            if (date > val.setDate(val.getDate())) {
-                                return true
-                            }
-                            return false
-                        }
-                    }
-                }
-            }
-        },
-        created () {
-            this.loadData()
         },
         methods: {
-            loadData () {
-                this.getGoodApplyList()
-                this.getApplyStatus()
-            },
-            getApplyStatus () {
-                this.$http.get(getApplyStatusUrl).then(res => {
-                    if (res) {
-                        this.statusList = res.data
-                    }
-                })
-            },
-            getGoodApplyList () {
-                this.$http.post(getGoodApplyListUrl, {
-                    start_time: this.getParams.start_time,
-                    end_time: this.getParams.end_time,
-                    good_code: this.getParams.good_code,
-                    good_name: this.getParams.good_name,
-                    reason: this.getParams.reason,
-                    status: this.getParams.status,
-                    page: this.getParams.page,
-                    size: this.getParams.size
-                }).then(res => {
-                    this.history = res.data.apply_list
-                    this.pagination.count = res.data.total_num
-                })
-            },
-            search () {
-                this.getParams.start_time = this.formData.startDate ? this.moment(this.formData.startDate).format('YYYY-MM-DD') : ''
-                this.getParams.end_time = this.formData.endDate ? this.moment(this.formData.endDate).format('YYYY-MM-DD') : ''
-                this.getParams.status = this.formData.status
-                if (this.formData.status === 999 || this.formData.status === '999') {
-                    this.getParams.status = ''
-                }
-                this.getParams.good_name = this.formData.good_name
-                this.getParams.good_code = this.formData.good_code
-                this.getParams.reason = this.formData.apply_reason
-
-                this.pagination.current = 1
-                this.getParams.page = this.pagination.current
-                this.getGoodApplyList()
+            handleSearch (formData) {
+                this.$refs.historyTable.search(formData)
             },
             editHistory (row) {
                 this.editDialogVisible = true
-                this.$http.get(getGoodApplyByIdUrl, {
-                    params: {
-                        id: row.id
-                    }
-                }).then(res => {
-                    if (res) {
-                        this.editFormData = res.data
-                    }
-                })
+                this.editFormData = row
             },
             deleteHistory (row) {
                 this.deleteDialogVisible = true
@@ -512,107 +175,25 @@
                 }).then(res => {
                     if (res.result === true) {
                         this.handleError({ theme: 'success' }, res.message)
-                        this.getGoodApplyList()
+                        this.$refs.historyTable.getGoodApplyList()
                     }
                 })
             },
             confirmDelete () {
                 this.deleteDialogVisible = false
-                this.$http.get(deleteApplyUrl, {
-                    params: {
-                        id: this.deleteApplyId
-                    }
+                this.$http.post(deleteApplyUrl, {
+                    id: this.deleteApplyId
                 }).then(res => {
                     if (res.result === true) {
                         this.handleError({ theme: 'success' }, res.message)
-                        this.getGoodApplyList()
+                        this.$refs.historyTable.getGoodApplyList()
                     }
                 })
-            },
-            exportData () {
-                if (this.selected.selectedRows.length === 0) {
-                    this.handleError({ theme: 'warning' }, '未选择任何数据')
-                    return
-                }
-                this.$http.post(deriveExcelUrl, { model: 3, dataList: this.selected }).then(res => {
-                    if (res && res.result === true) {
-                        const link = document.createElement('a') // 生成a元素，用以实现下载功能
-                        link.href = res.data.file_url
-                        document.body.appendChild(link)
-                        link.click()
-                        document.body.removeChild(link)
-                        // const fileName = res.data.file_url.split('/').slice(-1)[0] // 获取文件名
-                        // const dirName = res.data.file_url.split('/').slice(-2, -1)[0] // 获取文件夹名
-                        // this.fileCache.push([fileName, dirName])
-                        this.getGoodApplyList()
-                        this.selected.selectedRows = []
-                    } else if (res && res.result === false) {
-                        this.handleError({ theme: 'error' }, res.message)
-                    }
-                })
-            },
-            selectRow (selection, row) { // 选择单行时触发函数
-                const idx = this.selected.selectedRows.indexOf(row.id)
-                if (idx !== -1) {
-                    this.selected.selectedRows.splice(idx, 1)
-                } else {
-                    this.selected.selectedRows.push(row.id)
-                }
-            },
-            selectAll () { // 全选时触发函数
-                let ifFullPage = true
-                for (let index = 0; index < this.history.length; index++) {
-                    const ifIdx = this.selected.selectedRows.indexOf(this.history[index].id)
-                    if (ifIdx === -1) {
-                        ifFullPage = false
-                    }
-                    if (!ifFullPage) {
-                        break
-                    }
-                }
-                if (this.selected.selectedRows.length !== 0 && !ifFullPage) {
-                    for (let index = 0; index < this.history.length; index++) {
-                        if (this.selected.selectedRows.indexOf(this.history[index].id) === -1) {
-                            this.selected.selectedRows.push(this.history[index].id)
-                        }
-                    }
-                } else if (this.selected.selectedRows.length !== 0 && ifFullPage) {
-                    for (let index = 0; index < this.history.length; index++) {
-                        const delIdx = this.selected.selectedRows.indexOf(this.history[index].id)
-                        this.selected.selectedRows.splice(delIdx, 1)
-                    }
-                } else if (this.selected.selectedRows.length === 0) {
-                    for (let index = 0; index < this.history.length; index++) {
-                        this.selected.selectedRows.push(this.history[index].id)
-                    }
-                }
             },
             handleError (config, message) { // 遇到后台报自定义错误时上方弹窗提醒
                 config.message = message
                 config.offsetY = 80
                 this.$bkMessage(config)
-            },
-            handlePageLimitChange () { // 修改每页多少条数据触发函数
-                this.pagination.limit = arguments[0]
-                this.getParams.size = this.pagination.limit
-                this.pagination.current = 1
-                this.getParams.page = this.pagination.current
-                this.selected.selectedRows = []
-                this.getGoodApplyList()
-            },
-            handlePageChange (page) { // 修改当前页触发函数
-                this.pagination.current = page
-                this.getParams.page = this.pagination.current
-                this.getGoodApplyList()
-            },
-            dropdownShow () {
-                this.isDropdownShow = true
-            },
-            dropdownHide () {
-                this.isDropdownShow = false
-            },
-            triggerHandler () {
-                this.$refs.dropdown.hide()
             }
         }
     }
@@ -622,9 +203,6 @@
     .applyHistory-wrapper {
         .condition-form {
             padding: 30px 0 0 0;
-            .condition-form-row {
-                margin-bottom: 15px;
-            }
         }
         .historyTable {
             text-align: right;

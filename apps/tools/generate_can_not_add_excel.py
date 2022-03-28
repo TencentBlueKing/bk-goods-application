@@ -51,6 +51,10 @@ def generate_can_not_add_excel(err_code_list, username, err_msg):
     with open(file_path, 'rb') as f:
         storage.save(file_path, f)
 
+    # 删除项目本地文件
+    if os.path.exists(file_path):
+        os.remove(file_path)
+
     # file_url = settings.BK_BACK_URL + '/media/' + 'import_err_excel/' + file_name
     file_url = storage.url(file_path)
 

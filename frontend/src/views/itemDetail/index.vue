@@ -125,7 +125,8 @@
 
 <script>
     import { bkZoomImage, bkInput, bkButton, bkTab, bkTabPanel } from 'bk-magic-vue'
-    import { mapGetters } from 'vuex'
+    import { mapState } from 'vuex'
+    import { ADD_CART_GOODS_URL, GET_GOOD_DETAIL_URL } from '@/pattern'
     export default {
         components: {
             bkZoomImage, bkInput, bkButton, bkTab, bkTabPanel
@@ -176,19 +177,15 @@
             }
         },
         computed: {
-            ...mapGetters(['isAdmin']),
-            watchIsAdmin () {
-                return this.isAdmin
-            }
+            ...mapState({
+                userInfo: state => state.user.userInfo
+            })
         },
         watch: {
-            watchIsAdmin (newVal, oldVal) {
-                this.isAdmin = newVal
-            }
         },
         created () {
-            this.curUsername = this.$store.getters.user.username
-            this.isAdmin = this.$store.state.isAdmin
+            this.curUsername = this.userInfo.username
+            this.isAdmin = this.userInfo.isScretary
             if (this.$route.query.goodId === undefined || this.$route.query.goodId === null) {
                 this.$bkMessage({
                     message: '物品ID获取失败',
@@ -202,7 +199,7 @@
         },
         methods: {
             getDetailInfo () {
-                this.$http.get('/get_good_detail', {
+                this.$http.get(GET_GOOD_DETAIL_URL, {
                     params: {
                         good_id: this.goodId // 指明商品id
                     }
@@ -286,7 +283,7 @@
                     id: this.goodInfo.id
                 }
                 this.$http.post(
-                    '/add_cart_goods',
+                    ADD_CART_GOODS_URL,
                     {
                         goodInfo: updateInfo
                     }

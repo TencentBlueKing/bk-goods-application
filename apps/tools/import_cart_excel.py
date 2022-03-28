@@ -106,6 +106,11 @@ def import_cart_excel(request):
         for i in range(1, table.max_row + 1):
             row = [table.cell(i, index).value for index in range(1, table.max_column + 1)]
             rows.append(row)
+
+        # 删除项目本地文件
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
         if len(rows) > 1:
             receive_handle_result = handle_excel_data(rows, CANNOT_ADD, err_msg)  # 处理数据
         else:
@@ -119,6 +124,11 @@ def import_cart_excel(request):
         # 取得excel文件数据
         for row_idx in range(table.nrows):
             rows.append(table.row_values(row_idx))
+
+        # 删除项目本地文件
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
         if len(rows) > 1:
             receive_handle_result = handle_excel_data(rows, CANNOT_ADD, err_msg)  # 处理数据
         else:

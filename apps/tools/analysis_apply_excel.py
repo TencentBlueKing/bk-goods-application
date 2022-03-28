@@ -110,6 +110,11 @@ def analysis_apply_excel(request):
         for i in range(1, table.max_row + 1):
             row = [table.cell(i, index).value for index in range(1, table.max_column + 1)]
             rows.append(row)
+
+        # 删除项目本地文件
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
         if len(rows) > 1:
             success_list = handle_excel_data(rows, CANNOT_APPLY)  # 处理数据
         else:
@@ -130,6 +135,11 @@ def analysis_apply_excel(request):
                     value = datetime.datetime(*date).date()
                 row.append(value)
             rows.append(row)
+
+        # 删除项目本地文件
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
         if len(rows) > 1:
             success_list = handle_excel_data(rows, CANNOT_APPLY)  # 处理数据
         else:
