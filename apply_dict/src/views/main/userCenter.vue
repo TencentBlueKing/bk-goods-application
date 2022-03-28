@@ -215,7 +215,7 @@
                             this.handleError({ theme: 'success' }, res.message)
                             this.editable = true
                             this.$refs.userInfo.clearError()
-                            this.getUserInfo()
+                            this.$store.dispatch('user/userInfo')
                         } else if (res && res.result === false) {
                             this.handleError({ theme: 'error' }, res.message)
                         }

@@ -1,11 +1,11 @@
-export const getRootPositionListUrl = 'position/get_root_position_list/' // 获取根地点接口
-export const getSubPositionListUrl = 'position/get_sub_position_list/' // 获取子地点接口
+export const getRootPositionListUrl = '/position/get_root_position_list/' // 获取根地点接口
+export const getSubPositionListUrl = '/position/get_sub_position_list/' // 获取子地点接口
 export const examineApplyUrl = '/examine_apply' // 审核申请
 export const getApplyUrl = '/get_goods_apply' // 获取查询集接口
 export const getApplyUserUrl = '/get_apply_users' // 获取组员接口
 export const getPositionsUrl = '/position/get_root_position_list/' // 获取一级地区接口
 export const getUserInfoUrl = '/user_info/' // 获取用户信息
-export const editUserInfoUrl = '/edit_user_info' // 修改用户信息
+export const editUserInfoUrl = '/user_info/edit_user_info/' // 修改用户信息
 export const delFilesUrl = '/del_excel' // 删除已生成的excel文件接口
 export const analysisExcelUrl = '/analysis_apply_excel' // 解析excel文件数据接口
 export const getLeadersUrl = '/get_leader' // 获取导员接口

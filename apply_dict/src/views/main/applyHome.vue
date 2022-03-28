@@ -21,206 +21,136 @@
         </div>
         <div
             class="multi-import-page"
-            v-show="showMultiImport"
+            v-if="showMultiImport"
         >
-            <div class="success-apply">
-                <bk-table
-                    :data="successApply"
-                    :size="medium"
-                    :pagination="pagination"
-                    @select="selectRow"
-                    @select-all="selectAll"
-                    @row-mouse-enter="handleRowMouseEnter"
-                    @row-mouse-leave="handleRowMouseLeave"
-                    @page-change="handlePageChange"
-                    @page-limit-change="handlePageLimitChange"
-                >
-                    <bk-table-column
-                        type="selection"
-                        width="60"
-                    ></bk-table-column>
-                    <bk-table-column
-                        label="使用人"
-                        prop="applicant"
-                    ></bk-table-column>
-                    <bk-table-column
-                        label="物品编码"
-                        prop="goodCode"
-                    ></bk-table-column>
-                    <bk-table-column
-                        label="物品名称"
-                        prop="goodName"
-                    ></bk-table-column>
-                    <bk-table-column
-                        label="数量"
-                        prop="num"
-                    ></bk-table-column>
-                    <bk-table-column
-                        label="期望领用日期"
-                        prop="getDate"
-                    ></bk-table-column>
-                </bk-table>
-            </div>
-            <div class="multi-commit">
+            <multi-table
+                @showInput="changeInputVisible"
+                ref="multiTable"
+            ></multi-table>
+        </div>
+        <bk-dialog
+            v-model="inputVisible"
+            theme="primary"
+            :width="700"
+            :mask-close="false"
+            :header-position="'center'"
+            :confirm-fn="confirmMultiCommit"
+            ok-text="确定提交"
+            title="请完善信息"
+        >
+            <bk-form
+                :label-width="130"
+                ref="inputForm"
+            >
                 <bk-container
                     :col="12"
-                    :gutter="4"
+                    :margin="6"
                 >
-                    <bk-row>
-                        <bk-col :span="11">
-                            <bk-button
-                                style="margin: 4px 10% 0 0"
-                                size="medium"
-                                :outline="true"
-                                theme="primary"
-                                title="提交申请"
-                                @click.stop.prevent="commitMultiApply"
-                            >提交申请</bk-button>
+                    <bk-row style="margin: 25px;">
+                        <bk-col :span="12">
+                            <div class="leaders">
+                                <bk-form-item label="导员">
+                                    <bk-tag>{{ multiInput.leaders }}</bk-tag>
+                                </bk-form-item>
+                            </div>
                         </bk-col>
-                        <bk-col :span="1">
-                            <div class="select-file">
-                                <bk-upload
-                                    class="upload-button"
-                                    :theme="'button'"
-                                    :with-credentials="true"
-                                    :custom-request="upload"
-                                    :size="50"
-                                    :files="excelFiles"
-                                    :accept="'.xls, .xlsx'"
-                                    :limit="1"
-                                ></bk-upload>
+                    </bk-row>
+                    <bk-row style="margin: 25px;">
+                        <bk-col :span="12">
+                            <div class="campus">
+                                <bk-form-item
+                                    label="校区"
+                                    :required="true"
+                                    :property="'multiCampus'"
+                                >
+                                    <bk-select v-model="multiInput.campus">
+                                        <bk-option
+                                            v-for="option in campusList"
+                                            :key="option.id"
+                                            :id="option.id"
+                                            :name="option.name"
+                                        >
+                                        </bk-option>
+                                    </bk-select>
+                                </bk-form-item>
+                            </div>
+                        </bk-col>
+                    </bk-row>
+                    <bk-row style="margin: 25px;">
+                        <bk-col :span="12">
+                            <div class="college">
+                                <bk-form-item
+                                    label="学院"
+                                    :required="true"
+                                    :property="'multiCollege'"
+                                >
+                                    <bk-select v-model="multiInput.college">
+                                        <bk-option
+                                            v-for="option in collegeList"
+                                            :key="option.id"
+                                            :id="option.id"
+                                            :name="option.name"
+                                        >
+                                        </bk-option>
+                                    </bk-select>
+                                </bk-form-item>
+                            </div>
+                        </bk-col>
+                    </bk-row>
+                    <bk-row style="margin: 25px;">
+                        <bk-col :span="12">
+                            <div class="specificLocation">
+                                <bk-form-item
+                                    label="具体地点"
+                                    :required="true"
+                                    :property="'multiSpecificLocation'"
+                                >
+                                    <bk-input
+                                        v-model="multiInput.specificLocation"
+                                        placeholder=""
+                                    ></bk-input>
+                                </bk-form-item>
+                            </div>
+                        </bk-col>
+                    </bk-row>
+                    <bk-row style="margin: 25px;">
+                        <bk-col :span="12">
+                            <div class="apply-reason">
+                                <bk-form-item
+                                    :required="true"
+                                    label="申请原因"
+                                    :property="'multiApplyReason'"
+                                >
+                                    <bk-input
+                                        type="textarea"
+                                        v-model="multiInput.applyReason"
+                                    ></bk-input>
+                                </bk-form-item>
                             </div>
                         </bk-col>
                     </bk-row>
                 </bk-container>
-            </div>
-            <div class="input-more">
-                <bk-dialog
-                    v-model="inputVisible"
-                    theme="primary"
-                    :width="700"
-                    :mask-close="false"
-                    :header-position="'center'"
-                    :confirm-fn="confirmMultiCommit"
-                    ok-text="确定提交"
-                    title="请完善信息"
-                >
-                    <bk-form
-                        :label-width="130"
-                        ref="inputForm"
-                    >
-                        <bk-container
-                            :col="12"
-                            :margin="6"
-                        >
-                            <bk-row style="margin: 25px;">
-                                <bk-col :span="12">
-                                    <div class="leaders">
-                                        <bk-form-item label="导员">
-                                            <bk-tag>{{ multiInput.leaders }}</bk-tag>
-                                        </bk-form-item>
-                                    </div>
-                                </bk-col>
-                            </bk-row>
-                            <bk-row style="margin: 25px;">
-                                <bk-col :span="12">
-                                    <div class="campus">
-                                        <bk-form-item
-                                            label="校区"
-                                            :required="true"
-                                            :property="'multiCampus'"
-                                        >
-                                            <bk-select v-model="multiInput.campus">
-                                                <bk-option
-                                                    v-for="option in campusList"
-                                                    :key="option.id"
-                                                    :id="option.id"
-                                                    :name="option.name"
-                                                >
-                                                </bk-option>
-                                            </bk-select>
-                                        </bk-form-item>
-                                    </div>
-                                </bk-col>
-                            </bk-row>
-                            <bk-row style="margin: 25px;">
-                                <bk-col :span="12">
-                                    <div class="college">
-                                        <bk-form-item
-                                            label="学院"
-                                            :required="true"
-                                            :property="'multiCollege'"
-                                        >
-                                            <bk-select v-model="multiInput.college">
-                                                <bk-option
-                                                    v-for="option in collegeList"
-                                                    :key="option.id"
-                                                    :id="option.id"
-                                                    :name="option.name"
-                                                >
-                                                </bk-option>
-                                            </bk-select>
-                                        </bk-form-item>
-                                    </div>
-                                </bk-col>
-                            </bk-row>
-                            <bk-row style="margin: 25px;">
-                                <bk-col :span="12">
-                                    <div class="specificLocation">
-                                        <bk-form-item
-                                            label="具体地点"
-                                            :required="true"
-                                            :property="'multiSpecificLocation'"
-                                        >
-                                            <bk-input
-                                                v-model="multiInput.specificLocation"
-                                                placeholder=""
-                                            ></bk-input>
-                                        </bk-form-item>
-                                    </div>
-                                </bk-col>
-                            </bk-row>
-                            <bk-row style="margin: 25px;">
-                                <bk-col :span="12">
-                                    <div class="apply-reason">
-                                        <bk-form-item
-                                            :required="true"
-                                            label="申请原因"
-                                            :property="'multiApplyReason'"
-                                        >
-                                            <bk-input
-                                                type="textarea"
-                                                v-model="multiInput.applyReason"
-                                            ></bk-input>
-                                        </bk-form-item>
-                                    </div>
-                                </bk-col>
-                            </bk-row>
-                        </bk-container>
-                    </bk-form>
-                </bk-dialog>
-            </div>
-        </div>
+            </bk-form>
+        </bk-dialog>
     </div>
 </template>
 
 <script>
     import { mapState } from 'vuex'
     import {
-        delFilesUrl, analysisExcelUrl, getRootPositionListUrl,
-        getSubPositionListUrl, getLeadersUrl, commitApplyUrl
+        getRootPositionListUrl, getSubPositionListUrl, getLeadersUrl, commitApplyUrl
     } from '@/pattern'
-    import ApplyForm from '@/components/apply/applyForm.vue'
+    import ApplyForm from '@/components/apply/home/applyForm.vue'
+    import MultiTable from '@/components/apply/home/multiTable.vue'
 
     export default {
         components: {
-            ApplyForm
+            ApplyForm,
+            MultiTable
         },
         data () {
             return {
-                isDropdownShow: false,
                 showMultiImport: false,
-                excelFiles: [],
                 leaders: '',
                 inputVisible: false,
                 dateOptions: {
@@ -240,16 +170,6 @@
                     applyReason: ''
                 },
                 precision: 0,
-                successApply: [], // 页面展示数据
-                allSuccessApply: [], // 所有数据
-                selected: {
-                    selectedRows: []
-                }, // 存放被选中行数
-                pagination: { // 分页器数据
-                    current: 1,
-                    count: 50,
-                    limit: 10
-                },
                 campusList: [], // 校区列表
                 collegeList: [] // 学院列表
             }
@@ -260,14 +180,15 @@
             })
         },
         watch: {
-            showMultiImport: function (val) { // 监听批量导入页面是否展示
-                this.changUploadName()
+            showMultiImport (val) { // 监听批量导入页面是否展示
+                if (val) {
+                    this.$nextTick(() => {
+                        this.$refs.multiTable.changUploadName()
+                    })
+                }
             },
-            'multiInput.campus': function (val) { // 监听批量导入时的页面表格的校区变量
-                const parentCode = this.getParentCode(val)
-                this.$http.get(getSubPositionListUrl, { params: { parent_code: parentCode } }).then(res => {
-                    this.collegeList = res.data
-                })
+            'multiInput.campus' (val) { // 监听批量导入时的页面表格的校区变量
+                this.changeCollegeList(val)
             }
         },
         created () {
@@ -289,6 +210,7 @@
             },
             changeCollegeList (val) {
                 const parentCode = this.getParentCode(val)
+                console.log(this.campusList)
                 this.$http.get(getSubPositionListUrl, { params: { parent_code: parentCode } }).then(res => {
                     this.collegeList = res.data
                 })
@@ -308,47 +230,37 @@
                     this.campusList = res.data
                 })
             },
-            changUploadName () { // 改变上传文件组件显示文本
-                const importDom = document.querySelector('.file-wrapper')
-                if (importDom !== undefined && importDom !== null) {
-                    document.querySelector('.file-wrapper').setAttribute('bk-lablename', '选择文件')
-                }
-            },
-            commitMultiApply () { // 批量申请触发
-                if (this.selected.selectedRows.length === 0) {
-                    this.handleError({ theme: 'warning' }, '未选择任何数据')
-                    return
-                }
-                this.inputVisible = true
-            },
             confirmMultiCommit () {
                 if (!this.multiInput.campus || !this.multiInput.specificLocation || !this.multiInput.applyReason || !this.multiInput.college) {
                     this.handleError({ theme: 'warning' }, '任何数据不能为空')
                     return
                 }
                 const applyForm = []
-                for (let index = 0; index < this.allSuccessApply.length; index++) {
-                    const selectedIdx = this.selected.selectedRows.indexOf(this.allSuccessApply[index].id)
+                const allSuccessApply = this.$refs.multiTable.allSuccessApply
+                const pagination = this.$refs.multiTable.pagination
+                const selected = this.$refs.multiTable.selected
+                for (let index = 0; index < allSuccessApply.length; index++) {
+                    const selectedIdx = selected.selectedRows.indexOf(allSuccessApply[index].id)
                     if (selectedIdx !== -1) {
-                        this.allSuccessApply[index]['good_code'] = this.allSuccessApply[index]['goodCode']
-                        delete this.allSuccessApply[index].goodCode
-                        this.allSuccessApply[index]['good_name'] = this.allSuccessApply[index]['goodName']
-                        delete this.allSuccessApply[index].goodName
-                        this.allSuccessApply[index]['require_date'] = this.allSuccessApply[index]['getDate']
-                        delete this.allSuccessApply[index].getDate
-                        this.allSuccessApply[index]['apply_user'] = this.allSuccessApply[index]['applicant']
-                        delete this.allSuccessApply[index].applicant
-                        this.allSuccessApply[index]['leaders'] = this.multiInput.leaders
-                        this.allSuccessApply[index]['school'] = this.campusList.find(obj => obj.id === this.multiInput.campus).name
-                        this.allSuccessApply[index]['academy'] = this.collegeList.find(obj => obj.id === this.multiInput.college).name
-                        this.allSuccessApply[index]['detail_position'] = this.multiInput.specificLocation
-                        this.allSuccessApply[index]['reason'] = this.multiInput.applyReason
-                        applyForm.push(this.allSuccessApply[index])
+                        allSuccessApply[index]['good_code'] = allSuccessApply[index]['goodCode']
+                        delete allSuccessApply[index].goodCode
+                        allSuccessApply[index]['good_name'] = allSuccessApply[index]['goodName']
+                        delete allSuccessApply[index].goodName
+                        allSuccessApply[index]['require_date'] = allSuccessApply[index]['getDate']
+                        delete allSuccessApply[index].getDate
+                        allSuccessApply[index]['apply_user'] = allSuccessApply[index]['applicant']
+                        delete allSuccessApply[index].applicant
+                        allSuccessApply[index]['leaders'] = this.multiInput.leaders
+                        allSuccessApply[index]['school'] = this.campusList.find(obj => obj.id === this.multiInput.campus).name
+                        allSuccessApply[index]['academy'] = this.collegeList.find(obj => obj.id === this.multiInput.college).name
+                        allSuccessApply[index]['detail_position'] = this.multiInput.specificLocation
+                        allSuccessApply[index]['reason'] = this.multiInput.applyReason
+                        applyForm.push(allSuccessApply[index])
                     }
                 }
                 for (let index = 0; index < applyForm.length; index++) {
-                    const allApplyIdx = this.allSuccessApply.indexOf(applyForm[index])
-                    this.allSuccessApply.splice(allApplyIdx, 1)
+                    const allApplyIdx = allSuccessApply.indexOf(applyForm[index])
+                    allSuccessApply.splice(allApplyIdx, 1)
                 }
                 this.$http.post(commitApplyUrl, { apply_list: applyForm }).then(res => {
                     if (res.result === true) {
@@ -357,142 +269,27 @@
                         this.handleError({ theme: 'error' }, res.message)
                     }
                 })
-                this.selected.selectedRows = []
-                this.getSuccessApply(this.pagination.current)
+                selected.selectedRows = []
+                this.$refs.multiTable.getSuccessApply(pagination.current)
                 this.inputVisible = false
             },
             multiImport () { // 批量导入触发
                 this.showMultiImport = true
-                this.getSuccessApply(this.pagination.current)
-            },
-            getSuccessApply (page) { // 获取批量导入后校验成功的数据
-                this.successApply = []
-                for (let i = (page - 1) * this.pagination.limit; this.successApply.length < this.pagination.limit && i < this.allSuccessApply.length; i++) {
-                    this.successApply.push(this.allSuccessApply[i])
-                }
-                this.pagination.count = this.allSuccessApply.length
-            },
-            dropdownShow () {
-                this.isDropdownShow = true
-            },
-            dropdownHide () {
-                this.isDropdownShow = false
-            },
-            selectRow (selection, row) { // 选择单行时触发函数
-                const idx = this.selected.selectedRows.indexOf(row.id)
-                if (idx !== -1) {
-                    this.selected.selectedRows.splice(idx, 1)
-                } else {
-                    this.selected.selectedRows.push(row.id)
-                }
-            },
-            selectAll () { // 全选时触发函数
-                let ifFullPage = true
-                for (let index = 0; index < this.successApply.length; index++) {
-                    const ifIdx = this.selected.selectedRows.indexOf(this.successApply[index].id)
-                    if (ifIdx === -1) {
-                        ifFullPage = false
-                    }
-                    if (!ifFullPage) {
-                        break
-                    }
-                }
-                if (this.selected.selectedRows.length !== 0 && !ifFullPage) {
-                    for (let index = 0; index < this.successApply.length; index++) {
-                        if (this.selected.selectedRows.indexOf(this.successApply[index].id) === -1) {
-                            this.selected.selectedRows.push(this.successApply[index].id)
-                        }
-                    }
-                } else if (this.selected.selectedRows.length !== 0 && ifFullPage) {
-                    for (let index = 0; index < this.successApply.length; index++) {
-                        const delIdx = this.selected.selectedRows.indexOf(this.successApply[index].id)
-                        this.selected.selectedRows.splice(delIdx, 1)
-                    }
-                } else if (this.selected.selectedRows.length === 0) {
-                    for (let index = 0; index < this.successApply.length; index++) {
-                        this.selected.selectedRows.push(this.successApply[index].id)
-                    }
-                }
-            },
-            upload (file) { // 上传文件函数
-                this.getBase64(file.fileObj.origin).then(res => {
-                    const excelFile = res.split(',')[1] // 获取文件信息
-                    const fileName = this.userInfo.username + '_' + file.fileObj.name // 获取文件名
-                    this.$http.post(analysisExcelUrl, { file: excelFile, fileName: fileName }).then(res => {
-                        if (res && res.result === true) { // 全部导入成功
-                            this.handleError({ theme: 'success' }, res.message)
-                            const data = res.data
-                            for (let rowIndex = 0; rowIndex < data.success_list.length; rowIndex++) {
-                                const oneOfAllObj = {}
-                                oneOfAllObj.id = rowIndex + 1
-                                oneOfAllObj.applicant = data.success_list[rowIndex][0]
-                                oneOfAllObj.goodCode = data.success_list[rowIndex][1]
-                                oneOfAllObj.goodName = data.success_list[rowIndex][2]
-                                oneOfAllObj.num = data.success_list[rowIndex][3]
-                                oneOfAllObj.getDate = data.success_list[rowIndex][6]
-                                this.allSuccessApply.push(oneOfAllObj)
-                            }
-                        } else if (res && res.result === false) { // 有错误
-                            this.handleError({ theme: 'error' }, res.message)
-                        }
-                        if (res && res.result === true && res.code === 5003) { // 存在导入失败物品
-                            this.handleError({ theme: 'warning' }, '存在申请导入失败')
-                            const link = document.createElement('a') // 生成a元素，用以实现下载功能
-                            link.href = res.data.file_url
-                            document.body.appendChild(link)
-                            link.click()
-                            document.body.removeChild(link)
-                        }
-                        this.excelFiles.push({ // 给上传组件绑定列表添加文件信息
-                            name: fileName
-                        })
-                        this.excelFiles = []
-                        this.getSuccessApply(this.pagination.current)
-                        this.sleep(2).then(() => {
-                            const delDirPath = 'analysis_apply_excel' // 后台存放导入文件路径
-                            this.$http.post(delFilesUrl, { dirName: delDirPath, fileName: fileName }).then(() => { // 导入后删除文件
-                            })
-                        })
-                    })
-                })
-            },
-            getBase64 (file) { // 用FileReader解析文件
-                return new Promise(function (resolve, reject) {
-                    const reader = new FileReader()
-                    let fileResult = ''
-                    reader.readAsDataURL(file)
-                    // 文件加载成功时触发
-                    reader.onload = function () {
-                        fileResult = reader.result
-                    }
-                    // 文件加载失败时触发
-                    reader.onerror = function (error) {
-                        reject(error)
-                    }
-                    // 加载成功后使用
-                    reader.onloadend = function () {
-                        resolve(fileResult)
-                    }
-                })
+                const pagination = this.$refs.multiTable.pagination
+                this.$refs.multiTable.getSuccessApply(pagination.current)
             },
             handleError (config, message) { // 遇到后台报自定义错误时上方弹窗提醒
                 config.message = message
                 config.offsetY = 80
                 this.$bkMessage(config)
             },
-            handlePageLimitChange () { // 修改每页多少条数据触发函数
-                this.pagination.limit = arguments[0]
-                this.pagination.current = 1
-                this.getSuccessApply(this.pagination.current)
-            },
-            handlePageChange (page) { // 修改当前页触发函数
-                this.pagination.current = page
-                this.getSuccessApply(this.pagination.current)
-            },
             sleep (time) { // 计时器
                 return new Promise((resolve, reject) => {
                     setTimeout(resolve, time * 1000)
                 })
+            },
+            changeInputVisible (val) {
+                this.inputVisible = val
             }
         }
     }
@@ -512,13 +309,6 @@
         .multi-import-page {
             padding: 15px 0 0 0;
             width: 100%;
-            .multi-commit {
-                margin: 30px 0;
-                text-align: right;
-                /deep/ .bk-upload.button .file-wrapper {
-                    font-size: 14px;
-                }
-            }
         }
     }
 </style>
