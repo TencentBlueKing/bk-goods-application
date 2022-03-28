@@ -487,7 +487,6 @@ class GoodViewSet(viewsets.ModelViewSet):
 
         # 商品类型筛选条件
         good_type_id = req_data.get("good_type_id", 0)
-        print(good_type_id)
         try:
             good_type_id = int(good_type_id)
             if good_type_id > 0:
