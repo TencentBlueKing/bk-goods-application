@@ -75,7 +75,7 @@ let canceling = true
 let pageMethodExecuting = true
 
 router.beforeEach(async (to, from, next) => {
-    if (!store.state.user.userInfo.isSecretary && !store.state.user.userInfo.isLeader && to.name === 'applyManagement') {
+    if (!store.state.user.userInfo.isScretary && !store.state.user.userInfo.isLeader && to.name === 'applyManagement') {
         router.push({ name: 'applyHome' })
     }
     canceling = true
