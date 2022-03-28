@@ -48,6 +48,10 @@ def generate_can_not_apply_excel(can_not_apply_list, username):
     with open(file_path, 'rb') as fp:
         storage.save(file_path, fp)
 
+    # 删除项目本地文件
+    if os.path.exists(file_path):
+        os.remove(file_path)
+
     # file_url = settings.BK_BACK_URL + '/media/' + 'analysis_err_excel/' + file_name
     file_url = storage.url(file_path)
     return file_url
