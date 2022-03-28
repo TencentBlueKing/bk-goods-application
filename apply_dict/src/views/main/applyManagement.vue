@@ -1,150 +1,7 @@
 <template>
     <div class="applyManagement-wrapper">
         <div class="condition-form">
-            <bk-form
-                :label-width="130"
-                :model="formData"
-                ref="infoForm"
-            >
-                <bk-container
-                    :col="12"
-                    :margin="6"
-                >
-                    <bk-row>
-                        <bk-col :span="9">
-                            <bk-row class="condition-form-row">
-                                <bk-col :span="3">
-                                    <div class="applicant">
-                                        <bk-form-item
-                                            label="申请人"
-                                            :property="'applicant'"
-                                            class="applicant-item"
-                                        >
-                                            <bk-select v-model="formData.applicant">
-                                                <bk-option
-                                                    key="0"
-                                                    id="0"
-                                                    name="全部"
-                                                >
-                                                </bk-option>
-                                                <bk-option
-                                                    v-for="option in applicantList"
-                                                    :key="option.id"
-                                                    :id="option.username"
-                                                    :name="option.username"
-                                                >
-                                                </bk-option>
-                                            </bk-select>
-                                        </bk-form-item>
-                                    </div>
-                                </bk-col>
-                                <bk-col :span="3">
-                                    <div class="start-date">
-                                        <bk-form-item
-                                            label="开始时间"
-                                            :property="'startDate'"
-                                            :icon-offset="35"
-                                        >
-                                            <bk-date-picker
-                                                :options="startDateOptions"
-                                                placeholder="请选择"
-                                                :timer="false"
-                                                v-model="formData.startDate"
-                                                :disabled="false"
-                                                style="width: 100%"
-                                            >
-                                            </bk-date-picker>
-                                        </bk-form-item>
-                                    </div>
-                                </bk-col>
-                                <bk-col :span="3">
-                                    <div class="end-date">
-                                        <bk-form-item
-                                            label="结束时间"
-                                            :property="'endDate'"
-                                            :icon-offset="0"
-                                        >
-                                            <bk-date-picker
-                                                :options="endDateOptions"
-                                                placeholder="请选择"
-                                                :timer="false"
-                                                v-model="formData.endDate"
-                                                :disabled="false"
-                                                style="width: 100%"
-                                            >
-                                            </bk-date-picker>
-                                        </bk-form-item>
-                                    </div>
-                                </bk-col>
-                            </bk-row>
-                            <bk-row class="condition-form-row">
-                                <bk-col
-                                    :span="3"
-                                    :offset="3"
-                                >
-                                    <div class="campus">
-                                        <bk-form-item
-                                            label="校区"
-                                            :property="'campus'"
-                                        >
-                                            <bk-select v-model="formData.campus">
-                                                <bk-option
-                                                    key="0"
-                                                    id="0"
-                                                    name="全部"
-                                                >
-                                                </bk-option>
-                                                <bk-option
-                                                    v-for="option in campusList"
-                                                    :key="option.id"
-                                                    :id="option.id"
-                                                    :name="option.name"
-                                                >
-                                                </bk-option>
-                                            </bk-select>
-                                        </bk-form-item>
-                                    </div>
-                                </bk-col>
-                                <bk-col :span="3">
-                                    <div class="college">
-                                        <bk-form-item
-                                            label="学院"
-                                            :property="'college'"
-                                        >
-                                            <bk-select v-model="formData.college">
-                                                <bk-option
-                                                    key="0"
-                                                    id="0"
-                                                    name="全部"
-                                                >
-                                                </bk-option>
-                                                <bk-option
-                                                    v-for="option in collegeList"
-                                                    :key="option.id"
-                                                    :id="option.id"
-                                                    :name="option.name"
-                                                >
-                                                </bk-option>
-                                            </bk-select>
-                                        </bk-form-item>
-                                    </div>
-                                </bk-col>
-                            </bk-row>
-                        </bk-col>
-                        <bk-col :span="3">
-                            <div style="text-align: center;line-height: 90px;">
-                                <bk-button
-                                    size="large"
-                                    :outline="true"
-                                    theme="primary"
-                                    title="查询"
-                                    @click.stop.prevent="search"
-                                >查询</bk-button>
-                            </div>
-                        </bk-col>
-                    </bk-row>
-                </bk-container>
-            </bk-form>
+            <manage-form @search="handleSearch"></manage-form>
         </div>
         <div class="applyTable">
             <div class="more-options">
@@ -288,23 +145,19 @@
 <script>
     import { mapState } from 'vuex'
     import {
-        getRootPositionListUrl, getSubPositionListUrl, examineApplyUrl,
-        getApplyUrl, getApplyUserUrl
+        examineApplyUrl, getApplyUrl
     } from '@/pattern'
+    import ManageForm from '@/components/apply/manage/manageForm.vue'
 
     export default {
+        components: {
+            ManageForm
+        },
         data () {
             return {
                 isDropdownShow: false,
                 dialogVisible: false,
                 remark: '无', // 审核备注
-                formData: { // 查询条件表单数据
-                    applicant: 0,
-                    startDate: '',
-                    endDate: '',
-                    campus: 0,
-                    college: 0
-                },
                 getParams: { // 获取申请时提交的参数
                     size: 10,
                     page: 1,
@@ -322,8 +175,6 @@
                         }
                     ]
                 },
-                campusList: [], // 校区列表
-                collegeList: [], // 学院列表
                 apply: [],
                 pagination: { // 分页器数据
                     current: 1,
@@ -334,9 +185,7 @@
                     selectedRows: [] // 存放被选中行数
                 },
                 okText: '',
-                dialogTitle: '',
-                startDateOptions: {},
-                endDateOptions: {}
+                dialogTitle: ''
             }
         },
         computed: {
@@ -344,55 +193,10 @@
                 userInfo: state => state.user.userInfo
             })
         },
-        watch: {
-            'formData.startDate' (val) {
-                this.endDateOptions = {
-                    disabledDate (date) {
-                        if (date < val.setDate(val.getDate())) {
-                            return true
-                        }
-                        return false
-                    }
-                }
-            },
-            'formData.endDate' (val) {
-                this.startDateOptions = {
-                    disabledDate (date) {
-                        if (date > val.setDate(val.getDate())) {
-                            return true
-                        }
-                        return false
-                    }
-                }
-            },
-            'formData.campus': function (val) { // 监听查询表格的校区变量
-                if (val === 0) {
-                    return
-                }
-                this.formData.college = 0
-                const parentCode = this.getParentCode(val)
-                this.$http.get(getSubPositionListUrl, { params: { parent_code: parentCode } }).then(res => {
-                    this.collegeList = res.data
-                })
-            }
-        },
         created () {
-            this.loadData()
+            this.getApply()
         },
-        mounted () { },
         methods: {
-            loadData () {
-                this.getRootPositionList()
-                this.getApplyUser()
-                this.getApply()
-            },
-            getApplyUser () { // 获取小组成员
-                this.$http.get(getApplyUserUrl).then(res => {
-                    if (res) {
-                        this.applicantList = res.data
-                    }
-                })
-            },
             getApply () { // 获取申请列表
                 this.$http.get(getApplyUrl, {
                     params: this.getParams
@@ -486,41 +290,26 @@
                     return this.confirmDisagree
                 }
             },
-            search () { // 按下查询按钮时触发
-                this.getParams.start_time = this.formData.startDate ? this.moment(this.formData.startDate).format('YYYY-MM-DD') : ''
-                this.getParams.end_time = this.formData.endDate ? this.moment(this.formData.endDate).format('YYYY-MM-DD') : ''
-                this.getParams.apply_user = this.formData.applicant || ''
+            handleSearch (formData) { // 按下查询按钮时触发
+                this.getParams.start_time = formData.startDate ? this.moment(formData.startDate).format('YYYY-MM-DD') : ''
+                this.getParams.end_time = formData.endDate ? this.moment(formData.endDate).format('YYYY-MM-DD') : ''
+                this.getParams.apply_user = formData.applicant || ''
                 let campus = ''
                 let college = ''
-                if (this.formData.campus === 0 || this.formData.campus === '0') {
+                if (formData.campus === 0 || formData.campus === '0') {
                     campus = ''
                 } else {
-                    campus = this.campusList.find(obj => obj.id === this.formData.campus).name || ''
+                    campus = this.campusList.find(obj => obj.id === formData.campus).name || ''
                 }
-                if (this.formData.college === 0 || this.formData.college === '0') {
+                if (formData.college === 0 || formData.college === '0') {
                     college = ''
                 } else {
-                    college = this.collegeList.find(obj => obj.id === this.formData.college).name || ''
+                    college = this.collegeList.find(obj => obj.id === formData.college).name || ''
                 }
                 this.getParams.position = (!campus && !college) ? '' : campus + ',' + college
                 this.pagination.current = 1
                 this.getParams.page = this.pagination.current
                 this.getApply()
-            },
-            getParentCode (val) { // 获取校区的编码
-                let parentCode = ''
-                for (let index = 0; index < this.campusList.length; index++) {
-                    if (this.campusList[index].id === val) {
-                        parentCode = this.campusList[index].code
-                        break
-                    }
-                }
-                return parentCode
-            },
-            getRootPositionList () { // 获取校区列表
-                this.$http.get(getRootPositionListUrl).then(res => {
-                    this.campusList = res.data
-                })
             },
             selectRow (selection, row) { // 选择单行时触发函数
                 const idx = this.selected.selectedRows.indexOf(row.id)
@@ -586,17 +375,9 @@
 <style lang="postcss" scoped>
     .applyManagement-wrapper {
         margin-top: 10px;
+        padding-bottom: 20px;
         .condition-form {
             padding: 30px 0 0 0;
-            .condition-form-row {
-                margin-bottom: 30px;
-                .applicant {
-                }
-                .commit {
-                    text-align: center;
-                    line-height: 110px;
-                }
-            }
         }
         .applyTable {
             text-align: right;
