@@ -128,11 +128,10 @@
 </template>
 
 <script>
-    const getPersonalGoodsUrl = '/get_personal_goods/' // 获取个人物资接口
-    const getPositionsUrl = 'position/get_root_position_list/' // 获取一级地区接口
-    const getSubPositionListUrl = 'position/get_sub_position_list/' // 获取子地点接口
-    const getWithdrawReasonsUrl = '/withdraw_reason/' // 获取所有地区接口
-    const returnGoodsUrl = '/withdraw/add_withdraw_apply/' // 退库接口
+    import {
+        GET_ROOT_POSITION_LIST_URL, GET_SUB_POSITION_LIST_URL, GET_PERSONAL_GOODS_URL, WITHDRAW_REASON_URL, ADD_WITHDRAW_APPLY_URL
+    } from '@/pattern'
+
     export default {
         data () {
             return {
@@ -188,7 +187,7 @@
                     return
                 }
                 const parentCode = this.getParentCode(val)
-                this.$http.get(getSubPositionListUrl, { params: { parent_code: parentCode } }).then(res => {
+                this.$http.get(GET_SUB_POSITION_LIST_URL, { params: { parent_code: parentCode } }).then(res => {
                     console.log(res)
                     this.cityList = res.data
                 })
@@ -225,7 +224,7 @@
                 }
             },
             getPosition () { // 获得一级地点
-                this.$http.get(getPositionsUrl).then(res => {
+                this.$http.get(GET_ROOT_POSITION_LIST_URL).then(res => {
                     if (res) {
                         if (res && res.result === true) {
                             this.provinceList = res.data
@@ -236,7 +235,7 @@
                 })
             },
             getWithdrawReasons () { // 获得所有退库原因
-                this.$http.get(getWithdrawReasonsUrl).then(res => {
+                this.$http.get(WITHDRAW_REASON_URL).then(res => {
                     if (res) {
                         if (res && res.result === true) {
                             this.reasonList = res.data
@@ -247,7 +246,7 @@
                 })
             },
             getPersonalGoods () { // 获得个人物资
-                this.$http.get(getPersonalGoodsUrl, {
+                this.$http.get(GET_PERSONAL_GOODS_URL, {
                     params: {
                         username: this.username,
                         form: this.get_params.form,
@@ -279,7 +278,7 @@
                 this.returnDialogVisible = true
             },
             returnGoods () { // 退库函数
-                this.$http.post(returnGoodsUrl, { good_ids: this.selected.selectedRows, reason_id: this.formData.reason, province: this.formData.province, city: this.formData.city, remark: this.formData.remark }).then(res => {
+                this.$http.post(ADD_WITHDRAW_APPLY_URL, { good_ids: this.selected.selectedRows, reason_id: this.formData.reason, province: this.formData.province, city: this.formData.city, remark: this.formData.remark }).then(res => {
                     if (res && res.result === true) {
                         this.handleError({ theme: 'success' }, '退库成功')
                         this.idList = JSON.parse(this.idList) // 转为列表类型

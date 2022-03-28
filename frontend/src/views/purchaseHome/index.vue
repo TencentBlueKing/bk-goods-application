@@ -163,17 +163,17 @@
 </template>
 
 <script>
-    import { mapGetters } from 'vuex'
+    import { mapState } from 'vuex'
 
-    const goodsUrl = '/get_good_list' // 获取物品信息接口
-    const typesUrl = '/get_good_type_list' // 获取商品种类
-    const detailUrl = 'itemDetail' // 物品详情跳转链接
-    const addToCartUrl = '/add_cart_goods' // 添加到购物车接口
+    import {
+        GET_GOOD_LIST_URL, GET_GOOD_TYPE_LIST_URL, ITEMDETAIL_URL, ADD_CART_GOODS_URL
+    } from '@/pattern'
 
     export default {
         data () {
             return {
                 username: '', // 用户名
+                isAdmin: false, // 是否是管理员
                 typeList: {}, // 种类列表
                 type: '', // 种类
                 lastType: '', // 存放上一类型
@@ -202,15 +202,11 @@
             }
         },
         computed: {
-            ...mapGetters(['isAdmin']),
-            watchIsAdmin () {
-                return this.isAdmin
-            }
+            ...mapState({
+                userInfo: state => state.user.userInfo
+            })
         },
         watch: {
-            watchIsAdmin (newVal, oldVal) {
-                this.isAdmin = newVal
-            },
             currentPage (val) { // 监测页数的变化
                 this.paramPage = val
                 this.type = this.lastType
@@ -219,7 +215,8 @@
             }
         },
         created () {
-            this.username = this.$store.state.user.username
+            this.username = this.userInfo.username
+            this.isAdmin = this.userInfo.isScretary
             this.loadData() // 创建实例时加载数据
         },
         methods: {
@@ -228,7 +225,7 @@
                 this.getGoods()
             },
             getTypes () { // 获取所有商品类型
-                this.$http.get(typesUrl).then(res => {
+                this.$http.get(GET_GOOD_TYPE_LIST_URL).then(res => {
                     if (res && res.result === true) { // 判空
                         // eslint-disable-next-line no-new-object
                         const allTypes = new Object()
@@ -252,7 +249,7 @@
                 } else {
                     this.pageSize = 8
                 }
-                this.$http.get(goodsUrl, {
+                this.$http.get(GET_GOOD_LIST_URL, {
                     params: {
                         good_name: this.searchContent, // 指定商品名称所含内容
                         good_type_id: this.type.id, // 指定商品类型
@@ -270,7 +267,7 @@
                                 if (i < this.bannerNum) { // 给轮播图列表赋值，逻辑是将前六个商品图片赋值给轮播图列表
                                     const bannerObject = Object()
                                     bannerObject.url = this.goodsList[i].pics[0]
-                                    bannerObject.link = detailUrl + '?goodId=' + this.goodsList[i].id
+                                    bannerObject.link = ITEMDETAIL_URL + '?goodId=' + this.goodsList[i].id
                                     this.bannerPics.push(bannerObject)
                                 }
                             }
@@ -297,7 +294,7 @@
                 this.$bkMessage(config)
             },
             toDetail (id) { // 点击商品卡片跳转到商品详情页
-                this.$router.push({ path: detailUrl, query: { goodId: id } })
+                this.$router.push({ path: ITEMDETAIL_URL, query: { goodId: id } })
             },
             addToCart (id) { // 点击加入购物车按钮将商品加入购物车
                 this.goodInfo.id = id
@@ -306,7 +303,7 @@
                     num: 1
                 }
                 if (this.goodInfo.id) {
-                    this.$http.post(addToCartUrl, { goodInfo: updateInfo }).then(res => {
+                    this.$http.post(ADD_CART_GOODS_URL, { goodInfo: updateInfo }).then(res => {
                         // eslint-disable-next-line no-empty
                         if (res && res.result === true) {
                             this.handleError({ theme: 'success' }, res.message)

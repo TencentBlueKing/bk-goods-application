@@ -12,7 +12,7 @@
                     <span>全部物资</span>
                     <bk-tag radius="10px">{{allGoodsCount}}</bk-tag>
                 </div>
-                <div class="import-btn" v-if="curIsAdmin">
+                <div class="import-btn" v-if="isAdmin">
                     <bk-upload
                         :theme="'button'"
                         :with-credentials="true"
@@ -23,7 +23,7 @@
                         :limit="1"
                     ></bk-upload>
                 </div>
-                <bk-button v-if="!curIsAdmin" theme="primary" title="导出" class="mr10" @click="exportCart()">
+                <bk-button v-if="!isAdmin" theme="primary" title="导出" class="mr10" @click="exportCart()">
                     导出
                 </bk-button>
             </div>
@@ -42,7 +42,7 @@
                         <div class="type-item-wapper">
                             <div class="type-title">
                                 <bk-tag theme="info">{{item.goods_type_name}}</bk-tag>
-                                <bk-button v-if="curIsAdmin" theme="primary" title="申请" class="mr10" @click="submitApply(item,index)">
+                                <bk-button v-if="isAdmin" theme="primary" title="申请" class="mr10" @click="submitApply(item,index)">
                                     申请
                                 </bk-button>
                             </div>
@@ -85,7 +85,7 @@
                         <div class="type-item-wapper">
                             <div class="type-title">
                                 <bk-tag theme="info">{{item.goods_type_name}}</bk-tag>
-                                <bk-button v-if="curIsAdmin" theme="primary" title="申请" class="mr10" @click="submitApply(item,index)">
+                                <bk-button v-if="isAdmin" theme="primary" title="申请" class="mr10" @click="submitApply(item,index)">
                                     申请
                                 </bk-button>
                             </div>
@@ -156,16 +156,19 @@
                 </div>
             </div>
             <div class="submit-btn" :class="{ 'un-submit': selectedCount === 0 }" @click="submitAllCart">
-                {{curIsAdmin ? "保存" : "申请"}}
+                {{isAdmin ? "保存" : "申请"}}
             </div>
         </div> -->
     </div>
 </template>
 
 <script>
-    import { mapGetters } from 'vuex'
+    import { mapState } from 'vuex'
     import { bkTable, bkTableColumn, bkButton } from 'bk-magic-vue'
-    const delFilesUrl = '/del_excel' // 删除已生成的excel文件接口
+    import {
+        GET_SHOPPING_CART_URL, DELETE_CART_GOODS_URL, UPDATE_GROUP_APPLY_URL, UPDATE_CART_GOODS_URL, DERIVE_EXCEL_URL,
+        GET_GROUP_APPLY_URL, DELETE_GROUP_APPLY_URL, IMPORT_EXCEL_URL, DEL_EXCEL_URL
+    } from '@/pattern'
     export default {
         components: {
             bkTable,
@@ -174,8 +177,8 @@
         },
         data () {
             return {
-                curIsAdmin: false,
-                cartUsername: '',
+                isAdmin: false,
+                curUsername: '',
                 allSelectVal: false,
                 size: 'medium',
                 cartList: [],
@@ -192,20 +195,11 @@
             }
         },
         computed: {
-            ...mapGetters(['isAdmin']),
-            getIsAdmin () {
-                return this.isAdmin
-            }
+            ...mapState({
+                userInfo: state => state.user.userInfo
+            })
         },
         watch: {
-            isAdmin: {
-                handler (newVal, oldVal) {
-                    if (newVal !== -1) {
-                        this.curIsAdmin = newVal
-                        this.initCartData()
-                    }
-                }
-            },
             selectAppliesList: {
                 handler (val) {
                     this.selectedCount = 0
@@ -250,11 +244,10 @@
         created () {
         },
         mounted () {
-            this.cartUsername = this.$store.getters.user.username // 从state中获取用户名
-            const xIsAdmin = this.$store.getters.isAdmin
-            if (xIsAdmin !== -1) {
-                this.curIsAdmin = xIsAdmin
-                this.initCartData()
+            this.curUsername = this.userInfo.username // 从state中获取用户名
+            this.isAdmin = this.userInfo.isScretary
+            if (this.isAdmin) {
+                this.initCartData() // 若是管理员，则加载数据
             }
         },
         updated () {
@@ -265,15 +258,15 @@
         },
         methods: {
             initCartData () {
-                if (this.curIsAdmin) {
+                if (this.isAdmin) {
                     this.getGroupApplyList()
                 } else {
                     this.getCartList()
                 }
             },
             getCartList () {
-                if (this.cartUsername !== '') {
-                    this.$http.get('/get_shopping_cart').then((res) => {
+                if (this.curUsername !== '') {
+                    this.$http.get(GET_SHOPPING_CART_URL).then((res) => {
                         if (res.result && res.data !== null) {
                             this.allGoodsCount = 0
                             if (res.data.length !== 0) {
@@ -411,7 +404,7 @@
                 deleteList.forEach((item) => {
                     idList.push(item.id)
                 })
-                this.$http.post('/delete_cart_goods', { cartIdList: idList }).then((res) => {
+                this.$http.post(DELETE_CART_GOODS_URL, { cartIdList: idList }).then((res) => {
                     if (res.result) {
                         this.deleteTableGoods(deleteList)
                     } else {
@@ -431,7 +424,7 @@
             },
             deleteApplyList (deleteList) {
                 const id = deleteList[0].id
-                this.$http.post('/delete_group_apply', { applyId: id }).then((res) => {
+                this.$http.post(DELETE_GROUP_APPLY_URL, { applyId: id }).then((res) => {
                     if (res.result) {
                         this.deleteTableGoods(deleteList)
                     } else {
@@ -567,9 +560,9 @@
                         }
                     })
                 }
-                const updateUrl = this.curIsAdmin ? 'update_group_apply' : 'update_cart_goods'
-                const params = this.curIsAdmin ? { applyList: updateList, updateType: 'num' } : { goodsList: updateList }
-                this.$http.post('/' + updateUrl, params).then((res) => {
+                const updateUrl = this.isAdmin ? UPDATE_GROUP_APPLY_URL : UPDATE_CART_GOODS_URL
+                const params = this.isAdmin ? { applyList: updateList, updateType: 'num' } : { goodsList: updateList }
+                this.$http.post(updateUrl, params).then((res) => {
                     if (!res.result) {
                         this.$bkMessage({
                             message: '物资数量更新失败',
@@ -596,9 +589,9 @@
                             try {
                                 const selectedList = this.getSelectedGoodsList()
                                 this.$http.post(
-                                    '/update_group_apply',
+                                    UPDATE_GROUP_APPLY_URL,
                                     {
-                                        userName: this.cartUsername,
+                                        userName: this.curUsername,
                                         cartList: selectedList
                                     }
                                 ).then((res) => {
@@ -668,7 +661,7 @@
                     })
                     return
                 }
-                this.$http.post('/derive_excel', { model: 2, dataList: submitGoods })
+                this.$http.post(DERIVE_EXCEL_URL, { model: 2, dataList: submitGoods })
                     .then((res) => {
                         if (res.result) {
                             const link = document.createElement('a') // 生成a元素，用以实现下载功能
@@ -680,7 +673,7 @@
                             const dirName = res.data.file_url.split('/').slice(-2, -1)[0] // 获取文件夹名
                             this.fileCache.push([fileName, dirName])
                             this.sleep(30 * 60).then(() => { // 半小时后删除excel文件
-                                this.$http.post(delFilesUrl, { dirName: this.fileCache[0][1], fileName: this.fileCache[0][0], username: this.cartUsername }).then(() => {
+                                this.$http.post(DEL_EXCEL_URL, { dirName: this.fileCache[0][1], fileName: this.fileCache[0][0], username: this.curUsername }).then(() => {
                                     this.fileCache.shift()
                                 })
                             })
@@ -705,7 +698,7 @@
                     })
             },
             getGroupApplyList () {
-                this.$http.get('/get_group_apply').then((res) => {
+                this.$http.get(GET_GROUP_APPLY_URL).then((res) => {
                     if (res.result && res.data !== null) {
                         this.allGoodsCount = 0
                         this.applyCartList = JSON.parse(JSON.stringify(res.data))
@@ -755,7 +748,7 @@
                     confirmFn: async () => {
                         try {
                             this.$http.post(
-                                '/update_group_apply',
+                                UPDATE_GROUP_APPLY_URL,
                                 {
                                     applyList: submitApplyList,
                                     updateType: 'status'
@@ -800,8 +793,8 @@
             upload (file) { // 上传文件函数
                 this.getBase64(file.fileObj.origin).then(res => {
                     const excelFile = res.split(',')[1] // 获取文件信息
-                    const fileName = this.cartUsername + '_' + file.fileObj.name // 获取文件名
-                    this.$http.post('/import_excel', { file: excelFile, fileName: fileName }).then(res => {
+                    const fileName = this.curUsername + '_' + file.fileObj.name // 获取文件名
+                    this.$http.post(IMPORT_EXCEL_URL, { file: excelFile, fileName: fileName }).then(res => {
                         if (res && res.result === true && res.code === 200) { // 全部导入成功
                             this.handleError({ theme: 'success' }, res.message)
                         } else if (res && res.result === true && res.code === 5003) { // 存在导入失败物品
@@ -821,7 +814,7 @@
                         this.handleError({ theme: 'warning' }, '3秒后刷新页面')
                         this.sleep(3).then(() => {
                             // const delDirPath = 'import_cart_excel' // 后台存放导入文件路径
-                            // this.$http.post(delFilesUrl, { dirName: delDirPath, fileName: fileName, username: this.cartUsername }).then(() => { // 导入后删除文件
+                            // this.$http.post(DEL_EXCEL_URL, { dirName: delDirPath, fileName: fileName, username: this.curUsername }).then(() => { // 导入后删除文件
                             //     this.excelFiles.pop() // 如果你不想用下面的刷新页面就用这个pop 把下面的refresh删掉就行
                             //     this.refresh()
                             // })

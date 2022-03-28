@@ -60,7 +60,7 @@
 </template>
 
 <script>
-    import { mapGetters } from 'vuex'
+    import { mapState } from 'vuex'
 
     import { bus } from '@/common/bus'
 
@@ -71,7 +71,6 @@
         components: { userCenter },
         data () {
             return {
-                username: 'admin',
                 routerKey: +new Date(),
                 systemCls: 'mac',
                 nav: {
@@ -129,45 +128,26 @@
             }
         },
         computed: {
-            ...mapGetters(['mainContentLoading', 'isAdmin']),
-             watchIsAdmin () {
-                return this.isAdmin
-            },
+            ...mapState({
+                userInfo: state => state.user.userInfo
+            }),
             curHeaderNav () {
                 return this.header.list[this.header.active] || {}
-            },
-            curIsAdmin () {
-                return this.$store.getters.isAdmin === undefined ? false : this.$store.getters.isAdmin
-            },
-            curIsLeader () {
-                return this.$store.getters.isLeader === undefined ? false : this.$store.getters.isLeader
             }
         },
         watch: {
-            watchIsAdmin (newVal, oldVal) {
-                this.isAdmin = newVal
-                if (this.isAdmin === true) {
-                    this.user.list.find(this.findUserListId1).name = '物资导入及申请'
-                } else {
-                    this.user.list.find(this.findUserListId1).name = '购物车'
-                }
-            }
         },
         created () {
-            this.username = this.$store.state.user.username
-            this.isAdmin = this.$store.state.isAdmin
-            // console.log('this.isAdmin', this.isAdmin)
             const platform = window.navigator.platform.toLowerCase()
             if (platform.indexOf('win') === 0) {
                 this.systemCls = 'win'
             }
         },
         mounted () {
+            this.header.list[1].show = this.userInfo.isScretary // 是管理员则显示该栏目；否则不显示
             const self = this
             // 设置购物车图标父级定位
             document.querySelector('.main-content').setAttribute('style', '')
-            // 获取用户身份信息
-            this.getUserIdentity()
             bus.$on('show-login-modal', data => {
                 self.$refs.bkAuth.showLoginModal(data)
             })
@@ -196,50 +176,6 @@
             },
             findGoodManagement (obj) {
                 return obj.id === 2
-            },
-            getUserIdentity () {
-                const username = this.$store.state.user.username
-                let isAdmin = false
-                let isLeader = false
-                if (username === undefined) {
-                    this.$bkMessage({
-                        message: '用户身份信息获取失败',
-                        offsetY: 80,
-                        theme: 'warning'
-                    })
-                    return
-                }
-                this.$http.get('/if_leader_or_secretary').then((res) => {
-                    if (res.result !== null) {
-                        if (res.data.identity === 0) {
-                            isAdmin = true
-                            // console.log('admin')
-                            this.$store.dispatch('setUserIdentity', isAdmin)
-                            if (isAdmin === true) {
-                                this.header.list.find(this.findGoodManagement).show = true
-                            }
-                        } else if (res.data.identity === 1) {
-                            isLeader = true
-                            // console.log('leader')
-                            this.$store.dispatch('setUserLeaderIdentity', isLeader)
-                            // if (isLeader === true) {
-                            //     this.header.list.find(this.findGoodManagement).show = true
-                            // }
-                        }
-                    } else {
-                        this.$bkMessage({
-                            message: res.message,
-                            offsetY: 80,
-                            theme: 'error'
-                        })
-                    }
-                }).catch(() => {
-                    this.$bkMessage({
-                        message: 'if_admin',
-                        offsetY: 80,
-                        theme: 'error'
-                    })
-                })
             },
             PUSH (item) {
                 if (item.name === '个人中心') {

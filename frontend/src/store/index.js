@@ -7,7 +7,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 
 import example from './modules/example'
-import http from '@/api'
+import user from './modules/user'
 import { unifyObjectStyle } from '@/common/util'
 
 Vue.use(Vuex)
@@ -15,22 +15,16 @@ Vue.use(Vuex)
 const store = new Vuex.Store({
     // 模块
     modules: {
-        example
+        example,
+        user
     },
     // 公共 store
     state: {
-        mainContentLoading: false,
-        // 系统当前登录用户
-        user: {},
-        isAdmin: false,
         isLeader: false
     },
     // 公共 getters
     getters: {
-        mainContentLoading: state => state.mainContentLoading,
-        user: state => state.user,
-        isAdmin: state => state.isAdmin,
-        isLeader: state => state.isLeader
+        mainContentLoading: state => state.mainContentLoading
     },
     // 公共 mutations
     mutations: {
@@ -42,59 +36,9 @@ const store = new Vuex.Store({
          */
         setMainContentLoading (state, loading) {
             state.mainContentLoading = loading
-        },
-
-        /**
-         * 更新当前用户 user
-         *
-         * @param {Object} state store state
-         * @param {Object} user user 对象
-         */
-        updateUser (state, user) {
-            state.user = Object.assign({}, user)
-        },
-
-        setIdentity (state, status) { // 秘书
-            state.isAdmin = status
-        },
-
-        setLeaderIdentity (state, status) { // 组长
-            state.isLeader = status
         }
     },
     actions: {
-        /**
-         * 获取用户信息
-         *
-         * @param {Object} context store 上下文对象 { commit, state, dispatch }
-         *
-         * @return {Promise} promise 对象
-         */
-        userInfo (context, config = {}) {
-            // ajax 地址为 USER_INFO_URL，如果需要 mock，那么只需要在 url 后加上 AJAX_MOCK_PARAM 的参数，
-            // 参数值为 mock/ajax 下的路径和文件名，然后加上 invoke 参数，参数值为 AJAX_MOCK_PARAM 参数指向的文件里的方法名
-            // 例如本例子里，ajax 地址为 USER_INFO_URL，mock 地址为 USER_INFO_URL?AJAX_MOCK_PARAM=index&invoke=getUserInfo
-
-            // 后端提供的地址
-            const url = USER_INFO_URL
-            // mock 的地址，示例先使用 mock 地址
-            // const mockUrl = USER_INFO_URL + (USER_INFO_URL.indexOf('?') === -1 ? '?' : '&') + AJAX_MOCK_PARAM + '=index&invoke=getUserInfo'
-            return http.get(url, {}, config).then(response => {
-                const userData = response.data || {}
-                context.commit('updateUser', userData)
-                return userData
-            })
-        },
-        setUserIdentity ({ commit, state }, status) {
-            // 跟后台打交道
-            // 调用mutaions里面的方法
-            commit('setIdentity', status)
-        },
-        setUserLeaderIdentity ({ commit, state }, status) { // 组长
-            // 跟后台打交道
-            // 调用mutaions里面的方法
-            commit('setLeaderIdentity', status)
-        }
     }
 })
 
