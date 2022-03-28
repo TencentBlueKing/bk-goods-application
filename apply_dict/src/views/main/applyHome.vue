@@ -303,8 +303,7 @@
         .info-table {
             width: 100%;
             padding: 30px 0;
-            overflow: hidden;
-            height: calc(100vh - 280px);
+            overflow: auto;
         }
         .multi-import-page {
             padding: 15px 0 0 0;

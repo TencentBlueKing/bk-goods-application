@@ -172,6 +172,9 @@
             }
         },
         mounted () {
+            this.header.list[1].show = this.userInfo.isScretary // 是管理员则显示该栏目；否则不显示
+            const self = this
+            document.querySelector('.main-content').setAttribute('style', '')
             bus.$on('show-login-modal', data => {
                 self.$refs.bkAuth.showLoginModal(data)
             })
