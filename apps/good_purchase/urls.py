@@ -20,12 +20,8 @@ from . import views
 urlpatterns = [
 
 
-    url(r"^get_personal_goods/$", views.get_personal_goods),  # 获取个人物资接口
-    path("get_good_status_list", views.get_good_status_list),  # 获取物资状态列表
-    path('edit_user_info', views.edit_user_info),  # 修改用户信息
-    path('confirm_receipt', views.confirm_receipt),  # 确认收货
-    path("upload_img", views.upload_img),  # 上传图片  1
-    path('del_pics', views.del_pics),  # 删除图片   1
+    path("upload_img", views.upload_img),  # 上传图片
+    path('del_pics', views.del_pics),  # 删除图片
     path("import_excel", import_cart_excel.import_cart_excel),  # 通过excel导入数据到部门所需物资
     path("derive_excel", derive_excel.derive_excel),  # 导出部门所需物资数据
     path("del_excel", del_excel.del_excel),  # 删除excel文件

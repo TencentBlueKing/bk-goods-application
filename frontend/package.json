@@ -107,7 +107,6 @@
     "eslint-plugin-vue": "~7.12.1",
     "eventsource-polyfill": "~0.9.6",
     "express": "~4.17.0",
-    "faker": "~4.1.0",
     "file-loader": "~3.0.1",
     "friendly-errors-webpack-plugin": "~1.7.0",
     "fs-extra": "~8.0.1",

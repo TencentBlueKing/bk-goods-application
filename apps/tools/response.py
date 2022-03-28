@@ -22,6 +22,18 @@ def get_result(data: dict) -> dict:
             result["message"] = data["message"]
     return JsonResponse(result)
 
+def success_code(data):
+    return {
+        "code": "200",
+        "result": True,
+        "message": "success",
+        "data": data,
+    }
+
+
+
+
+
 
 def get_cart_result(data: list, source: str) -> list:
     """
