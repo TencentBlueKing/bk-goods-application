@@ -305,7 +305,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
                 "review_result": apply_info.result,
                 "review_reason": apply_info.review_reason
             })
-        return JsonResponse(success_code({"data": {"total_num": len(apply_infos), "apply_list": apply_list}}))
+        return JsonResponse(success_code({"total_num": len(apply_infos), "apply_list": apply_list}))
 
     @action(methods=['POST'], detail=False)
     def examine_apply(self, request):
