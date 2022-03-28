@@ -189,6 +189,10 @@ class DeriveModel(object):
         with open(file_path, 'rb') as fp:
             self.storage.save(file_path, fp)
 
+        # 删除项目本地文件
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
     def derive_result(self):
         # if self.model == 1:
         #     self.file_url = settings.BK_BACK_URL + '/media/' + 'personal_goods/' + self.file_name

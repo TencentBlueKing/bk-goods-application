@@ -64,9 +64,10 @@
 </template>
 
 <script>
-    const getPositionsUrl = 'position/get_root_position_list/' // 获取一级地区接口
-    const getUserInfoUrl = '/user_info/' // 获取用户信息
-    const editUserInfoUrl = '/user_info/edit_user_info/' // 修改用户信息
+
+    import {
+        GET_ROOT_POSITION_LIST_URL, EDIT_USER_INFO_URL, USER_INFO_URL
+    } from '@/pattern'
 
     export default {
         data () {
@@ -117,14 +118,17 @@
         },
         created () {
         },
+        mounted () {
+            this.loadData()
+        },
         methods: {
             loadData () {
-                this.userInfo.username = this.$store.state.user.username
+                this.getUserInfo()
                 this.getPosition()
                 this.getUserInfo()
             },
             getPosition () { // 获得所有地点
-                this.$http.get(getPositionsUrl).then(res => {
+                this.$http.get(GET_ROOT_POSITION_LIST_URL).then(res => {
                     if (res) {
                         if (res && res.result === true) {
                             this.locationList = res.data
@@ -135,13 +139,12 @@
                 })
             },
             getUserInfo () {
-                this.$http.get(getUserInfoUrl).then(res => {
+                this.$http.get(USER_INFO_URL).then(res => {
                     if (res) {
                         if (res && res.result === true) {
+                            this.userInfo.username = res.data.username
                             this.userInfo.phone = res.data.phone
-                            console.log('res.data.position', res.data.position)
                             this.userInfo.position = res.data.position || ''
-                            console.log('this.userInfo.position', this.userInfo.position)
                         } else if (res && res.result === false) {
                             this.handleError({ theme: 'error' }, res.message)
                         }
@@ -166,7 +169,7 @@
                 const editForm = new FormData()
                 editForm.append('phone', this.userInfo['phone'])
                 editForm.append('position', this.userInfo['position'])
-                this.$http.post(editUserInfoUrl, editForm, { headers: { 'Content-Type': 'multipart/form-data' } }).then(res => {
+                this.$http.post(EDIT_USER_INFO_URL, editForm, { headers: { 'Content-Type': 'multipart/form-data' } }).then(res => {
                     if (res) {
                         if (res && res.result === true) {
                             this.handleError({ theme: 'success' }, res.message)

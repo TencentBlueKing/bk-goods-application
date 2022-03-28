@@ -21,5 +21,5 @@ export default {
     LOCAL_DEV_PORT: JSON.stringify('8080'),
     AJAX_URL_PREFIX: JSON.stringify(''),
     AJAX_MOCK_PARAM: JSON.stringify('mock-file'),
-    USER_INFO_URL: JSON.stringify('account/get_user_info/')
+    USER_INFO_URL: JSON.stringify('user_info/')
 }
