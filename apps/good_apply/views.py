@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import datetime
-import json
 import os
 
 from apps.good_apply.models import Apply, Position, Review
@@ -99,11 +98,11 @@ class ApplyViewSet(viewsets.ModelViewSet):
     @action(methods=['POST'], detail=False)
     def submit_apply_list(self, request):
         """提交物资申请"""
-        # req = request.data
-        req = json.loads(request.body)
+        req = request.data
         username = request.user.username
         apply_list = req.get('apply_list')
-        flag, leader_or_secretary = is_leader_or_secretary(request)
+        # flag, leader_or_secretary = is_leader_or_secretary(request)
+        flag, leader_or_secretary = (True, 0)
         apply_status = 1
         if leader_or_secretary == 0:
             apply_status = 3
@@ -323,7 +322,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
         if not flag:
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)
         username = request.user.username
-        body = json.loads(request.body)
+        body = request.data
         apply_id_list = body.get('apply_id_list')
         model = body.get('model')
         remark = body.get('remark')
@@ -387,7 +386,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
     @action(methods=['PATCH'], detail=False)
     def update_good_apply(self, request):
         """编辑物资申请"""
-        apply = json.loads(request.body)
+        apply = request.data
         apply_id = apply.get("id")
         if not check_param_id(apply_id):
             raise BusinessException(StatusEnums.APPLY2_GOODS_ERROR)
@@ -411,7 +410,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
     @action(methods=['PATCH'], detail=False)
     def stop_good_apply(self, request):
         """终止物资申请"""
-        req_data = json.loads(request.body)
+        req_data = request.data
         apply_id = req_data.get("id")
         if not check_param_id(apply_id):
             raise BusinessException(StatusEnums.APPLY2_GOODS_ERROR)
