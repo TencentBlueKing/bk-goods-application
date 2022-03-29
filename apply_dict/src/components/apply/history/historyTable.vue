@@ -37,6 +37,7 @@
             @select-all="selectAll"
             @page-change="handlePageChange"
             @page-limit-change="handlePageLimitChange"
+            style="margin-top:10px"
         >
             <bk-table-column
                 type="selection"
@@ -200,15 +201,17 @@
         methods: {
             getGoodApplyList () {
                 this.editId = null
-                this.$http.post(getGoodApplyListUrl, {
-                    start_time: this.getParams.start_time,
-                    end_time: this.getParams.end_time,
-                    good_code: this.getParams.good_code,
-                    good_name: this.getParams.good_name,
-                    reason: this.getParams.reason,
-                    status: this.getParams.status,
-                    page: this.getParams.page,
-                    size: this.getParams.size
+                this.$http.get(getGoodApplyListUrl, {
+                    params: {
+                        start_time: this.getParams.start_time,
+                        end_time: this.getParams.end_time,
+                        good_code: this.getParams.good_code,
+                        good_name: this.getParams.good_name,
+                        reason: this.getParams.reason,
+                        status: this.getParams.status,
+                        page: this.getParams.page,
+                        size: this.getParams.size
+                    }
                 }).then(res => {
                     this.history = res.data.apply_list
                     this.pagination.count = res.data.total_num
@@ -288,7 +291,7 @@
                 this.editId = row.id
             },
             confirmEdit (row) {
-                this.$http.post(editApplyUrl, {
+                this.$http.patch(editApplyUrl, {
                     id: row.id,
                     good_code: row.good_code,
                     good_name: row.good_name,
@@ -302,9 +305,7 @@
                 })
             },
             confirmDelete (row) {
-                this.$http.post(deleteApplyUrl, {
-                    id: row.id
-                }).then(res => {
+                this.$http.delete(`/apply/${row.id}/${deleteApplyUrl}`).then(res => {
                     if (res.result === true) {
                         this.handleError({ theme: 'success' }, res.message)
                         this.getGoodApplyList()
