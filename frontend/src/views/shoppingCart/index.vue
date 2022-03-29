@@ -245,7 +245,7 @@
         },
         mounted () {
             this.curUsername = this.userInfo.username // 从state中获取用户名
-            this.isAdmin = this.userInfo.isScretary
+            this.isAdmin = this.userInfo.isAdmin
             if (this.isAdmin) {
                 this.initCartData() // 若是管理员，则加载数据
             }

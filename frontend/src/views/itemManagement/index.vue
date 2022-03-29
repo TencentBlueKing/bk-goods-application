@@ -1,11 +1,12 @@
 <template>
     <div class="itemManagement-wrapper">
         <div class="header">
-            <bk-divider align="left"
-            ><bk-tag type="filled" style="font-size: 13px"
-            ><span>物品管理</span></bk-tag
-            ></bk-divider
-            >
+            <bk-divider align="left">
+                <bk-tag
+                    type="filled"
+                    style="font-size: 13px"
+                ><span>物品管理</span></bk-tag>
+            </bk-divider>
         </div>
         <div class="header-wrapper">
             <div class="fun-bar">
@@ -30,7 +31,11 @@
                     style="width: 200px"
                     searchable
                 >
-                    <bk-option :key="0" :id="0" :name="'全部'"> </bk-option>
+                    <bk-option
+                        :key="0"
+                        :id="0"
+                        :name="'全部'"
+                    > </bk-option>
                     <bk-option
                         v-for="goodType in goodTypeList"
                         :key="goodType.id"
@@ -53,12 +58,11 @@
                 :theme="'primary'"
                 :title="'添加按钮'"
                 class="mr10 add-btn"
-                @click="clickAddGood"
+                @click="$router.push({ name: 'itemCreateUpdate', query: { action: 'create' } })"
             >
                 添加
             </bk-button>
         </div>
-        <manage-form ref="manageForm" @formGetGoodInfo="getGoodInfo"></manage-form>
         <div
             class="goods-info-load"
             v-bkloading="{
@@ -98,24 +102,28 @@
                     label="物品类型"
                     prop="good_tye_name"
                 ></bk-table-column>
-                <bk-table-column label="参考价" prop="price"></bk-table-column>
-                <bk-table-column label="操作" width="150">
+                <bk-table-column
+                    label="参考价"
+                    prop="price"
+                ></bk-table-column>
+                <bk-table-column
+                    label="操作"
+                    width="150"
+                >
                     <template slot-scope="props">
                         <bk-button
                             class="mr10"
                             theme="primary"
                             text
                             :disabled="props.row.status === '创建中'"
-                            @click="clickEditGood(props.row)"
-                        >编辑</bk-button
-                        >
+                            @click="$router.push({ name: 'itemCreateUpdate', query: { action: 'update', row_id: props.row.id } })"
+                        >编辑</bk-button>
                         <bk-button
                             class="mr10"
                             theme="primary"
                             text
                             @click="clickDownGood(props.row)"
-                        >下架</bk-button
-                        >
+                        >下架</bk-button>
                     </template>
                 </bk-table-column>
             </bk-table>
@@ -125,12 +133,10 @@
 
 <script>
     import {
-        GET_GOOD_DETAIL_URL, GET_GOOD_LIST_URL, GET_GOOD_TYPE_LIST_URL, GET_GOOD_CODE_LIST_URL, ADD_GOOD_URL,
+        GET_GOOD_LIST_URL, GET_GOOD_TYPE_LIST_URL, GET_GOOD_CODE_LIST_URL, ADD_GOOD_URL,
         UPDATE_GOOD_URL, DOWN_GOOD_URL, UPLOAD_IMG_URL, ADD_GOOD_TYPE_URL, DEL_PICS_URL
     } from '@/pattern'
-    import ManageForm from '@/components/item/manage/manageForm.vue'
     export default {
-        components: { ManageForm },
         data () {
             return {
                 unSubmitSearch: {
@@ -229,36 +235,6 @@
             searchCodeSelect (value, option) {
                 this.unSubmitSearch.goodCode = this.goodsCodeList[value].name
                 console.log('this.unSubmitSearch.goodCode == ', this.unSubmitSearch.goodCode)
-            },
-            getGoodInfo (goodId) {
-                this.$http.get(GET_GOOD_DETAIL_URL, {
-                    params: {
-                        good_id: goodId
-                    }
-                }).then(res => {
-                    if (res.result) {
-                        this.goodFormData.good_code = res.data.good_code
-                        this.goodFormData.good_name = res.data.good_name
-                        this.goodFormData.good_type_id = res.data.good_type_id
-                        this.goodFormData.price = res.data.price
-                        // 处理图片
-                        const picfiles = []
-                        res.data.pics.forEach(url => {
-                            // 避免出现空字符串
-                            if (url.length !== 0) {
-                                const pic = {
-                                    'name': url.split('/')[1],
-                                    'url': url
-                                }
-                                picfiles.push(pic)
-                            }
-                        })
-                        this.goodFormData.pics = picfiles
-                        this.goodFormData.remark = res.data.remark
-                        this.goodFormData.specifications = res.data.specifications
-                        this.goodFormData.introduce = res.data.introduce
-                    }
-                })
             },
             dealGoodPics () {
                 // 处理提交表单前的图片路径
@@ -444,12 +420,6 @@
                 this.submitSearchInput.goodTypeId = this.unSubmitSearch.goodTypeId
                 this.getGoods()
             },
-            clickAddGood () {
-                this.$refs.manageForm.clickAddGood()
-            },
-            clickEditGood (row) {
-                this.$refs.manageForm.clickEditGood(row)
-            },
             clickDownGood (row) {
                 this.$bkInfo({
                     title: '确认下架物品',
@@ -514,8 +484,8 @@
 <style scoped lang="postcss">
     @import "./index.css";
     /* .title-wapper{
-        margin-top: 10px;
-    } */
+                    margin-top: 10px;
+                } */
     .header-wrapper {
         display: flex;
         flex-wrap: wrap;

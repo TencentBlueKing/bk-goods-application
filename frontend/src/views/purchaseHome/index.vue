@@ -216,7 +216,7 @@
         },
         created () {
             this.username = this.userInfo.username
-            this.isAdmin = this.userInfo.isScretary
+            this.isAdmin = this.userInfo.isAdmin
             this.loadData() // 创建实例时加载数据
         },
         methods: {

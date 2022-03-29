@@ -20,24 +20,30 @@ const NotFound = () => import(/* webpackChunkName: 'none' */'@/views/404')
 const ShoppingCart = () => import(/* webpackChunkName: 'shoppingCart' */'@/views/shoppingCart')
 const personalGoods = () => import(/* webpackChunkName: 'personalGoods' */'@/views/personalGoods/personalGoods.vue')
 const returnGoods = () => import(/* webpackChunkName: 'returnGoods' */'@/views/returnGoods/returnGoods.vue')
+const itemCreateUpdate = () => import(/* webpackChunkName: 'returnGoods' */'@/views/itemManagement/itemCreateUpdate.vue')
 
 const routes = [
     {
         path: window.PROJECT_CONFIG.SITE_URL,
         name: 'appMain',
         component: MainEntry,
-        alias: '',
+        redirect: 'purchaseHome',
         children: [
             {
                 path: 'purchaseHome',
-                alias: '',
                 name: 'purchaseHome',
-                component: PurchaseHome
+                component: PurchaseHome,
+                meta: {
+                    alias: '首页'
+                }
             },
             {
                 path: 'itemManagement',
                 name: 'itemManagement',
-                component: ItemManagement
+                component: ItemManagement,
+                meta: {
+                    alias: '物品管理'
+                }
             },
             {
                 path: 'itemDetail',
@@ -52,12 +58,20 @@ const routes = [
             {
                 path: 'personalGoods',
                 name: 'personalGoods',
-                component: personalGoods
+                component: personalGoods,
+                meta: {
+                    alias: '个人物资查询'
+                }
             },
             {
                 path: 'returnGoods',
                 name: 'returnGoods',
                 component: returnGoods
+            },
+            {
+                path: 'itemCreateUpdate',
+                name: 'itemCreateUpdate',
+                component: itemCreateUpdate
             }
         ]
     },
@@ -85,7 +99,7 @@ let canceling = true
 let pageMethodExecuting = true
 
 router.beforeEach(async (to, from, next) => {
-    if (store.state.isAdmin !== true && store.state.isLeader !== true && to.name === 'itemManagement') {
+    if (store.state.user.userInfo.isAdmin !== true && store.state.user.userInfo.isLeader !== true && to.name === 'itemManagement') {
         router.push({ name: 'purchaseHome' })
     }
     canceling = true
