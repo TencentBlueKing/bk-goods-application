@@ -258,7 +258,16 @@
                             trigger: 'blur'
                         }
                     ]
-                }
+                },
+                dateOptions: {
+                    disabledDate: function (date) {
+                        const myDate = new Date()
+                        if (date < myDate.setDate(myDate.getDate() - 1)) {
+                            return true
+                        }
+                        return false
+                    }
+                } // 禁用日期
             }
         },
         computed: {
