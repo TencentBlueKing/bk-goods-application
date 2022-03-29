@@ -1,6 +1,7 @@
-import requests
 from apps.good_apply.models import Apply, Position, Review, Secretary
-from django.test import TestCase
+from apps.good_apply.views import ApplyViewSet
+from blueapps.account.models import User
+from django.test import RequestFactory, TestCase
 from django.test.utils import override_settings
 
 TEST_MIDDLEWARE = (
@@ -93,15 +94,16 @@ class ApplyModelTestCase(TestCase):
         self.done_obj = Apply.objects.create(good_code='TEST4', good_name="测试物品4", num=5, require_date='2021-3-14',
                                              reason='测试用例', position='广东，广州', status=3, apply_user='790795324Q')
 
-        self.session = requests.Session()
-        # self.client = APIClient()
-        # self.user = User.objects.create_superuser(username='790795324Q', password='123456')
-        # self.client.force_login(self.user)
-        self.submit_apply_list_url = 'http://dev.paas-edu.bktencent.com:8000/apply/submit_apply_list/'
+        self.request = RequestFactory()
+        self.user = User.objects.create_superuser(username='790795324Q', password='123456')
+        self.submit_apply_list_url = '/apply/submit_apply_list/'
         self.get_apply_url = '/apply/'
+        self.update_good_apply_url = '/apply/update_good_apply/'
         self.stop_good_apply_url = '/apply/stop_good_apply/'
-        self.delete_good_apply_url = '/apply/2/delete_good_apply/'
+        self.delete_good_apply_url = '/apply/{id}/delete_good_apply/'.format(id=self.stop_obj.id)
         self.get_apply_status_url = '/apply/get_apply_status/'
+        self.get_self_good_apply_list_url = '/apply/get_self_good_apply_list/'
+        self.examine_apply_url = '/apply/examine_apply/'
 
     # model测试
 
@@ -128,10 +130,10 @@ class ApplyModelTestCase(TestCase):
 
     # 接口测试
 
-    # TODO:有问题
+    # TODO:蓝鲸官方接口权限校验
     # @override_settings(MIDDLEWARE=TEST_MIDDLEWARE)
     # def test_submit_apply_list_api(self):
-    #     response = self.client.post(self.submit_apply_list_url, {
+    #     request = self.request.post(path=self.submit_apply_list_url, data={
     #         "apply_list": [
     #                 {
     #                     "id": 1,
@@ -147,10 +149,12 @@ class ApplyModelTestCase(TestCase):
     #                     "reason": "unit test"
     #                 }
     #         ]
-    #     })
-    #     print('response', response.json())
+    #     }, content_type="application/json")
+    #     request.user = self.user
+    #     response = ApplyViewSet().submit_apply_list(request)
     #     self.assertEqual(response.status_code, 200)
 
+    # TODO:蓝鲸官方接口权限校验
     # @override_settings(MIDDLEWARE=TEST_MIDDLEWARE)
     # def test_apply_api(self):
     #     query = Q(status=2)
@@ -173,11 +177,45 @@ class ApplyModelTestCase(TestCase):
     #     response = self.client.get(self.get_apply_url)
     #     self.assertEqual(response.json(), expect_result)
 
-    # TODO:有问题
+    @override_settings(MIDDLEWARE=TEST_MIDDLEWARE)
+    def test_get_self_good_apply_list_api(self):
+        request = self.request.get(self.get_self_good_apply_list_url, data={})
+        request.user = self.user
+        response = ApplyViewSet().get_self_good_apply_list(request)
+        self.assertEqual(response.status_code, 200)
+
+    # TODO:蓝鲸官方接口权限校验
     # @override_settings(MIDDLEWARE=TEST_MIDDLEWARE)
-    # def test_stop_good_apply_api(self):
-    #     response = self.client.patch(self.stop_good_apply_url, {id: 3})
-    #     print('response', response)
+    # def test_examine_apply_api(self):
+    #     request = self.request.post(path=self.examine_apply_url, data={
+    #         "apply_id_list": [
+    #             self.secretary_examining_obj.id
+    #         ],
+    #         "model": "agree",
+    #         "remark": "无"
+    #     }, content_type="application/json")
+    #     request.user = self.user
+    #     response = ApplyViewSet().examine_apply(request)
+    #     self.assertEqual(response.status_code, 200)
+
+    @override_settings(MIDDLEWARE=TEST_MIDDLEWARE)
+    def test_update_good_apply_api(self):
+        request = self.request.patch(path=self.update_good_apply_url, data={
+            'id': self.leader_examining_obj.id,
+            'good_code': self.leader_examining_obj.good_code,
+            'good_name': self.leader_examining_obj.good_name,
+            'reason': 'unit test',
+            'num': 99
+        }, content_type="application/json")
+        response = ApplyViewSet().update_good_apply(request)
+        self.assertEqual(response.status_code, 200)
+
+    @override_settings(MIDDLEWARE=TEST_MIDDLEWARE)
+    def test_stop_good_apply_api(self):
+        request = self.request.patch(path=self.stop_good_apply_url, data={'id': self.leader_examining_obj.id},
+                                     content_type="application/json")
+        response = ApplyViewSet().stop_good_apply(request)
+        self.assertEqual(response.status_code, 200)
 
     @override_settings(MIDDLEWARE=TEST_MIDDLEWARE)
     def test_delete_good_apply_api(self):

@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import datetime
+import json
 import os
 
 from apps.good_apply.models import Apply, Position, Review
@@ -98,11 +99,11 @@ class ApplyViewSet(viewsets.ModelViewSet):
     @action(methods=['POST'], detail=False)
     def submit_apply_list(self, request):
         """提交物资申请"""
-        req = request.data
+        # req = request.data
+        req = json.loads(request.body)
         username = request.user.username
         apply_list = req.get('apply_list')
         flag, leader_or_secretary = is_leader_or_secretary(request)
-        # flag, leader_or_secretary = (True, 0)
         apply_status = 1
         if leader_or_secretary == 0:
             apply_status = 3
@@ -322,7 +323,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
         if not flag:
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)
         username = request.user.username
-        body = request.data
+        body = json.loads(request.body)
         apply_id_list = body.get('apply_id_list')
         model = body.get('model')
         remark = body.get('remark')
@@ -386,7 +387,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
     @action(methods=['PATCH'], detail=False)
     def update_good_apply(self, request):
         """编辑物资申请"""
-        apply = request.data
+        apply = json.loads(request.body)
         apply_id = apply.get("id")
         if not check_param_id(apply_id):
             raise BusinessException(StatusEnums.APPLY2_GOODS_ERROR)
@@ -410,10 +411,11 @@ class ApplyViewSet(viewsets.ModelViewSet):
     @action(methods=['PATCH'], detail=False)
     def stop_good_apply(self, request):
         """终止物资申请"""
-        id = request.data.get("id")
-        if not check_param_id(id):
+        req_data = json.loads(request.body)
+        apply_id = req_data.get("id")
+        if not check_param_id(apply_id):
             raise BusinessException(StatusEnums.APPLY2_GOODS_ERROR)
-        apply = Apply.objects.filter(id=id)
+        apply = Apply.objects.filter(id=apply_id)
         if not apply.exists():
             raise BusinessException(StatusEnums.NOTFOUND_ERROR)
         if not (apply[0].status == 1 or apply[0].status == 2):
