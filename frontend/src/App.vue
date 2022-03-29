@@ -23,7 +23,7 @@
                     </ol>
                     <bk-popover theme="light navigation-message" :arrow="false" offset="20, 10" placement="bottom-start" :tippy-options="{ 'hideOnClick': false }">
                         <div class="header-user">
-                            {{ username }}
+                            {{ userInfo.username }}
                             <i class="bk-icon icon-down-shape"></i>
                         </div>
                         <template slot="content">

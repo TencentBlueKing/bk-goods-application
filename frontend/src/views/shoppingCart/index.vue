@@ -855,7 +855,6 @@
 </script>
 
 <style scoped lang="postcss">
-    @import './index.css';
     .shopcart-wrapper{
         height: 100%;
         width: 76%;
