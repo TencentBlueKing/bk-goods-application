@@ -182,7 +182,7 @@
                     :theme="'primary'"
                     :title="'确认'"
                     class="mr10"
-                    @click="submitAddGoodType"
+                    @click="addGoodType"
                 >
                     确认
                 </bk-button>
@@ -439,9 +439,6 @@
                         this.$bkMessage(config)
                     }
                 })
-            },
-            submitAddGoodType () {
-                this.addGoodType()
             },
             deleteImg (file, fileList) {
                 this.goodFormData.pics = fileList
