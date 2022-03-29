@@ -1,3 +1,5 @@
+import json
+
 from apps.good_apply.models import Apply, Position, Review, Secretary
 from apps.good_apply.views import ApplyViewSet
 from blueapps.account.models import User
@@ -151,6 +153,7 @@ class ApplyModelTestCase(TestCase):
     #         ]
     #     }, content_type="application/json")
     #     request.user = self.user
+    #     request.data = json.loads(request.body)
     #     response = ApplyViewSet().submit_apply_list(request)
     #     self.assertEqual(response.status_code, 200)
 
@@ -195,6 +198,7 @@ class ApplyModelTestCase(TestCase):
     #         "remark": "无"
     #     }, content_type="application/json")
     #     request.user = self.user
+    #     request.data = json.loads(request.body)
     #     response = ApplyViewSet().examine_apply(request)
     #     self.assertEqual(response.status_code, 200)
 
@@ -207,6 +211,7 @@ class ApplyModelTestCase(TestCase):
             'reason': 'unit test',
             'num': 99
         }, content_type="application/json")
+        request.data = json.loads(request.body)
         response = ApplyViewSet().update_good_apply(request)
         self.assertEqual(response.status_code, 200)
 
@@ -214,6 +219,7 @@ class ApplyModelTestCase(TestCase):
     def test_stop_good_apply_api(self):
         request = self.request.patch(path=self.stop_good_apply_url, data={'id': self.leader_examining_obj.id},
                                      content_type="application/json")
+        request.data = json.loads(request.body)
         response = ApplyViewSet().stop_good_apply(request)
         self.assertEqual(response.status_code, 200)
 
