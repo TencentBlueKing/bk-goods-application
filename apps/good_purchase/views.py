@@ -332,7 +332,7 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
             raise BusinessException(StatusEnums.ADX_UPDATE_ERROR)
         return get_result({"code": 200, "message": "修改成功"})
 
-    @action(methods=['get'], detail=False)
+    @action(methods=['post'], detail=False)
     def get_personal_goods(self, request):
         """
         获取个人物资

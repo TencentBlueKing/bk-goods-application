@@ -53,7 +53,7 @@ class Good(TimeBasic):
             "good_code": self.good_code,
             "good_name": self.good_name,
             "good_type_id": self.good_type_id,
-            "good_tye_name": good_type_name,
+            "good_type_name": good_type_name,
             "price": self.price,
             "pics": self.pics.split(";"),
             "introduce": self.introduce,
