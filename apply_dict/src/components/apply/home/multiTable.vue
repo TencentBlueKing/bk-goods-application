@@ -89,7 +89,7 @@
                         >
                         </bk-date-picker>
                         <div v-else>
-                            {{props.row.num}}
+                            {{props.row.getDate ? moment(props.row.getDate).format('YYYY-MM-DD') : ''}}
                         </div>
                     </template>
                 </bk-table-column>
