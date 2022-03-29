@@ -153,15 +153,6 @@
                 showMultiImport: false,
                 leaders: '',
                 inputVisible: false,
-                dateOptions: {
-                    disabledDate: function (date) {
-                        const myDate = new Date()
-                        if (date < myDate.setDate(myDate.getDate() - 1)) {
-                            return true
-                        }
-                        return false
-                    }
-                }, // 禁用日期
                 multiInput: { // 批量导入时所需填写的表格数据
                     leaders: '无',
                     campus: '',
@@ -235,7 +226,7 @@
                     this.handleError({ theme: 'warning' }, '任何数据不能为空')
                     return
                 }
-                const applyForm = []
+                const applyList = []
                 const allSuccessApply = this.$refs.multiTable.allSuccessApply
                 const pagination = this.$refs.multiTable.pagination
                 const selected = this.$refs.multiTable.selected
@@ -246,7 +237,7 @@
                         delete allSuccessApply[index].goodCode
                         allSuccessApply[index]['good_name'] = allSuccessApply[index]['goodName']
                         delete allSuccessApply[index].goodName
-                        allSuccessApply[index]['require_date'] = allSuccessApply[index]['getDate']
+                        allSuccessApply[index]['require_date'] = allSuccessApply[index]['getDate'] ? this.moment(allSuccessApply[index]['getDate']).format('YYYY-MM-DD') : ''
                         delete allSuccessApply[index].getDate
                         allSuccessApply[index]['apply_user'] = allSuccessApply[index]['applicant']
                         delete allSuccessApply[index].applicant
@@ -255,14 +246,14 @@
                         allSuccessApply[index]['academy'] = this.collegeList.find(obj => obj.id === this.multiInput.college).name
                         allSuccessApply[index]['detail_position'] = this.multiInput.specificLocation
                         allSuccessApply[index]['reason'] = this.multiInput.applyReason
-                        applyForm.push(allSuccessApply[index])
+                        applyList.push(allSuccessApply[index])
                     }
                 }
-                for (let index = 0; index < applyForm.length; index++) {
-                    const allApplyIdx = allSuccessApply.indexOf(applyForm[index])
+                for (let index = 0; index < applyList.length; index++) {
+                    const allApplyIdx = allSuccessApply.indexOf(applyList[index])
                     allSuccessApply.splice(allApplyIdx, 1)
                 }
-                this.$http.post(commitApplyUrl, { apply_list: applyForm }).then(res => {
+                this.$http.post(commitApplyUrl, { apply_list: applyList }).then(res => {
                     if (res.result === true) {
                         this.handleError({ theme: 'success' }, res.message)
                     } else if (res.result === false) {
@@ -303,8 +294,7 @@
         .info-table {
             width: 100%;
             padding: 30px 0;
-            overflow: hidden;
-            height: calc(100vh - 280px);
+            overflow: auto;
         }
         .multi-import-page {
             padding: 15px 0 0 0;
