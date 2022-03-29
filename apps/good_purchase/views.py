@@ -432,6 +432,7 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
 
     @action(methods=['post'], detail=False)
     def confirm_receipt(self, request):
+        "确认收货"
         body = request.data
         id_list = body.get('idList')
         serializer = ConfirmReceiptSerializer(data={"id_list": id_list})
@@ -507,10 +508,12 @@ class GoodViewSet(viewsets.ModelViewSet):
                 "good_list": [good.to_json() for good in cur_goods]}  # ！这里还是for循环内部查询了数据库
         return JsonResponse(success_code(data))
 
-    @check_secretary_permission
     @action(methods=['post'], detail=False)
     def add_good(self, request):
         """添加商品"""
+        flag, leader_or_secretary = is_leader_or_secretary(request)
+        if not flag:
+            raise BusinessException(StatusEnums.AUTHORITY_ERROR)
         good = request.data
         # 参数校验
         good_serializers = GoodSerializers(data=good)
@@ -529,10 +532,12 @@ class GoodViewSet(viewsets.ModelViewSet):
             Good.objects.create(**good)
         return get_result({"message": "新增商品成功"})
 
-    @check_secretary_permission
     @action(methods=['post'], detail=False)
     def update_good(self, request):
         """修改商品信息"""
+        flag, leader_or_secretary = is_leader_or_secretary(request)
+        if not flag:
+            raise BusinessException(StatusEnums.AUTHORITY_ERROR)
         good = request.data
         # 参数校验
         good_serializers = GoodSerializers(data=good)
@@ -558,12 +563,14 @@ class GoodViewSet(viewsets.ModelViewSet):
         Good.objects.filter(id=good_id).update(**good, update_time=datetime.now())
         return get_result({"message": "修改商品信息成功"})
 
-    @check_secretary_permission
     @action(methods=['post'], detail=False)
     def down_good(self, request):
         """商品下架"""
+        flag, leader_or_secretary = is_leader_or_secretary(request)
+        if not flag:
+            raise BusinessException(StatusEnums.AUTHORITY_ERROR)
         req = request.data
-        good_id = req.get("id", 0)
+        good_id = req.get('id', 0)
         # 校验参数
         if not check_param_id(good_id):
             raise BusinessException(StatusEnums.GOODID_ERROR)
@@ -585,10 +592,12 @@ class GoodTypeViewSet(viewsets.ModelViewSet):
     queryset = GoodType.objects.all()
     serializer_class = GoodTypeSerializers
 
-    @check_secretary_permission
     @action(methods=['POST'], detail=False)
     def add_good_type(self, request):
         """新增商品类型"""
+        flag, leader_or_secretary = is_leader_or_secretary(request)
+        if not flag:
+            raise BusinessException(StatusEnums.AUTHORITY_ERROR)
         req = request.data
         # 参数校验
         good_type_serializers = GoodTypeSerializers(data=req)

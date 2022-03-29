@@ -9,6 +9,8 @@
                 @select-all="selectAll"
                 @page-change="handlePageChange"
                 @page-limit-change="handlePageLimitChange"
+                @row-click="clickChangeRow"
+                class="apply-table"
             >
                 <bk-table-column
                     type="selection"
@@ -16,24 +18,95 @@
                 ></bk-table-column>
                 <bk-table-column
                     label="使用人"
-                    prop="applicant"
-                ></bk-table-column>
+                    width="150"
+                >
+                    <template slot-scope="props">
+                        <bk-input
+                            v-model="props.row.applicant"
+                            v-if="selectId === props.row.id"
+                        ></bk-input>
+                        <div v-else>
+                            {{props.row.applicant}}
+                        </div>
+                    </template>
+                </bk-table-column>
                 <bk-table-column
                     label="物品编码"
-                    prop="goodCode"
-                ></bk-table-column>
+                    width="150"
+                >
+                    <template slot-scope="props">
+                        <bk-input
+                            v-model="props.row.goodCode"
+                            v-if="selectId === props.row.id"
+                        ></bk-input>
+                        <div v-else>
+                            {{props.row.goodCode}}
+                        </div>
+                    </template>
+                </bk-table-column>
                 <bk-table-column
                     label="物品名称"
-                    prop="goodName"
-                ></bk-table-column>
+                    width="150"
+                >
+                    <template slot-scope="props">
+                        <bk-input
+                            v-model="props.row.goodName"
+                            v-if="selectId === props.row.id"
+                        ></bk-input>
+                        <div v-else>
+                            {{props.row.goodName}}
+                        </div>
+                    </template>
+                </bk-table-column>
                 <bk-table-column
                     label="数量"
-                    prop="num"
-                ></bk-table-column>
+                    width="150"
+                >
+                    <template slot-scope="props">
+                        <bk-input
+                            v-model="props.row.num"
+                            type="number"
+                            :precision="0"
+                            :min="1"
+                            v-if="selectId === props.row.id"
+                        ></bk-input>
+                        <div v-else>
+                            {{props.row.num}}
+                        </div>
+                    </template>
+                </bk-table-column>
                 <bk-table-column
                     label="期望领用日期"
-                    prop="getDate"
-                ></bk-table-column>
+                    width="300"
+                >
+                    <template slot-scope="props">
+                        <bk-date-picker
+                            :options="getDateOptions"
+                            :timer="false"
+                            v-model="props.row.getDate"
+                            :disabled="false"
+                            v-if="selectId === props.row.id"
+                        >
+                        </bk-date-picker>
+                        <div v-else>
+                            {{props.row.num}}
+                        </div>
+                    </template>
+                </bk-table-column>
+                <bk-table-column
+                    label="操作"
+                    width="150"
+                >
+                    <template slot-scope="props">
+                        <div>
+                            <bk-button
+                                :text="true"
+                                title="primary"
+                                @click="clickDeleteRow(props.row)"
+                            >删除</bk-button>
+                        </div>
+                    </template>
+                </bk-table-column>
             </bk-table>
         </div>
         <div class="multi-commit">
@@ -90,7 +163,17 @@
                     selectedRows: []
                 }, // 存放被选中行数
                 excelFiles: [],
-                allSuccessApply: [] // 所有数据
+                allSuccessApply: [], // 所有数据
+                getDateOptions: {
+                    disabledDate: function (date) {
+                        const myDate = new Date()
+                        if (date < myDate.setDate(myDate.getDate() - 1)) {
+                            return true
+                        }
+                        return false
+                    }
+                },
+                selectId: null
             }
         },
         computed: {
@@ -158,26 +241,41 @@
                 }
                 this.$emit('showInput', true)
             },
+            addDataToTable (res) {
+                const data = res.data
+                for (let rowIndex = 0; rowIndex < data.success_list.length; rowIndex++) {
+                    const oneOfAllObj = {}
+                    oneOfAllObj.id = rowIndex + 1
+                    oneOfAllObj.applicant = data.success_list[rowIndex][0]
+                    oneOfAllObj.goodCode = data.success_list[rowIndex][1]
+                    oneOfAllObj.goodName = data.success_list[rowIndex][2]
+                    oneOfAllObj.num = data.success_list[rowIndex][3]
+                    oneOfAllObj.getDate = data.success_list[rowIndex][6]
+                    this.allSuccessApply.push(oneOfAllObj)
+                }
+            },
             upload (file) { // 上传文件函数
                 this.getBase64(file.fileObj.origin).then(res => {
                     const excelFile = res.split(',')[1] // 获取文件信息
                     const fileName = this.userInfo.username + '_' + file.fileObj.name // 获取文件名
                     this.$http.post(analysisExcelUrl, { file: excelFile, fileName: fileName }).then(res => {
-                        if (res && res.result === true) { // 全部导入成功
+                        if (res && res.result === true) {
+                            // 全部导入成功
                             this.handleError({ theme: 'success' }, res.message)
-                            const data = res.data
-                            for (let rowIndex = 0; rowIndex < data.success_list.length; rowIndex++) {
-                                const oneOfAllObj = {}
-                                oneOfAllObj.id = rowIndex + 1
-                                oneOfAllObj.applicant = data.success_list[rowIndex][0]
-                                oneOfAllObj.goodCode = data.success_list[rowIndex][1]
-                                oneOfAllObj.goodName = data.success_list[rowIndex][2]
-                                oneOfAllObj.num = data.success_list[rowIndex][3]
-                                oneOfAllObj.getDate = data.success_list[rowIndex][6]
-                                this.allSuccessApply.push(oneOfAllObj)
-                            }
+                            this.addDataToTable(res)
                         } else if (res && res.result === false) { // 有错误
-                            this.handleError({ theme: 'error' }, res.message)
+                            if (res.code === 5003) {
+                                // 存在导入失败物品
+                                this.handleError({ theme: 'warning' }, '存在申请导入失败')
+                                const link = document.createElement('a')
+                                link.href = res.data.file_url
+                                document.body.appendChild(link)
+                                link.click()
+                                document.body.removeChild(link)
+                                this.addDataToTable(res)
+                            } else {
+                                this.handleError({ theme: 'error' }, res.message)
+                            }
                         }
                         this.excelFiles.push({ // 给上传组件绑定列表添加文件信息
                             name: fileName
@@ -186,8 +284,7 @@
                         this.getSuccessApply(this.pagination.current)
                         this.sleep(2).then(() => {
                             const delDirPath = 'analysis_apply_excel' // 后台存放导入文件路径
-                            this.$http.post(delFilesUrl, { dirName: delDirPath, fileName: fileName }).then(() => { // 导入后删除文件
-                            })
+                            this.$http.post(delFilesUrl, { dirName: delDirPath, fileName: fileName })
                         })
                     })
                 })
@@ -226,6 +323,16 @@
                 return new Promise((resolve, reject) => {
                     setTimeout(resolve, time * 1000)
                 })
+            },
+            clickChangeRow (row) {
+                this.selectId = row.id
+            },
+            clickDeleteRow (row) {
+                const index = this.allSuccessApply.indexOf(row)
+                if (index !== -1) {
+                    this.allSuccessApply.splice(index, 1)
+                }
+                this.getSuccessApply(this.pagination.current)
             }
         }
     }
@@ -234,6 +341,8 @@
 <style lang="postcss" scoped>
     .multi-import {
         .success-apply {
+            .apply-table {
+            }
         }
         .multi-commit {
             margin: 30px 0;
@@ -242,5 +351,8 @@
                 font-size: 14px;
             }
         }
+    }
+    /deep/ .bk-table-body-wrapper {
+        overflow: auto;
     }
 </style>
