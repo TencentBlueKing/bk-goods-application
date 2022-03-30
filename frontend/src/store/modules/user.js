@@ -32,6 +32,7 @@ const mutations = {
          * @param {Object} user user 对象
          */
     setUserInfo (state, userInfo) {
+        userInfo.isAdmin = userInfo.isScretary
         state.userInfo = userInfo
     }
 }
