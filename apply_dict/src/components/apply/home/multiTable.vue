@@ -228,6 +228,9 @@
                     this.successApply.push(this.allSuccessApply[i])
                 }
                 this.pagination.count = this.allSuccessApply.length
+                this.selected = {
+                    selectedRows: []
+                }
             },
             handlePageLimitChange () { // 修改每页多少条数据触发函数
                 this.pagination.limit = arguments[0]

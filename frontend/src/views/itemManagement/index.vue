@@ -1,11 +1,12 @@
 <template>
     <div class="itemManagement-wrapper">
         <div class="header">
-            <bk-divider align="left"
-            ><bk-tag type="filled" style="font-size: 13px"
-            ><span>物品管理</span></bk-tag
-            ></bk-divider
-            >
+            <bk-divider align="left">
+                <bk-tag
+                    type="filled"
+                    style="font-size: 13px"
+                ><span>物品管理</span></bk-tag>
+            </bk-divider>
         </div>
         <div class="header-wrapper">
             <div class="fun-bar">
@@ -30,7 +31,11 @@
                     style="width: 200px"
                     searchable
                 >
-                    <bk-option :key="0" :id="0" :name="'全部'"> </bk-option>
+                    <bk-option
+                        :key="0"
+                        :id="0"
+                        :name="'全部'"
+                    > </bk-option>
                     <bk-option
                         v-for="goodType in goodTypeList"
                         :key="goodType.id"
@@ -53,12 +58,11 @@
                 :theme="'primary'"
                 :title="'添加按钮'"
                 class="mr10 add-btn"
-                @click="clickAddGood"
+                @click="$router.push({ name: 'itemCreateUpdate', query: { action: 'create' } })"
             >
                 添加
             </bk-button>
         </div>
-        <manage-form ref="manageForm" @formGetGoodInfo="getGoodInfo"></manage-form>
         <div
             class="goods-info-load"
             v-bkloading="{
@@ -98,24 +102,28 @@
                     label="物品类型"
                     prop="good_tye_name"
                 ></bk-table-column>
-                <bk-table-column label="参考价" prop="price"></bk-table-column>
-                <bk-table-column label="操作" width="150">
+                <bk-table-column
+                    label="参考价"
+                    prop="price"
+                ></bk-table-column>
+                <bk-table-column
+                    label="操作"
+                    width="150"
+                >
                     <template slot-scope="props">
                         <bk-button
                             class="mr10"
                             theme="primary"
                             text
                             :disabled="props.row.status === '创建中'"
-                            @click="clickEditGood(props.row)"
-                        >编辑</bk-button
-                        >
+                            @click="$router.push({ name: 'itemCreateUpdate', query: { action: 'update', row_id: props.row.id } })"
+                        >编辑</bk-button>
                         <bk-button
                             class="mr10"
                             theme="primary"
                             text
                             @click="clickDownGood(props.row)"
-                        >下架</bk-button
-                        >
+                        >下架</bk-button>
                     </template>
                 </bk-table-column>
             </bk-table>
@@ -125,12 +133,10 @@
 
 <script>
     import {
-        GET_GOOD_DETAIL_URL, GET_GOOD_LIST_URL, GET_GOOD_TYPE_LIST_URL, GET_GOOD_CODE_LIST_URL, ADD_GOOD_URL,
-        UPDATE_GOOD_URL, DOWN_GOOD_URL, UPLOAD_IMG_URL, ADD_GOOD_TYPE_URL, DEL_PICS_URL
+        GET_GOOD_LIST_URL, GET_GOOD_TYPE_LIST_URL,
+        GET_GOOD_CODE_LIST_URL, DOWN_GOOD_URL
     } from '@/pattern'
-    import ManageForm from '@/components/item/manage/manageForm.vue'
     export default {
-        components: { ManageForm },
         data () {
             return {
                 unSubmitSearch: {
@@ -156,10 +162,7 @@
                 // 物品类型信息
                 getGoodsFlag: true,
                 isGoodTypesLoad: true,
-                // 物品添加/编辑dialog
-                currentGoodId: 0,
-                goodsCodeList: [],
-                del_pics: []
+                goodsCodeList: []
             }
         },
         created () {
@@ -168,7 +171,6 @@
             this.getGoodCodeList()
         },
         methods: {
-
             // 后端请求函数
             getGoods () {
                 this.isGoodsInfoLoad = true
@@ -228,104 +230,6 @@
             },
             searchCodeSelect (value, option) {
                 this.unSubmitSearch.goodCode = this.goodsCodeList[value].name
-                console.log('this.unSubmitSearch.goodCode == ', this.unSubmitSearch.goodCode)
-            },
-            getGoodInfo (goodId) {
-                this.$http.get(GET_GOOD_DETAIL_URL, {
-                    params: {
-                        good_id: goodId
-                    }
-                }).then(res => {
-                    if (res.result) {
-                        this.goodFormData.good_code = res.data.good_code
-                        this.goodFormData.good_name = res.data.good_name
-                        this.goodFormData.good_type_id = res.data.good_type_id
-                        this.goodFormData.price = res.data.price
-                        // 处理图片
-                        const picfiles = []
-                        res.data.pics.forEach(url => {
-                            // 避免出现空字符串
-                            if (url.length !== 0) {
-                                const pic = {
-                                    'name': url.split('/')[1],
-                                    'url': url
-                                }
-                                picfiles.push(pic)
-                            }
-                        })
-                        this.goodFormData.pics = picfiles
-                        this.goodFormData.remark = res.data.remark
-                        this.goodFormData.specifications = res.data.specifications
-                        this.goodFormData.introduce = res.data.introduce
-                    }
-                })
-            },
-            dealGoodPics () {
-                // 处理提交表单前的图片路径
-                let picUrls = []
-                this.goodFormData.pics.forEach(pic => {
-                    picUrls.push(pic.url)
-                })
-                picUrls = picUrls.join(';')
-                return picUrls
-            },
-            addGood () {
-                const formData = JSON.parse(JSON.stringify(this.goodFormData))
-                const picUrls = this.dealGoodPics()
-                formData.pics = picUrls
-                this.$http.post(ADD_GOOD_URL, formData).then(res => {
-                    const config = {
-                        'offsetY': 80,
-                        'delay': 2000
-                    }
-                    if (res.result) {
-                        config.theme = 'success'
-                        config.message = '添加物品成功'
-                        this.$bkMessage(config)
-                        // 添加成功，重新初始化页面
-                        this.getGoods()
-                        // 清空dialog
-                        this.goodFormData = {
-                            good_code: '',
-                            good_name: '',
-                            good_type_id: '',
-                            price: 0,
-                            pics: [],
-                            remark: '',
-                            introduce: '',
-                            specifications: ''
-                        }
-                        this.goodDialog.visiable = false
-                    } else {
-                        config.theme = 'error'
-                        config.message = res.message
-                        this.$bkMessage(config)
-                    }
-                })
-            },
-            updateGood () {
-                const formData = JSON.parse(JSON.stringify(this.goodFormData))
-                const picUrls = this.dealGoodPics()
-                formData.pics = picUrls
-                formData.id = this.currentGoodId
-                this.$http.post(UPDATE_GOOD_URL, formData).then(res => {
-                    const config = {
-                        'offsetY': 80,
-                        'delay': 2000
-                    }
-                    if (res.result) {
-                        config.theme = 'success'
-                        config.message = '编辑物品信息成功'
-                        this.$bkMessage(config)
-                        // 编辑成功，重新初始化页面
-                        this.getGoods()
-                        this.goodDialog.visiable = false
-                    } else {
-                        config.theme = 'error'
-                        config.message = res.message
-                        this.$bkMessage(config)
-                    }
-                })
             },
             // 下架物品
             downGood (goodId) {
@@ -342,100 +246,9 @@
                         this.getGoods()
                     } else {
                         // 可以省略，没有错误信息
-                        console.log(res.message)
-                        // config.theme = 'error'
-                        // config.message = res.message
-                        // this.$bkMessage(config)
+                        console.error(res.message)
                     }
                 })
-            },
-            getBase64 (file) {
-                return new Promise(function (resolve, reject) {
-                    const reader = new FileReader()
-                    let imgResult = ''
-                    reader.readAsDataURL(file)
-                    reader.onload = function () {
-                        imgResult = reader.result
-                    }
-                    reader.onerror = function (error) {
-                        reject(error)
-                    }
-                    reader.onloadend = function () {
-                        resolve(imgResult)
-                    }
-                })
-            },
-            uploadImg (files) {
-                console.log('files:', files.fileObj)
-                this.getBase64(files.fileObj.origin).then(res => {
-                    const fileType = files.fileObj.name.split('.')[1]
-                    const fileData = res.split(',')[1]
-                    this.$http.post(UPLOAD_IMG_URL, { img: fileData, img_type: fileType }).then(res => {
-                        if (res.result) {
-                            const picUrl = res.data.pic_url
-                            // console.log('picUrl:', picUrl)
-                            const pic = {
-                                'name': picUrl.split('/')[1],
-                                'url': picUrl
-                            }
-                            this.goodFormData.pics.push(pic)
-                            return true
-                        }
-                    })
-                }).catch(() => {
-                    console.log('文件解析失败')
-                    return false
-                })
-            },
-            handleUploadImage (event, insertImage, files) {
-                console.log('mdupload', files)
-                files.forEach(file => {
-                    this.getBase64(file).then(res => {
-                        const fileType = file.name.split('.')[1]
-                        const fileData = res.split(',')[1]
-                        this.$http.post(UPLOAD_IMG_URL, { img: fileData, img_type: fileType }).then(res => {
-                            if (res.result) {
-                                insertImage({
-                                    url: res.data.pic_url
-                                })
-                            }
-                        })
-                    })
-                })
-            },
-            addGoodType () {
-                this.$http.post(ADD_GOOD_TYPE_URL, { type_name: this.addGoodTypeDialog.typeName }).then(res => {
-                    const config = {
-                        'offsetY': 80
-                    }
-                    if (res.result) {
-                        config.theme = 'success'
-                        config.message = '添加物品类型成功'
-                        this.$bkMessage(config)
-                        // 重新获取物品类型
-                        this.getGoodTypes()
-                        // 清空输入栏
-                        this.addGoodTypeDialog.typeName = ''
-                        this.goodFormData.good_type_id = res.data.id
-                        this.addGoodTypeDialog.visiable = false
-                    } else {
-                        config.theme = 'error'
-                        config.message = res.message
-                        this.$bkMessage(config)
-                    }
-                })
-            },
-            submitAddGoodType () {
-                this.addGoodType()
-            },
-            deleteImg (file, fileList) {
-                this.goodFormData.pics = fileList
-                const picUrl = file.url
-                this.del_pics.push(picUrl.split('/')[picUrl.split('/').length - 2] + '\\' + picUrl.split('/')[picUrl.split('/').length - 1])
-            },
-            cancelGoodDialog () {
-                this.goodDialog.visiable = false
-                this.del_pics = []
             },
             // 操作事件
             searchGoodsInfo () {
@@ -443,12 +256,6 @@
                 this.submitSearchInput.goodName = this.unSubmitSearch.goodName
                 this.submitSearchInput.goodTypeId = this.unSubmitSearch.goodTypeId
                 this.getGoods()
-            },
-            clickAddGood () {
-                this.$refs.manageForm.clickAddGood()
-            },
-            clickEditGood (row) {
-                this.$refs.manageForm.clickEditGood(row)
             },
             clickDownGood (row) {
                 this.$bkInfo({
@@ -461,37 +268,9 @@
                     }
                 })
             },
-            submitAddOrUpdateGood () {
-                // 校验表单
-                this.$refs.checkForm.validate().then(validator => {
-                    // 添加物品点击确认
-                    if (this.goodDialog.typeIndex === 0) {
-                        this.addGood()
-                    } else {
-                        // 编辑物品点击确认
-                        this.updateGood()
-                    }
-                    const delForm = this.del_pics
-                    if (this.del_pics.length !== 0) {
-                        this.$http.post(DEL_PICS_URL, delForm).then(res => {
-
-                        })
-                    }
-                    this.del_pics = []
-                }, validator => {
-                    // 验证失败
-                    this.$bkMessage({
-                        offsetY: 100,
-                        theme: 'error',
-                        delay: 2000,
-                        message: validator.content
-                    })
-                })
-            },
             handlePageLimitChange () {
                 // 点击切换选择数据条数
                 this.goodsInfo.pagination.limit = arguments[0]
-                // console.log('handlePageLimitChange', arguments)
                 this.getGoods()
             },
             toggleTableSize () {
@@ -503,9 +282,6 @@
                 // 点击切换页数
                 this.goodsInfo.pagination.current = page
                 this.getGoods()
-            },
-            refresh () {
-                this.$router.go(0)
             }
         }
     }
@@ -514,8 +290,8 @@
 <style scoped lang="postcss">
     @import "./index.css";
     /* .title-wapper{
-        margin-top: 10px;
-    } */
+                    margin-top: 10px;
+                } */
     .header-wrapper {
         display: flex;
         flex-wrap: wrap;
