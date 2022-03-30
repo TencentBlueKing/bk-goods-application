@@ -20,7 +20,9 @@ from xlrd import xldate_as_tuple
 
 @require_POST
 def analysis_apply_excel(request):
-    def handle_excel_data(rows, CANNOT_APPLY):  # 处理传入的列表数据，判断是否加入部门所需物资表
+    """解析excel文件数据"""
+    def handle_excel_data(rows, CANNOT_APPLY):
+        """处理传入的列表数据，判断是否加入部门所需物资表"""
         validated_list = []  # 存放GroupApply对象
         for row_index, row in enumerate(rows):
             if row_index == 0:  # 标题行
