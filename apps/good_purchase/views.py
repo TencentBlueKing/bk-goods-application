@@ -339,11 +339,10 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
         """
         # 获取params
         username = request.user.username
-        req = request.data
-        form = req.get('form', None)
-        page_limit = int(req.get('pageLimit', 10))
-        page = int(req.get('page', 1))
-        id_list = req.get('idList', None)
+        form = request.GET.get('form', None)
+        page_limit = int(request.GET.get('pageLimit', 10))
+        page = int(request.GET.get('page', 1))
+        id_list = request.GET.get('idList', None)
 
         personal_serializer = personalSerializer(data={
             "username": username
@@ -357,7 +356,7 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
         unnecessary_goods = []  # 用于记录被过滤掉的物品
 
         # 获取form的内容
-        form = request.data
+        form = json.loads(form)
         name = form.get('name')
         code = form.get('code')
         location = form.get('city')
