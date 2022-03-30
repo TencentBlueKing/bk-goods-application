@@ -101,8 +101,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
         req = request.data
         username = request.user.username
         apply_list = req.get('apply_list')
-        # flag, leader_or_secretary = is_leader_or_secretary(request)
-        flag, leader_or_secretary = (True, 0)
+        flag, leader_or_secretary = is_leader_or_secretary(request)
         apply_status = 1
         if leader_or_secretary == 0:
             apply_status = 3
