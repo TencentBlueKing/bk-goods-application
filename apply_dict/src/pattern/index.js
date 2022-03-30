@@ -13,5 +13,5 @@ export const commitApplyUrl = '/apply/submit_apply_list/' // 提交申请接口
 export const deriveExcelUrl = '/derive_excel' // 导出数据接口
 export const getGoodApplyListUrl = '/apply/get_self_good_apply_list/' // 获取申请列表接口
 export const editApplyUrl = '/apply/update_good_apply/' // 更新apply信息
-export const deleteApplyUrl = '/apply/delete_good_apply/' // 删除apply
+export const deleteApplyUrl = 'delete_good_apply/' // 删除apply
 export const getApplyStatusUrl = '/apply/get_apply_status/' // 获取所有申请状态
