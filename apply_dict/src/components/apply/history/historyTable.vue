@@ -35,10 +35,9 @@
             :pagination="pagination"
             @select="selectRow"
             @select-all="selectAll"
-            @row-mouse-enter="handleRowMouseEnter"
-            @row-mouse-leave="handleRowMouseLeave"
             @page-change="handlePageChange"
             @page-limit-change="handlePageLimitChange"
+            style="margin-top:10px"
         >
             <bk-table-column
                 type="selection"
@@ -46,13 +45,32 @@
             ></bk-table-column>
             <bk-table-column
                 label="物品名称"
-                prop="good_name"
                 width="150"
-            ></bk-table-column>
+            >
+                <template slot-scope="props">
+                    <bk-input
+                        v-model="props.row.good_name"
+                        v-if="editId === props.row.id"
+                    ></bk-input>
+                    <div v-else>
+                        {{props.row.good_name}}
+                    </div>
+                </template>
+            </bk-table-column>
             <bk-table-column
                 label="物品编码"
-                prop="good_code"
-            ></bk-table-column>
+                width="150"
+            >
+                <template slot-scope="props">
+                    <bk-input
+                        v-model="props.row.good_code"
+                        v-if="editId === props.row.id"
+                    ></bk-input>
+                    <div v-else>
+                        {{props.row.good_code}}
+                    </div>
+                </template>
+            </bk-table-column>
             <bk-table-column
                 label="申请时间"
                 prop="create_time"
@@ -60,13 +78,32 @@
             ></bk-table-column>
             <bk-table-column
                 label="数量"
-                prop="num"
-                width="55"
-            ></bk-table-column>
-            <bk-table-column
-                label="申请原因"
-                prop="reason"
-            ></bk-table-column>
+                width="100"
+            >
+                <template slot-scope="props">
+                    <bk-input
+                        v-model="props.row.num"
+                        v-if="editId === props.row.id"
+                        type="number"
+                        :precision="0"
+                        :min="1"
+                    ></bk-input>
+                    <div v-else>
+                        {{props.row.num}}
+                    </div>
+                </template>
+            </bk-table-column>
+            <bk-table-column label="申请原因">
+                <template slot-scope="props">
+                    <bk-input
+                        v-model="props.row.reason"
+                        v-if="editId === props.row.id"
+                    ></bk-input>
+                    <div v-else>
+                        {{props.row.reason}}
+                    </div>
+                </template>
+            </bk-table-column>
             <bk-table-column
                 label="状态"
                 prop="status"
@@ -79,9 +116,11 @@
             ></bk-table-column>
             <bk-table-column
                 label="审核日期"
-                prop="review_time"
                 width="180"
             >
+                <template slot-scope="props">
+                    {{moment(props.row.review_time).format('YYYY-MM-DD HH:mm:ss')}}
+                </template>
             </bk-table-column>
             <bk-table-column
                 label="备注"
@@ -90,22 +129,36 @@
             <bk-table-column
                 label="操作"
                 width="150"
+                fixed="right"
             >
                 <template slot-scope="props">
                     <bk-button
                         class="mr10"
                         theme="primary"
                         text
-                        @click="edit(props.row)"
+                        @click="clickEdit(props.row)"
                         :disabled="props.row.status !== '导员审核中'"
                     >编辑</bk-button>
                     <bk-button
                         class="mr10"
                         theme="primary"
                         text
-                        @click="destroy(props.row)"
-                        :disabled="props.row.status === '管理员审核中'"
-                    >删除</bk-button>
+                        @click="confirmEdit(props.row)"
+                        v-if="editId === props.row.id"
+                    >保存</bk-button>
+                    <bk-popconfirm
+                        content="确定删除记录？"
+                        width="280"
+                        @confirm="confirmDelete(props.row)"
+                        trigger="click"
+                    >
+                        <bk-button
+                            :disabled="props.row.status === '管理员审核中'"
+                            class="mr10"
+                            theme="primary"
+                            text
+                        >删除</bk-button>
+                    </bk-popconfirm>
                 </template>
             </bk-table-column>
         </bk-table>
@@ -114,7 +167,7 @@
 
 <script>
     import {
-        deriveExcelUrl, getGoodApplyListUrl
+        deriveExcelUrl, getGoodApplyListUrl, editApplyUrl, deleteApplyUrl
     } from '@/pattern'
     export default {
         data () {
@@ -138,7 +191,8 @@
                     count: 10,
                     limit: 10
                 },
-                isDropdownShow: false
+                isDropdownShow: false,
+                editId: null
             }
         },
         created () {
@@ -146,15 +200,18 @@
         },
         methods: {
             getGoodApplyList () {
-                this.$http.post(getGoodApplyListUrl, {
-                    start_time: this.getParams.start_time,
-                    end_time: this.getParams.end_time,
-                    good_code: this.getParams.good_code,
-                    good_name: this.getParams.good_name,
-                    reason: this.getParams.reason,
-                    status: this.getParams.status,
-                    page: this.getParams.page,
-                    size: this.getParams.size
+                this.editId = null
+                this.$http.get(getGoodApplyListUrl, {
+                    params: {
+                        start_time: this.getParams.start_time,
+                        end_time: this.getParams.end_time,
+                        good_code: this.getParams.good_code,
+                        good_name: this.getParams.good_name,
+                        reason: this.getParams.reason,
+                        status: this.getParams.status,
+                        page: this.getParams.page,
+                        size: this.getParams.size
+                    }
                 }).then(res => {
                     this.history = res.data.apply_list
                     this.pagination.count = res.data.total_num
@@ -230,11 +287,30 @@
                     }
                 }
             },
-            edit (row) {
-                this.$emit('edit', row)
+            clickEdit (row) {
+                this.editId = row.id
             },
-            destroy (row) {
-                this.$emit('destroy', row)
+            confirmEdit (row) {
+                this.$http.patch(editApplyUrl, {
+                    id: row.id,
+                    good_code: row.good_code,
+                    good_name: row.good_name,
+                    num: row.num,
+                    reason: row.reason
+                }).then(res => {
+                    if (res.result === true) {
+                        this.handleError({ theme: 'success' }, res.message)
+                        this.getGoodApplyList()
+                    }
+                })
+            },
+            confirmDelete (row) {
+                this.$http.delete(`/apply/${row.id}/${deleteApplyUrl}`).then(res => {
+                    if (res.result === true) {
+                        this.handleError({ theme: 'success' }, res.message)
+                        this.getGoodApplyList()
+                    }
+                })
             },
             handlePageLimitChange () { // 修改每页多少条数据触发函数
                 this.pagination.limit = arguments[0]

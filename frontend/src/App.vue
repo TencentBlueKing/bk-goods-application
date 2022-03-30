@@ -144,7 +144,7 @@
             }
         },
         mounted () {
-            this.header.list[1].show = this.userInfo.isScretary // 是管理员则显示该栏目；否则不显示
+            this.header.list[1].show = this.userInfo.isAdmin // 是管理员则显示该栏目；否则不显示
             const self = this
             // 设置购物车图标父级定位
             document.querySelector('.main-content').setAttribute('style', '')

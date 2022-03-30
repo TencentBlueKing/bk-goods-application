@@ -454,9 +454,10 @@ class GoodViewSet(viewsets.ModelViewSet):
     @action(methods=['GET'], detail=False)
     def get_good_detail(self, request):
         """
-              根据商品id获取商品详情信息
-              """
-        good_id = request.GET.get("good_id", 0)
+          根据商品id获取商品详情信息
+          """
+        req_data = request.GET
+        good_id = req_data.get("good_id", 0)
         # 校验参数
         if not check_param_id(good_id):
             raise BusinessException(StatusEnums. GOODID_ERROR)

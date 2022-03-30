@@ -6,7 +6,7 @@ def get_result(data: dict) -> dict:
     统一api返回格式
     """
     result = {
-        "code": 0,
+        "code": 200,
         "result": True,
         "message": "OK",
         "data": {}
@@ -22,17 +22,14 @@ def get_result(data: dict) -> dict:
             result["message"] = data["message"]
     return JsonResponse(result)
 
+
 def success_code(data):
     return {
-        "code": "200",
+        "code": 200,
         "result": True,
         "message": "success",
         "data": data,
     }
-
-
-
-
 
 
 def get_cart_result(data: list, source: str) -> list:

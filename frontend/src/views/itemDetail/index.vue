@@ -185,7 +185,7 @@
         },
         created () {
             this.curUsername = this.userInfo.username
-            this.isAdmin = this.userInfo.isScretary
+            this.isAdmin = this.userInfo.isAdmin
             if (this.$route.query.goodId === undefined || this.$route.query.goodId === null) {
                 this.$bkMessage({
                     message: '物品ID获取失败',
