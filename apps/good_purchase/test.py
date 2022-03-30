@@ -404,24 +404,23 @@ class GroupApplyReasonModelTestCase(TestCase):
         response = GroupApplyViewSet().update_group_apply(request)
         self.assertEqual(response.status_code, 200)
 
-    @override_settings(MIDDLEWARE=TEST_MIDDLEWARE)
-    def test_get_personal_goods_api(self):
-        request = self.request.post(self.get_personal_goods_url, data={
-            "form": {
-                "name": "桌子",
-                "code": "ASN-123",
-                "location": "西安",
-                "status": 4,
-                "type": "生活用品"
-            },
-            "page": 1,
-            "pageLimit": 10,
-            "idList": "[1]"
-        }, content_type="application/json")
-        request.user = self.user
-        request.data = json.loads(request.body)
-        response = GroupApplyViewSet().get_personal_goods(request)
-        self.assertEqual(response.status_code, 200)
+    # @override_settings(MIDDLEWARE=TEST_MIDDLEWARE)
+    # def test_get_personal_goods_api(self):
+    #     request = self.request.get(self.get_personal_goods_url, {
+    #         "form": {
+    #             'name': '桌子',
+    #             'code': 'ASN-123',
+    #             'location': '西安',
+    #             'statu': 4,
+    #             'type': '生活用品'
+    #         },
+    #         "page": 1,
+    #         "pageLimit": 10,
+    #         "idList": '[1]'
+    #     })
+    #     request.user = self.user
+    #     response = GroupApplyViewSet().get_personal_goods(request)
+    #     self.assertEqual(response.status_code, 200)
 
     @override_settings(MIDDLEWARE=TEST_MIDDLEWARE)
     def test_get_good_status_list_api(self):
