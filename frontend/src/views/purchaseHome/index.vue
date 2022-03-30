@@ -1,13 +1,18 @@
 <template>
     <div class="index-wrapper">
         <div class="header">
-            <bk-divider align="left"
-            ><bk-tag type="filled" style="font-size: 13px"
-            ><span>首页</span></bk-tag
-            ></bk-divider
-            >
+            <bk-divider align="left">
+                <bk-tag
+                    type="filled"
+                    style="font-size: 13px"
+                ><span>首页</span></bk-tag>
+            </bk-divider>
         </div>
-        <div class="toCarTab" @click="toShoppingCar" v-if="!isAdmin">
+        <div
+            class="toCarTab"
+            @click="toShoppingCar"
+            v-if="!isAdmin"
+        >
             <svg
                 t="1641539862015"
                 class="icon"
@@ -25,74 +30,20 @@
             </svg>
         </div>
         <div class="search">
-            <div class="returnIndex" v-if="showReturn">
-                <bk-link
-                    theme="default"
-                    icon="bk-icon icon-angle-double-left"
-                    @click="toIndex"
-                    style="display: inline"
-                >返回初始页面</bk-link
-                >
-            </div>
-            <bk-input
+            <el-autocomplete
                 v-model="searchContent"
-                :clearable="false"
-                :font-size="'medium'"
-                size="large"
-                @keypress.native.enter="search"
+                :fetch-suggestions="querySearch"
+                placeholder="请输入内容"
+                style="width:90%"
+                value-key="type_name"
             >
-                <bk-dropdown-menu
-                    class="group-text"
-                    @show="dropdownShow"
-                    @hide="dropdownHide"
-                    ref="dropdown"
-                    slot="prepend"
-                    :font-size="'medium'"
-                >
-                    <bk-button
-                        type="primary"
-                        slot="dropdown-trigger"
-                        class="selectType"
-                    >
-                        <span>{{ type.type_name }}</span>
-                        <span v-if="!type">所有类型</span>
-                        <i
-                            :class="[
-                                'bk-icon icon-angle-down',
-                                { 'icon-flip': isDropdownShow }
-                            ]"
-                        ></i>
-                    </bk-button>
-                    <ul class="bk-dropdown-list" slot="dropdown-content">
-                        <li>
-                            <a
-                                href="javascript:;"
-                                v-for="(item, index) in typeList"
-                                :key="index"
-                                @click="triggerHandler(item)"
-                            >{{ item.type_name }}</a
-                            >
-                        </li>
-                    </ul>
-                </bk-dropdown-menu>
-                <template slot="append">
-                    <bk-button
-                        theme="primary"
-                        title="search"
-                        :outline="true"
-                        class="group-text"
-                        :text="true"
-                        @click="search"
-                    >
-                        <bk-icon type="search" />
-                    </bk-button>
-                </template>
-            </bk-input>
+                <el-button slot="append" icon="el-icon-search" @click="search"></el-button>
+            </el-autocomplete>
         </div>
-        <!-- <div class="banner" v-if="!showReturn">
-            <bk-swiper :pics="bannerPics" height="270" width="900" :is-loop="true" class="swiper"></bk-swiper>
-        </div> -->
-        <div class="exception-wrap" v-if="showEmpty">
+        <div
+            class="exception-wrap"
+            v-if="showEmpty"
+        >
             <bk-exception
                 class="exception-wrap-item exception-part"
                 type="search-empty"
@@ -108,7 +59,10 @@
                 :key="index"
                 @click="toDetail(item.id)"
             >
-                <bk-card :show-head="false" class="bkCard">
+                <bk-card
+                    :show-head="false"
+                    class="bkCard"
+                >
                     <img
                         :src="item.pics"
                         alt=""
@@ -134,8 +88,14 @@
                         <div style="color: orange">{{ item.price }}</div>
                     </div>
                     <p>{{ item.cn_status }}</p>
-                    <div class="replace-addButton" v-if="isAdmin"></div>
-                    <div class="addButton" v-if="!isAdmin">
+                    <div
+                        class="replace-addButton"
+                        v-if="isAdmin"
+                    ></div>
+                    <div
+                        class="addButton"
+                        v-if="!isAdmin"
+                    >
                         <bk-button
                             theme="primary"
                             title="search"
@@ -174,7 +134,7 @@
             return {
                 username: '', // 用户名
                 isAdmin: false, // 是否是管理员
-                typeList: {}, // 种类列表
+                typeList: [], // 种类列表
                 type: '', // 种类
                 lastType: '', // 存放上一类型
                 bannerNum: 6, // 轮播图数量
@@ -227,11 +187,6 @@
             getTypes () { // 获取所有商品类型
                 this.$http.get(GET_GOOD_TYPE_LIST_URL).then(res => {
                     if (res && res.result === true) { // 判空
-                        // eslint-disable-next-line no-new-object
-                        const allTypes = new Object()
-                        allTypes.id = 0
-                        allTypes.type_name = '所有类型'
-                        res.data.unshift(allTypes) // 加入所有类型选项
                         this.typeList = res.data // 给类型列表赋值
                     } else if (res && res.result === false) {
                         this.handleError({ theme: 'error' }, res.message)
@@ -241,9 +196,6 @@
                 })
             },
             getGoods () { // 获取指定商品信息
-                // if (this.lastType !== this.type) {
-                //     this.paramPage = 1
-                // }
                 if (this.showReturn === 0) {
                     this.pageSize = 8
                 } else {
@@ -336,8 +288,14 @@
             toShoppingCar () {
                 this.$router.push({ path: 'shoppingCart' })
             },
-            refresh () {
-                this.$router.go(0)
+            querySearch (queryString, cb) {
+                const results = queryString ? this.typeList.filter(this.createFilter(queryString)) : this.typeList
+                cb(results)
+            },
+            createFilter (queryString) {
+                return (typeList) => {
+                    return (typeList.type_name.toLowerCase().indexOf(queryString.toLowerCase()) === 0)
+                }
             }
         }
     }

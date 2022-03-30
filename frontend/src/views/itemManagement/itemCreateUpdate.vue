@@ -503,7 +503,7 @@
 </script>
 <style lang="postcss" scoped>
     .form-manage {
-        padding: 20px 20px 20px 20px;
+        padding: 20px;
         overflow: auto;
         width: 100%;
         height: 100%;
