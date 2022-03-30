@@ -1,22 +1,25 @@
 <template>
     <div class="personalGoods-wrapper">
         <div class="header">
-            <bk-divider align="left"
-            ><bk-tag type="filled" style="font-size: 13px"
-            ><span>个人物资查询</span></bk-tag
-            ></bk-divider
-            >
+            <bk-divider align="left">
+                <bk-tag
+                    type="filled"
+                    style="font-size: 13px"
+                ><span>个人物资查询</span></bk-tag>
+            </bk-divider>
         </div>
-        <!-- <div class="breadCrumb">
-            <bk-breadcrumb>
-                <bk-breadcrumb-item v-for="(item,index) in navList" :key="index" :to="item.link">{{item.title}}</bk-breadcrumb-item>
-            </bk-breadcrumb>
-        </div> -->
         <div class="conditions">
-            <bk-form :label-width="200" form-type="vertical">
-                <bk-container :col="19" :gutter="8">
+            <bk-form
+                :label-width="200"
+                form-type="vertical"
+                style="width:80%"
+            >
+                <bk-container
+                    :col="12"
+                    :gutter="4"
+                >
                     <bk-row style="margin-bottom: 10px">
-                        <bk-col :span="5">
+                        <bk-col :span="4">
                             <div class="goodCode">
                                 <bk-form-item label="物资编码">
                                     <bk-input
@@ -26,7 +29,7 @@
                                 </bk-form-item>
                             </div>
                         </bk-col>
-                        <bk-col :span="5">
+                        <bk-col :span="4">
                             <div class="goodName">
                                 <bk-form-item label="物品名称">
                                     <bk-input
@@ -36,7 +39,7 @@
                                 </bk-form-item>
                             </div>
                         </bk-col>
-                        <bk-col :span="5">
+                        <bk-col :span="4">
                             <div class="goodLocation">
                                 <bk-form-item label="省级地区">
                                     <bk-select
@@ -64,38 +67,9 @@
                                 </bk-form-item>
                             </div>
                         </bk-col>
-                        <bk-col :span="2">
-                            <div class="search">
-                                <bk-form-item class="mt20">
-                                    <bk-button
-                                        style="margin-top: 13px"
-                                        :theme="'primary'"
-                                        title="查询"
-                                        :outline="true"
-                                        @click="search"
-                                    >查询数据</bk-button
-                                    >
-                                </bk-form-item>
-                            </div>
-                        </bk-col>
-                        <bk-col :span="2">
-                            <div class="output">
-                                <bk-form-item class="mt20">
-                                    <bk-button
-                                        style="margin-top: 13px"
-                                        :theme="'success'"
-                                        title="导出数据"
-                                        :outline="true"
-                                        @click="deriveExcel"
-                                    >
-                                        导出数据
-                                    </bk-button>
-                                </bk-form-item>
-                            </div>
-                        </bk-col>
                     </bk-row>
                     <bk-row style="margin-bottom: 10px">
-                        <bk-col :span="5">
+                        <bk-col :span="4">
                             <div class="goodTypes">
                                 <bk-form-item label="物品类型">
                                     <bk-select
@@ -123,7 +97,7 @@
                                 </bk-form-item>
                             </div>
                         </bk-col>
-                        <bk-col :span="5">
+                        <bk-col :span="4">
                             <div class="goodStatus">
                                 <bk-form-item label="物品状态">
                                     <bk-select
@@ -151,7 +125,7 @@
                                 </bk-form-item>
                             </div>
                         </bk-col>
-                        <bk-col :span="5">
+                        <bk-col :span="4">
                             <div class="goodLocation">
                                 <bk-form-item label="市级地区">
                                     <bk-select
@@ -179,55 +153,58 @@
                                 </bk-form-item>
                             </div>
                         </bk-col>
-                        <bk-col :span="2">
-                            <div class="output">
-                                <bk-form-item class="mt20">
-                                    <bk-button
-                                        style="margin-top: 13px"
-                                        :theme="'warning'"
-                                        title="确认收货"
-                                        :outline="true"
-                                        @click="confirmReceiptDialog"
-                                    >
-                                        确认收货
-                                    </bk-button>
-                                    <bk-dialog
-                                        v-model="confirmReceiptDialogVisible"
-                                        theme="primary"
-                                        width="600"
-                                        :render-directive="'if'"
-                                        :mask-close="false"
-                                        :header-position="left"
-                                        @confirm="confirmReceipt"
-                                        :esc-close="false"
-                                        title=""
-                                    >
-                                        确认收货?
-                                    </bk-dialog>
-                                </bk-form-item>
-                            </div>
-                        </bk-col>
-                        <bk-col :span="2">
-                            <div class="return">
-                                <bk-form-item class="mt20">
-                                    <bk-button
-                                        style="margin-top: 13px"
-                                        :theme="'danger'"
-                                        title="物资退库"
-                                        :outline="true"
-                                        @click="returnGoods"
-                                    >
-                                        物资退库
-                                    </bk-button>
-                                </bk-form-item>
-                            </div>
-                        </bk-col>
                     </bk-row>
-                    <bk-row style="text-align: right"> </bk-row>
                 </bk-container>
             </bk-form>
+            <div class="search">
+                <bk-button
+                    :theme="'primary'"
+                    title="查询"
+                    :outline="true"
+                    @click="search"
+                    size="large"
+                >查询数据</bk-button>
+            </div>
         </div>
-        <div class="options"></div>
+        <div class="more-options">
+            <bk-dropdown-menu
+                @show="isDropdownShow = true"
+                @hide="isDropdownShow = false"
+                ref="dropdown"
+            >
+                <div
+                    class="dropdown-trigger-btn"
+                    style="padding-left: 19px;"
+                    slot="dropdown-trigger"
+                >
+                    <span>批量操作</span>
+                    <i :class="['bk-icon icon-angle-down',{ 'icon-flip': isDropdownShow }]"></i>
+                </div>
+                <ul
+                    class="bk-dropdown-list"
+                    slot="dropdown-content"
+                >
+                    <li>
+                        <a
+                            href="javascript:;"
+                            @click="deriveExcel"
+                        >导出数据</a>
+                    </li>
+                    <li>
+                        <a
+                            href="javascript:;"
+                            @click="confirmReceiptDialog"
+                        >确认收货</a>
+                    </li>
+                    <li>
+                        <a
+                            href="javascript:;"
+                            @click="returnGoods"
+                        >物资退库</a>
+                    </li>
+                </ul>
+            </bk-dropdown-menu>
+        </div>
         <div class="goods">
             <bk-table
                 style="margin-top: 15px"
@@ -242,7 +219,10 @@
                 @page-change="handlePageChange"
                 @page-limit-change="handlePageLimitChange"
             >
-                <bk-table-column type="selection" width="60"></bk-table-column>
+                <bk-table-column
+                    type="selection"
+                    width="60"
+                ></bk-table-column>
                 <bk-table-column
                     label="物资编码"
                     prop="good_code"
@@ -259,9 +239,25 @@
                     label="使用人"
                     prop="username"
                 ></bk-table-column>
-                <bk-table-column label="状态" prop="status"></bk-table-column>
+                <bk-table-column
+                    label="状态"
+                    prop="status"
+                ></bk-table-column>
             </bk-table>
         </div>
+        <bk-dialog
+            v-model="confirmReceiptDialogVisible"
+            theme="primary"
+            width="600"
+            :render-directive="'if'"
+            :mask-close="false"
+            :header-position="left"
+            @confirm="confirmReceipt"
+            :esc-close="false"
+            title=""
+        >
+            确认收货?
+        </bk-dialog>
     </div>
 </template>
 
@@ -313,7 +309,8 @@
                     selectedRows: []
                 }, // 存放被选中行数
                 fileCache: [], // 存放待删除excel文件名以及文件夹名,
-                confirmReceiptDialogVisible: false
+                confirmReceiptDialogVisible: false,
+                isDropdownShow: false
             }
         },
         watch: {
@@ -424,7 +421,6 @@
                     console.log('catch错误：', e)
                 }
             },
-
             getPersonalGoods () { // 获得个人物资
                 this.$http.get(GET_PERSONAL_GOODS_URL, {
                     params: {
@@ -441,7 +437,7 @@
                         this.handleError({ theme: 'error' }, res.message)
                     }
                 }).catch(err => {
-                    console.log('错误为：', err)
+                    console.error('错误为：', err)
                 })
             },
             getTypes () { // 获得物品类型
@@ -504,17 +500,18 @@
                 config.offsetY = 80
                 this.$bkMessage(config)
             },
-            search () { // 条件搜索触发函数
+            search () {
+                // 条件搜索触发函数
                 this.get_params.username = this.username
                 const form = JSON.stringify(this.formData)
                 this.get_params.form = JSON.parse(form)
-                // this.get_params.form = this.formData
                 this.pagination.current = 1
                 this.get_params.page = this.pagination.current
                 this.getPersonalGoods()
                 this.selected.selectedRows = []
             },
-            handlePageLimitChange () { // 修改每页多少条数据触发函数
+            handlePageLimitChange () {
+                // 修改每页多少条数据触发函数
                 this.pagination.limit = arguments[0]
                 this.get_params.pageLimit = this.pagination.limit
                 this.pagination.current = 1
@@ -522,7 +519,8 @@
                 this.selectedRows = []
                 this.getPersonalGoods()
             },
-            handlePageChange (page) { // 修改当前页触发函数
+            handlePageChange (page) {
+                // 修改当前页触发函数
                 this.pagination.current = page
                 this.get_params.page = this.pagination.current
                 this.getPersonalGoods()
@@ -538,6 +536,7 @@
 <style lang="postcss" scoped>
     .personalGoods-wrapper {
         overflow: hidden;
+        padding: 20px;
         .header {
             display: block;
         }
@@ -546,9 +545,18 @@
         }
         .conditions {
             width: 100%;
+            display: flex;
+            .search {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+        }
+        .more-options {
+            text-align: right;
         }
         .goods {
-            margin: 20px 10px;
+            margin-top: 10px;
         }
     }
 </style>
