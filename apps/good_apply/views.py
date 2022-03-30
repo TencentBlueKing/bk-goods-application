@@ -25,6 +25,8 @@ from apps.tools.param_check import (check_param_id, check_param_page,
                                     check_param_size, check_param_str,
                                     get_error_message)
 from apps.tools.response import get_result, success_code
+from apps.tools.tool_get_start_end import tool_get_start_end
+from apps.tools.tool_paginator import tool_paginator
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
 from blueapps.utils import get_client_by_request
@@ -189,34 +191,12 @@ class ApplyViewSet(viewsets.ModelViewSet):
             query = query & Q(position__contains=position)
 
         # 时间-范围查询
-        start_time = req_data.get('start_time')
-        end_time = req_data.get('end_time')
-
-        if start_time and end_time:
-            if not start_time <= end_time:
-                raise ValueError('开始日期不能大于结束日期')
-
-        if not start_time:
-            start_time = '1970-1-1'
-        if not end_time:
-            end_time = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-        else:
-            end_time = (datetime.datetime.strptime(end_time, "%Y-%m-%d")
-                        + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+        start_time, end_time = tool_get_start_end(req_data, 'start_time', 'end_time')
         query = query & Q(create_time__range=(start_time, end_time))
 
-        # 分页
-        page = req_data.get('page', 1)
-        page = check_param_page(page)
-        size = req_data.get('size', 10)
-        size = check_param_size(size)
+        cur_applys, total_num = tool_paginator(req_data, Apply, query, 'page', 'size')
 
-        # 查询
-        applys = Apply.objects.filter(query).order_by("-update_time")
-        paginator = Paginator(applys, size)
-        cur_applys = paginator.get_page(page)
-
-        data = {"total_num": applys.count(),
+        data = {"total_num": total_num,
                 "apply_list": [apply.to_json() for apply in cur_applys]}
         return JsonResponse(success_code(data))
 
@@ -249,21 +229,8 @@ class ApplyViewSet(viewsets.ModelViewSet):
         params = [request.user.username]
         req_data = request.GET
         # 时间-范围查询
-        start_time = req_data.get('start_time')
-        end_time = req_data.get('end_time')
-
-        if start_time and end_time:
-            if not start_time <= end_time:
-                raise ValueError('开始日期不能大于结束日期')
-
-        if not start_time:
-            start_time = '1970-1-1'
+        start_time, end_time = tool_get_start_end(req_data, 'start_time', 'end_time')
         params.append(start_time)
-        if not end_time:
-            end_time = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-        else:
-            end_time = (datetime.datetime.strptime(end_time, "%Y-%m-%d")
-                        + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
         params.append(end_time)
 
         # 物品编码、物品名、申请原因模糊查询
@@ -279,9 +246,9 @@ class ApplyViewSet(viewsets.ModelViewSet):
 
         # 审核状态查询
         status = req_data.get('status', None)
-        if status and isinstance(status, int):
-            sql_str = sql_str + 'and apply.status = {}'.format(status)
-        elif status == 0:
+        if status and isinstance(status, str):
+            status = int(status)
+        if isinstance(status, int):
             sql_str = sql_str + 'and apply.status = {}'.format(status)
 
         # 根据id查询
@@ -358,9 +325,6 @@ class ApplyViewSet(viewsets.ModelViewSet):
                 applies = Apply.objects.filter(id__in=apply_id_list)
                 applies.update(status=review_result)
                 for apply_id in apply_id_list:
-                    # apply_obj = Apply.objects.filter(id=apply_id).first()
-                    # apply_obj.status = review_result
-                    # apply_obj.save()
                     review_obj = Review(apply_id=apply_id, reviewer=username,
                                         reviewer_identity=reviewer_identity, result=2, reason=remark)
                     review_list.append(review_obj)
@@ -371,9 +335,6 @@ class ApplyViewSet(viewsets.ModelViewSet):
                 applies = Apply.objects.filter(id__in=apply_id_list)
                 applies.update(status=review_result)
                 for apply_id in apply_id_list:
-                    # apply_obj = Apply.objects.filter(id=apply_id).first()
-                    # apply_obj.status = review_result
-                    # apply_obj.save()
                     review_obj = Review(apply_id=apply_id, reviewer=username,
                                         reviewer_identity=reviewer_identity, result=1, reason=remark)
                     review_list.append(review_obj)
@@ -396,7 +357,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
         apply_serializers = ApplyPostSerializers(data=apply)
         if not apply_serializers.is_valid():
             message = get_error_message(apply_serializers)
-            return get_result({"code": 1, "result": False, "message": message})
+            return get_result({"code": 400, "result": False, "message": message})
         validated_data = apply_serializers.validated_data
         apply = {"good_code": validated_data.get('good_code'),
                  "good_name": validated_data.get('good_name'),

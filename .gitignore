@@ -562,3 +562,6 @@ personal_goods/*
 
 cart/*
 package-lock.json
+
+static/dist/*
+static/apply_dist/*

@@ -1,5 +1,4 @@
 import base64
-import json
 import os.path
 
 import xlrd
@@ -7,6 +6,9 @@ from apps.good_purchase.models import Good, GroupApply, UserInfo
 # from apps.good_purchase.serializers import GroupApplySerializers
 from apps.tools.generate_can_not_add_excel import generate_can_not_add_excel
 from apps.tools.response import get_result
+from apps.tools.tool_get_import_file import tool_get_import_file
+from apps.tools.tool_get_xls_excel_data import tool_get_xls_excel_data
+from apps.tools.tool_get_xlsx_excel_data import tool_get_xlsx_excel_data
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
 from django.views.decorators.http import require_POST
@@ -66,46 +68,25 @@ def import_cart_excel(request):
     body = request.body
     username = request.user.username
 
-    # 判空
-    body = json.loads(body)
-    if not body.get('file'):
-        raise BusinessException(StatusEnums.PARAMS_ERROR)
-
-    file = body.get('file')
-
-    # 判空
-    if not body.get('fileName'):
-        raise BusinessException(StatusEnums.PARAMS_ERROR)
-
-    file_name = body.get('fileName')
     dir_path = 'import_cart_excel'
-
-    # 检查文件夹是否存在
-    if not os.path.exists(dir_path):
-        os.makedirs(dir_path)
-
-    # 拼接文件路径
-    file_path = os.path.join(dir_path, file_name)
+    file, file_path = tool_get_import_file(body, dir_path, 'file', 'fileName')
 
     # 将file以base64格式译码
     with open(file_path, 'wb') as f:
         f.write(base64.b64decode(file))
 
     # 获取文件类型，支持xlsx于xls
-    file_Type = file_name.split('.')[-1]
+    file_type = file_path.split('/')[-1].split('.')[-1]
 
     # 存放问题数据
     CANNOT_ADD = []
     err_msg = []
-    if file_Type == 'xlsx':
+    if file_type == 'xlsx':
         xlsx = load_workbook(file_path)
         table = xlsx.worksheets[0]
-        rows = []
 
         # 取得excel文件数据
-        for i in range(1, table.max_row + 1):
-            row = [table.cell(i, index).value for index in range(1, table.max_column + 1)]
-            rows.append(row)
+        rows = tool_get_xlsx_excel_data(table)
 
         # 删除项目本地文件
         if os.path.exists(file_path):
@@ -116,14 +97,14 @@ def import_cart_excel(request):
         else:
             raise BusinessException(StatusEnums.IMPORT_FILE_EMPTY_ERROR)
 
-    elif file_Type == 'xls':
+    elif file_type == 'xls':
         xls = xlrd.open_workbook(file_path)
         table = xls.sheets()[0]
-        rows = []
 
         # 取得excel文件数据
-        for row_idx in range(table.nrows):
-            rows.append(table.row_values(row_idx))
+        # for row_idx in range(table.nrows):
+        #     rows.append(table.row_values(row_idx))
+        rows = tool_get_xls_excel_data(table)
 
         # 删除项目本地文件
         if os.path.exists(file_path):

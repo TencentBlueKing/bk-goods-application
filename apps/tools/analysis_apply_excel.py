@@ -1,6 +1,5 @@
 import base64
 import datetime
-import json
 import os
 
 import xlrd
@@ -9,6 +8,8 @@ from apps.tools.generate_can_not_apply_excel import \
     generate_can_not_apply_excel
 from apps.tools.param_check import get_error_message
 from apps.tools.response import get_result
+from apps.tools.tool_get_import_file import tool_get_import_file
+from apps.tools.tool_get_xlsx_excel_data import tool_get_xlsx_excel_data
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
 from bkstorages.backends.bkrepo import BKRepoStorage
@@ -34,10 +35,10 @@ def analysis_apply_excel(request):
             num = row[3]
             # price = row[4]
             # position = row[5]
-            if file_Type == 'xlsx':
+            if file_type == 'xlsx':
                 row[6] = row[6].date()
                 require_date = row[6]
-            elif file_Type == 'xls':
+            elif file_type == 'xls':
                 require_date = row[6]
             # standard_require_date = row[7]
             # remark = row[8]
@@ -64,26 +65,8 @@ def analysis_apply_excel(request):
     body = request.body
     username = request.user.username
 
-    # 判空
-    body = json.loads(body)
-    if not body.get('file'):
-        raise BusinessException(StatusEnums.PARAMS_ERROR)
-
-    file = body.get('file')
-
-    # 判空
-    if not body.get('fileName'):
-        raise BusinessException(StatusEnums.PARAMS_ERROR)
-
-    file_name = body.get('fileName')
     dir_path = 'analysis_apply_excel'
-
-    # 检查文件夹是否存在
-    if not os.path.exists(dir_path):
-        os.makedirs(dir_path)
-
-    # 拼接文件路径
-    file_path = os.path.join(dir_path, file_name)
+    file, file_path = tool_get_import_file(body, dir_path, 'file', 'fileName')
 
     storage = BKRepoStorage()
 
@@ -96,20 +79,17 @@ def analysis_apply_excel(request):
         storage.save(file_path, fp)
 
     # 获取文件类型，支持xlsx于xls
-    file_Type = file_name.split('.')[-1]
+    file_type = file_path.split('/')[-1].split('.')[-1]
 
     # 存放问题数据
     CANNOT_APPLY = []
     success_list = []
-    if file_Type == 'xlsx':
+    if file_type == 'xlsx':
         xlsx = load_workbook(file_path)
         table = xlsx.worksheets[0]
-        rows = []
 
         # 取得excel文件数据
-        for i in range(1, table.max_row + 1):
-            row = [table.cell(i, index).value for index in range(1, table.max_column + 1)]
-            rows.append(row)
+        rows = tool_get_xlsx_excel_data(table)
 
         # 删除项目本地文件
         if os.path.exists(file_path):
@@ -120,7 +100,7 @@ def analysis_apply_excel(request):
         else:
             raise BusinessException(StatusEnums.IMPORT_FILE_EMPTY_ERROR)
 
-    elif file_Type == 'xls':
+    elif file_type == 'xls':
         xls = xlrd.open_workbook(file_path)
         table = xls.sheets()[0]
         rows = []
