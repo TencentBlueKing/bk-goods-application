@@ -1,10 +1,26 @@
 <template>
     <div class="shopcart-wrapper">
-        <div class="header" v-if="!isAdmin">
-            <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span>购物车</span></bk-tag></bk-divider>
+        <div
+            class="header"
+            v-if="!isAdmin"
+        >
+            <bk-divider align="left">
+                <bk-tag
+                    type="filled"
+                    style="font-size: 13px"
+                ><span>购物车</span></bk-tag>
+            </bk-divider>
         </div>
-        <div class="header" v-if="isAdmin">
-            <bk-divider align="left"><bk-tag type="filled" style="font-size: 13px"><span>物资导入及申请</span></bk-tag></bk-divider>
+        <div
+            class="header"
+            v-if="isAdmin"
+        >
+            <bk-divider align="left">
+                <bk-tag
+                    type="filled"
+                    style="font-size: 13px"
+                ><span>物资导入及申请</span></bk-tag>
+            </bk-divider>
         </div>
         <div class="cart-body-wapper">
             <div class="header-wapper">
@@ -12,7 +28,10 @@
                     <span>全部物资</span>
                     <bk-tag radius="10px">{{allGoodsCount}}</bk-tag>
                 </div>
-                <div class="import-btn" v-if="isAdmin">
+                <div
+                    class="import-btn"
+                    v-if="isAdmin"
+                >
                     <bk-upload
                         :theme="'button'"
                         :with-credentials="true"
@@ -23,26 +42,66 @@
                         :limit="1"
                     ></bk-upload>
                 </div>
-                <bk-button v-if="!isAdmin" theme="primary" title="导出" class="mr10" @click="exportCart()">
+                <bk-button
+                    v-if="!isAdmin"
+                    theme="primary"
+                    title="导出"
+                    class="mr10"
+                    @click="exportCart()"
+                >
                     导出
                 </bk-button>
             </div>
             <div class="content-wapper">
-                <div class="goods-type-list" v-if="(cartList.length === 0 && isAdmin === false) || (applyCartList.length === 0 && isAdmin === true)">
+                <div
+                    class="goods-type-list"
+                    v-if="(cartList.length === 0 && isAdmin === false) || (applyCartList.length === 0 && isAdmin === true)"
+                >
                     <div class="empty-cart">
-                        <svg t="1642558051352" class="icon" viewBox="0 0 1024 1024" version="1.1" p-id="5516" width="200" height="200">
-                            <path d="M64 409l227.038-152.906A24 24 0 0 1 304.444 252h417.194a24 24 0 0 1 13.492 4.151L960 409v339c0 13.255-10.745 24-24 24H88c-13.255 0-24-10.745-24-24V409z" fill="#9F9F9F" fill-opacity=".5" p-id="5517"></path>
-                            <path d="M64 409h283.136c13.255 0 24 10.745 24 24v44.68c0 13.254 10.745 24 24 24h233.136c13.255 0 24-10.746 24-24V433c0-13.255 10.745-24 24-24H960v355a8 8 0 0 1-8 8H72a8 8 0 0 1-8-8V409z" fill="#FFFFFF" fill-opacity=".4" p-id="5518"></path>
+                        <svg
+                            t="1642558051352"
+                            class="icon"
+                            viewBox="0 0 1024 1024"
+                            version="1.1"
+                            p-id="5516"
+                            width="200"
+                            height="200"
+                        >
+                            <path
+                                d="M64 409l227.038-152.906A24 24 0 0 1 304.444 252h417.194a24 24 0 0 1 13.492 4.151L960 409v339c0 13.255-10.745 24-24 24H88c-13.255 0-24-10.745-24-24V409z"
+                                fill="#9F9F9F"
+                                fill-opacity=".5"
+                                p-id="5517"
+                            ></path>
+                            <path
+                                d="M64 409h283.136c13.255 0 24 10.745 24 24v44.68c0 13.254 10.745 24 24 24h233.136c13.255 0 24-10.746 24-24V433c0-13.255 10.745-24 24-24H960v355a8 8 0 0 1-8 8H72a8 8 0 0 1-8-8V409z"
+                                fill="#FFFFFF"
+                                fill-opacity=".4"
+                                p-id="5518"
+                            ></path>
                         </svg>
                         <div>暂无物资信息</div>
                     </div>
                 </div>
-                <div class="user" v-if="!isAdmin">
-                    <div class="goods-type-list" v-for="(item,index) in cartList" :key="index">
+                <div
+                    class="user"
+                    v-if="!isAdmin"
+                >
+                    <div
+                        class="goods-type-list"
+                        v-for="(item,index) in cartList"
+                        :key="index"
+                    >
                         <div class="type-item-wapper">
                             <div class="type-title">
                                 <bk-tag theme="info">{{item.goods_type_name}}</bk-tag>
-                                <bk-button v-if="isAdmin" theme="primary" title="申请" class="mr10" @click="submitApply(item,index)">
+                                <bk-button
+                                    v-if="isAdmin"
+                                    theme="primary"
+                                    title="申请"
+                                    class="mr10"
+                                    @click="submitApply(item,index)"
+                                >
                                     申请
                                 </bk-button>
                             </div>
@@ -58,21 +117,44 @@
                                     :header-border="false"
                                     :header-cell-style="{ background: '#fff' }"
                                 >
-                                    <bk-table-column type="selection" width="60"></bk-table-column>
-                                    <bk-table-column label="物资编码" prop="good_code"></bk-table-column>
-                                    <bk-table-column label="物资名称" prop="good_name"></bk-table-column>
-                                    <bk-table-column label="参考价格" prop="price"></bk-table-column>
+                                    <bk-table-column
+                                        type="selection"
+                                        width="60"
+                                    ></bk-table-column>
+                                    <bk-table-column
+                                        label="物资编码"
+                                        prop="good_code"
+                                    ></bk-table-column>
+                                    <bk-table-column
+                                        label="物资名称"
+                                        prop="good_name"
+                                    ></bk-table-column>
+                                    <bk-table-column
+                                        label="参考价格"
+                                        prop="price"
+                                    ></bk-table-column>
                                     <bk-table-column label="数量">
                                         <template slot-scope="props">
-                                            <bk-input @change="(value, event) => goodNumChange(value, event, props.row)"
-                                                type="number" :max="1000" :min="1"
+                                            <bk-input
+                                                @change="(value, event) => goodNumChange(value, event, props.row)"
+                                                type="number"
+                                                :max="1000"
+                                                :min="1"
                                                 v-model="props.row.num"
                                             ></bk-input>
                                         </template>
                                     </bk-table-column>
-                                    <bk-table-column label="操作" width="150">
+                                    <bk-table-column
+                                        label="操作"
+                                        width="150"
+                                    >
                                         <template slot-scope="props">
-                                            <bk-button class="mr10" theme="primary" text @click="showRemoveBox(props.row, 'table')">移除</bk-button>
+                                            <bk-button
+                                                class="mr10"
+                                                theme="primary"
+                                                text
+                                                @click="showRemoveBox(props.row, 'table')"
+                                            >移除</bk-button>
                                         </template>
                                     </bk-table-column>
                                 </bk-table>
@@ -80,12 +162,25 @@
                         </div>
                     </div>
                 </div>
-                <div class="admin" v-if="isAdmin">
-                    <div class="goods-type-list" v-for="(item,index) in applyCartList" :key="index">
+                <div
+                    class="admin"
+                    v-if="isAdmin"
+                >
+                    <div
+                        class="goods-type-list"
+                        v-for="(item,index) in applyCartList"
+                        :key="index"
+                    >
                         <div class="type-item-wapper">
                             <div class="type-title">
                                 <bk-tag theme="info">{{item.goods_type_name}}</bk-tag>
-                                <bk-button v-if="isAdmin" theme="primary" title="申请" class="mr10" @click="submitApply(item,index)">
+                                <bk-button
+                                    v-if="isAdmin"
+                                    theme="primary"
+                                    title="申请"
+                                    class="mr10"
+                                    @click="submitApply(item,index)"
+                                >
                                     申请
                                 </bk-button>
                             </div>
@@ -101,24 +196,57 @@
                                     :header-border="false"
                                     :header-cell-style="{ background: '#fff' }"
                                 >
-                                    <bk-table-column type="selection" width="60"></bk-table-column>
-                                    <bk-table-column label="物资编码" prop="good_code"></bk-table-column>
-                                    <bk-table-column label="物资名称" prop="good_name"></bk-table-column>
-                                    <bk-table-column label="参考价格" prop="price"></bk-table-column>
-                                    <bk-table-column label="使用人" prop="username"></bk-table-column>
-                                    <bk-table-column label="配送地区" prop="position"></bk-table-column>
-                                    <bk-table-column show-overflow-tooltip="true" label="备注" prop="remarks"></bk-table-column>
+                                    <bk-table-column
+                                        type="selection"
+                                        width="60"
+                                    ></bk-table-column>
+                                    <bk-table-column
+                                        label="物资编码"
+                                        prop="good_code"
+                                    ></bk-table-column>
+                                    <bk-table-column
+                                        label="物资名称"
+                                        prop="good_name"
+                                    ></bk-table-column>
+                                    <bk-table-column
+                                        label="参考价格"
+                                        prop="price"
+                                    ></bk-table-column>
+                                    <bk-table-column
+                                        label="使用人"
+                                        prop="username"
+                                    ></bk-table-column>
+                                    <bk-table-column
+                                        label="配送地区"
+                                        prop="position"
+                                    ></bk-table-column>
+                                    <bk-table-column
+                                        show-overflow-tooltip="true"
+                                        label="备注"
+                                        prop="remarks"
+                                    ></bk-table-column>
                                     <bk-table-column label="数量">
                                         <template slot-scope="props">
-                                            <bk-input @change="(value, event) => goodNumChange(value, event, props.row)"
-                                                type="number" :max="1000" :min="1"
+                                            <bk-input
+                                                @change="(value, event) => goodNumChange(value, event, props.row)"
+                                                type="number"
+                                                :max="1000"
+                                                :min="1"
                                                 v-model="props.row.num"
                                             ></bk-input>
                                         </template>
                                     </bk-table-column>
-                                    <bk-table-column label="操作" width="150">
+                                    <bk-table-column
+                                        label="操作"
+                                        width="150"
+                                    >
                                         <template slot-scope="props">
-                                            <bk-button class="mr10" theme="primary" text @click="showAdminRemoveBox(props.row)">移除</bk-button>
+                                            <bk-button
+                                                class="mr10"
+                                                theme="primary"
+                                                text
+                                                @click="showAdminRemoveBox(props.row)"
+                                            >移除</bk-button>
                                         </template>
                                     </bk-table-column>
                                 </bk-table>
@@ -246,9 +374,7 @@
         mounted () {
             this.curUsername = this.userInfo.username // 从state中获取用户名
             this.isAdmin = this.userInfo.isAdmin
-            if (this.isAdmin) {
-                this.initCartData() // 若是管理员，则加载数据
-            }
+            this.initCartData() // 若是管理员，则加载数据
         },
         updated () {
             const importDom = document.querySelector('.file-wrapper')
@@ -811,20 +937,9 @@
                             name: fileName
                         })
                         this.excelFiles = []
-                        this.handleError({ theme: 'warning' }, '3秒后刷新页面')
-                        this.sleep(3).then(() => {
-                            // const delDirPath = 'import_cart_excel' // 后台存放导入文件路径
-                            // this.$http.post(DEL_EXCEL_URL, { dirName: delDirPath, fileName: fileName, username: this.curUsername }).then(() => { // 导入后删除文件
-                            //     this.excelFiles.pop() // 如果你不想用下面的刷新页面就用这个pop 把下面的refresh删掉就行
-                            //     this.refresh()
-                            // })
-                            this.refresh()
-                        })
+                        this.$router.go(0)
                     })
                 })
-            },
-            refresh () { // 刷新页面
-                this.$router.go(0)
             },
             getBase64 (file) { // 用FileReader解析文件
                 return new Promise(function (resolve, reject) {
@@ -855,87 +970,88 @@
 </script>
 
 <style scoped lang="postcss">
-    .shopcart-wrapper{
+    .shopcart-wrapper {
         height: 100%;
         width: 76%;
         margin: 0 auto;
     }
-    .cart-body-wapper{
+    .cart-body-wapper {
         width: 100%;
         padding: 10px;
-        .header-wapper{
+        .header-wapper {
             width: 100%;
             height: 50px;
             display: flex;
-            border-bottom: 1px solid #C4C6CC;
+            border-bottom: 1px solid #c4c6cc;
             margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            .head-total-info{
+            .head-total-info {
                 line-height: 50px;
                 padding: 0 18px;
                 font-size: 16px;
                 min-width: 100px;
-                
-                span{
+
+                span {
                     font-weight: bold;
                 }
-                .bk-tag{
+                .bk-tag {
                     font-size: 14px;
                     margin: 0 !important;
                 }
             }
-            .import-btn{
+            .import-btn {
                 font-size: 24px;
                 cursor: pointer;
-                /deep/ .file-wrapper{
+                /deep/ .file-wrapper {
                     margin: 0;
                     cursor: pointer;
                 }
             }
-            .import-btn:hover{
-                color: #1768EF;
+            .import-btn:hover {
+                color: #1768ef;
             }
         }
-        .goods-type-list{
+        .goods-type-list {
             width: 100%;
             margin-bottom: 40px;
-            .empty-cart{
+            .empty-cart {
                 width: 400px;
                 margin: 140px auto 0;
                 display: flex;
                 flex-direction: column;
-                svg{
+                svg {
                     margin: 0 auto;
                 }
-                div{
+                div {
                     text-align: center;
                     font-size: 20px;
                 }
             }
-            .type-item-wapper{
+            .type-item-wapper {
                 width: 100%;
-                .type-title{
+                .type-title {
                     padding-left: 10px;
                     height: 36px;
                     line-height: 34px;
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    /deep/.bk-tag{
+                    /deep/.bk-tag {
                         font-size: 16px;
                     }
-                    .bk-button{
+                    .bk-button {
                         height: 26px;
-                        line-height: 26px;height: ;
+                        line-height: 26px;
+                        height: ;
                     }
                 }
-                .goods-item-list{
+                .goods-item-list {
                     width: 100%;
-                    .type-table{
+                    .type-table {
                         font-size: 14px;
-                        /deep/ .bk-table-row .cell .bk-input-number{
+                        /deep/ .bk-table-row .cell .bk-input-number {
                             max-width: 100px;
                             font-size: 14px;
                         }
@@ -944,22 +1060,22 @@
             }
         }
     }
-    .fun-bar-wapper{
+    .fun-bar-wapper {
         position: fixed;
         z-index: 1111;
         bottom: 85px;
-        width: calc(76% - 80px) ;
+        width: calc(76% - 80px);
         height: 60px;
-        background: #EAEBF0;
+        background: #eaebf0;
         display: flex;
         justify-content: space-between;
-        .fun-list-wapper{
+        .fun-list-wapper {
             width: calc(100% - 120px);
             height: 100%;
             display: flex;
             flex-wrap: nowrap;
             justify-content: space-between;
-            .select-fun{
+            .select-fun {
                 display: flex;
                 align-items: center;
                 padding-left: 10px;
@@ -967,33 +1083,33 @@
                     height: 100%;
                     width: 100%;
                     line-height: 60px;
-                    /deep/ .bk-checkbox-text{
+                    /deep/ .bk-checkbox-text {
                         font-size: 20px;
                         font-family: monospace;
                     }
                 }
-                .delete-btn{
+                .delete-btn {
                     font-size: 20px;
                     width: 80px;
                 }
-                .delete-btn:hover{
-                    color: #1768EF;
+                .delete-btn:hover {
+                    color: #1768ef;
                     text-decoration: underline;
                     cursor: pointer;
                 }
             }
-            .total-info{
+            .total-info {
                 display: flex;
-                .total-select{
+                .total-select {
                     font-size: 18px;
                     line-height: 60px;
                     color: #000;
                     margin-right: 20px;
-                    span{
-                        color: #1768EF;
+                    span {
+                        color: #1768ef;
                     }
                 }
-                .total-price{
+                .total-price {
                     font-size: 18px;
                     line-height: 60px;
                     color: #000;
@@ -1001,20 +1117,20 @@
                 }
             }
         }
-        .submit-btn{
+        .submit-btn {
             width: 120px;
             height: 100%;
             line-height: 60px;
-            background: #1768EF;
+            background: #1768ef;
             font-size: 24px;
             text-align: center;
             color: #fff;
             font-weight: bold;
             cursor: pointer;
         }
-        .un-submit{
+        .un-submit {
             cursor: not-allowed;
-            background: #979BA5;
+            background: #979ba5;
         }
     }
 </style>

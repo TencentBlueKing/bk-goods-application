@@ -24,6 +24,8 @@ import '@kangc/v-md-editor/lib/style/preview.css'
 import githubTheme from '@kangc/v-md-editor/lib/theme/github.js'
 import '@kangc/v-md-editor/lib/theme/style/github.css'
 import hljs from 'highlight.js'
+import ElementUI from 'element-ui'
+import 'element-ui/lib/theme-chalk/index.css'
 
 // 全量引入 bk-magic-vue
 import bkMagic from 'bk-magic-vue'
@@ -43,6 +45,7 @@ Vue.use(bkMagic)
 
 Vue.component('app-exception', Exception)
 Vue.component('app-auth', AuthComponent)
+Vue.use(ElementUI)
 
 auth.requestCurrentUser().then(user => {
     injectCSRFTokenToHeaders()

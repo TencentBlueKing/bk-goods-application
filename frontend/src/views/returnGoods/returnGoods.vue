@@ -131,7 +131,7 @@
     import {
         GET_ROOT_POSITION_LIST_URL, GET_SUB_POSITION_LIST_URL, GET_PERSONAL_GOODS_URL, WITHDRAW_REASON_URL, ADD_WITHDRAW_APPLY_URL
     } from '@/pattern'
-
+    import { mapState } from 'vuex'
     export default {
         data () {
             return {
@@ -179,6 +179,11 @@
                 FIRST: true
             }
         },
+        computed: {
+            ...mapState({
+                userInfo: state => state.user.userInfo
+            })
+        },
         watch: {
             'formData.province': function (val) { // 监听单个导入时的页面表格的校区变量
                 this.cityList = []
@@ -201,7 +206,7 @@
         },
         methods: {
             loadData () {
-                this.username = this.$store.state.user.username // 从state中获取用户名
+                this.username = this.$store.state.user.userInfo.username // 从state中获取用户名
                 this.idList = JSON.stringify(this.$route.params.idList.selectedRows)
                 this.getPersonalGoods()
                 this.getPosition()
