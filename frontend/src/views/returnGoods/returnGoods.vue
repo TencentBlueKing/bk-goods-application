@@ -12,7 +12,7 @@
                         <bk-col :span="8">
                             <div class="applicant">
                                 <bk-form-item label="申请人">
-                                    <bk-tag style="font-size: 15px">{{ username }}</bk-tag>
+                                    <bk-tag style="font-size: 15px">{{ userInfo.username }}</bk-tag>
                                 </bk-form-item>
                             </div>
                         </bk-col>
@@ -132,6 +132,8 @@
         GET_ROOT_POSITION_LIST_URL, GET_SUB_POSITION_LIST_URL, GET_PERSONAL_GOODS_URL, WITHDRAW_REASON_URL, ADD_WITHDRAW_APPLY_URL
     } from '@/pattern'
 
+    import { mapState } from 'vuex'
+
     export default {
         data () {
             return {
@@ -178,6 +180,11 @@
                 returnDialogVisible: false,
                 FIRST: true
             }
+        },
+        computed: {
+            ...mapState({
+                userInfo: state => state.user.userInfo
+            })
         },
         watch: {
             'formData.province': function (val) { // 监听单个导入时的页面表格的校区变量
