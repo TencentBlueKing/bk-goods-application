@@ -33,15 +33,15 @@ from apps.good_purchase.serializers import (CartSerializer,
 from apps.tools.auth_check import is_leader_or_secretary
 from apps.tools.decorators import check_secretary_permission
 from apps.tools.param_check import (check_apply_update_param, check_param_id,
-                                    check_param_page, check_param_size,
                                     check_param_str, get_error_message)
 from apps.tools.response import get_cart_result, get_result, success_code
+from apps.tools.tool_delpic import tool_delpic
+from apps.tools.tool_paginator import tool_paginator
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
 from bkstorages.backends.bkrepo import BKRepoStorage
 from config.default import os
 from django.core.files.base import File
-from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
@@ -139,15 +139,8 @@ class WithdrawViewSet(viewsets.ModelViewSet):
 @check_secretary_permission
 @require_POST
 def del_pics(request):
-    body = request.body
-    file_paths = json.loads(body)
-    storage = BKRepoStorage()
-    if file_paths:
-        for file_path in file_paths:
-            if storage.exists(file_path):
-                storage.delete(file_path)
-        return get_result({'message': '删除成功'})
-    raise BusinessException(StatusEnums.MYDELETE_ERROR)
+    outcome = tool_delpic(request)
+    return outcome
 
 
 class UserInfoViewSet(viewsets.ModelViewSet):
@@ -493,18 +486,11 @@ class GoodViewSet(viewsets.ModelViewSet):
                 query = query & Q(good_type_id=good_type_id)
         except ValueError:
             raise BusinessException(StatusEnums.CART_TYPE_ERROR)
-        # 分页
-        page = req_data.get('page', 1)
-        page = check_param_page(page)
-        size = req_data.get('size', 10)
-        size = check_param_size(size)
-        # 查询
-        goods = Good.objects.filter(query).order_by("-update_time")
-        # 生成分页器对象，指定每一页有多少个条元素
-        paginator = Paginator(goods, size)
-        cur_goods = paginator.get_page(page)  # 获取指定页元素，获取当前页的商品 ！要不要try catch
+        # 获取指定页元素，获取当前页的商品 ！要不要try catch
+        cur_goods, total_num = tool_paginator(req_data, Good, query, 'page', 'size')
+
         # 返回数据
-        data = {"total_num": goods.count(),
+        data = {"total_num": total_num,
                 "good_list": [good.to_json() for good in cur_goods]}  # ！这里还是for循环内部查询了数据库
         return JsonResponse(success_code(data))
 
