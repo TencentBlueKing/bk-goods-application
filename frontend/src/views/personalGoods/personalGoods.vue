@@ -384,12 +384,10 @@
                     this.handleError({ theme: 'warning' }, '未选择任何数据')
                     return
                 }
+                const query = { idList: JSON.stringify(this.selected) }
                 this.$router.push({
                     name: 'returnGoods',
-                    params: {
-                        idList: this.selected,
-                        isFromPersonalGoods: true
-                    }
+                    query: query
                 })
             },
             deriveExcel () { // 导出excel表
@@ -424,7 +422,7 @@
             getPersonalGoods () { // 获得个人物资
                 this.$http.get(GET_PERSONAL_GOODS_URL, {
                     params: {
-                        form: this.get_params.form,
+                        ...this.get_params.form,
                         page: this.get_params.page,
                         pageLimit: this.get_params.pageLimit
                     }
@@ -539,9 +537,6 @@
         padding: 20px;
         .header {
             display: block;
-        }
-        .breadCrumb {
-            margin: 15px 10px;
         }
         .conditions {
             width: 100%;

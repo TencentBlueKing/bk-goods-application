@@ -1,112 +1,39 @@
 <template>
     <div class="returnGoods-wrapper">
-        <div class="breadCrumb">
-            <bk-breadcrumb>
-                <bk-breadcrumb-item v-for="(item,index) in navList" :key="index" :to="item.link">{{item.title}}</bk-breadcrumb-item>
-            </bk-breadcrumb>
+        <div class="header">
+            <bk-divider align="left">
+                <router-link :to="navList[0].link">
+                    <bk-tag
+                        type="filled"
+                        style="font-size: 13px"
+                    ><span>{{navList[0].title}}</span></bk-tag>
+                </router-link>
+                <bk-tag
+                    type="filled"
+                    style="font-size: 13px"
+                ><span>{{navList[1].title}}</span></bk-tag>
+            </bk-divider>
         </div>
         <div class="message-table">
-            <bk-form :label-width="200" form-type="vertical">
-                <bk-container :col="12" :gutter="8">
-                    <bk-row style="width: 90%">
-                        <bk-col :span="8">
-                            <div class="applicant">
-                                <bk-form-item label="申请人">
-                                    <bk-tag style="font-size: 15px">{{ username }}</bk-tag>
-                                </bk-form-item>
-                            </div>
-                        </bk-col>
-                        <bk-col :span="4" style="line-height: 90px">
-                            <div class="return">
-                                <bk-button theme="danger" title="提交" :outline="true" size="large" @click="dialogVisible">
-                                    提交
-                                </bk-button>
-                                <bk-dialog v-model="returnDialogVisible"
-                                    theme="primary"
-                                    width="600"
-                                    :render-directive="'if'"
-                                    :mask-close="false"
-                                    :header-position="left"
-                                    @confirm="returnGoods"
-                                    :esc-close="false"
-                                    title="">
-                                    确认提交?
-                                </bk-dialog>
-                            </div>
-                        </bk-col>
-                    </bk-row>
-                    <bk-row style="margin-bottom: 30px;">
-                        <bk-col :span="3">
-                            <div class="returnLocation">
-                                <bk-form-item label="退库省份">
-                                    <bk-select :disabled="false" v-model="formData.province" style="width: 80%"
-                                        ext-cls="select-custom"
-                                        ext-popover-cls="select-popover-custom"
-                                        searchable>
-                                        <bk-option
-                                            key="0"
-                                            id="0"
-                                            name="所有地区">
-                                        </bk-option>
-                                        <bk-option v-for="option in provinceList"
-                                            :key="option.id"
-                                            :id="option.name"
-                                            :name="option.name">
-                                        </bk-option>
-                                    </bk-select>
-                                </bk-form-item>
-                            </div>
-                        </bk-col>
-                        <bk-col :span="3">
-                            <div class="returnLocation">
-                                <bk-form-item label="退库城市">
-                                    <bk-select :disabled="false" v-model="formData.city" style="width: 80%"
-                                        ext-cls="select-custom"
-                                        ext-popover-cls="select-popover-custom"
-                                        searchable>
-                                        <bk-option
-                                            key="0"
-                                            id="0"
-                                            name="所有地区">
-                                        </bk-option>
-                                        <bk-option v-for="option in cityList"
-                                            :key="option.id"
-                                            :id="option.name"
-                                            :name="option.name">
-                                        </bk-option>
-                                    </bk-select>
-                                </bk-form-item>
-                            </div>
-                        </bk-col>
-                        <bk-col :span="3">
-                            <div class="returnReason">
-                                <bk-form-item label="退库原因">
-                                    <bk-select :disabled="false" v-model="formData.reason" style="width: 80%"
-                                        ext-cls="select-custom"
-                                        ext-popover-cls="select-popover-custom"
-                                        searchable>
-                                        <bk-option v-for="option in reasonList"
-                                            :key="option.id"
-                                            :id="option.id"
-                                            :name="option.reason_name">
-                                        </bk-option>
-                                    </bk-select>
-                                </bk-form-item>
-                            </div>
-                        </bk-col>
-                    </bk-row>
-                    <bk-row style="margin-bottom: 20px;">
-                        <div class="remark">
-                            <bk-form-item label="备注">
-                                <bk-input type="textarea" v-model="formData.remark" placeholder="请输入备注" style="width:90%"></bk-input>
-                            </bk-form-item>
-                        </div>
-                    </bk-row>
-                </bk-container>
-            </bk-form>
+            <div class="message-label">
+                <label>申请人:</label>
+                <bk-tag style="font-size: 15px">{{ username }}</bk-tag>
+            </div>
+            <div>
+                <bk-button
+                    theme="danger"
+                    title="提交"
+                    :outline="true"
+                    size="large"
+                    @click="clickDialogVisible"
+                >
+                    提交
+                </bk-button>
+            </div>
         </div>
-        <div class="returnData">
-            <bk-table style="margin-top: 15px;"
+        <div>
+            <bk-table
+                style="margin-top: 15px;"
                 :data="data"
                 :size="medium"
                 :pagination="pagination"
@@ -115,15 +42,139 @@
                 @row-mouse-enter="handleRowMouseEnter"
                 @row-mouse-leave="handleRowMouseLeave"
                 @page-change="handlePageChange"
-                @page-limit-change="handlePageLimitChange">
-                <bk-table-column type="selection" width="60"></bk-table-column>
-                <bk-table-column label="物资编码" prop="good_code"></bk-table-column>
-                <bk-table-column label="物品名称" prop="good_name"></bk-table-column>
-                <bk-table-column label="所在地区" prop="position"></bk-table-column>
-                <bk-table-column label="使用人" prop="username"></bk-table-column>
-                <bk-table-column label="状态" prop="status"></bk-table-column>
+                @page-limit-change="handlePageLimitChange"
+            >
+                <bk-table-column
+                    type="selection"
+                    width="60"
+                ></bk-table-column>
+                <bk-table-column
+                    label="物资编码"
+                    prop="good_code"
+                ></bk-table-column>
+                <bk-table-column
+                    label="物品名称"
+                    prop="good_name"
+                ></bk-table-column>
+                <bk-table-column
+                    label="所在地区"
+                    prop="position"
+                ></bk-table-column>
+                <bk-table-column
+                    label="使用人"
+                    prop="username"
+                ></bk-table-column>
+                <bk-table-column
+                    label="状态"
+                    prop="status"
+                ></bk-table-column>
             </bk-table>
         </div>
+        <bk-dialog
+            v-model="formDialogVisible"
+            @confirm="returnDialogVisible = true"
+        >
+            <bk-form
+                :label-width="200"
+                form-type="vertical"
+            >
+                <div class="returnLocation">
+                    <bk-form-item label="退库省份">
+                        <bk-select
+                            :disabled="false"
+                            v-model="formData.province"
+                            style="width: 80%"
+                            ext-cls="select-custom"
+                            ext-popover-cls="select-popover-custom"
+                            searchable
+                        >
+                            <bk-option
+                                key="0"
+                                id="0"
+                                name="所有地区"
+                            >
+                            </bk-option>
+                            <bk-option
+                                v-for="option in provinceList"
+                                :key="option.id"
+                                :id="option.name"
+                                :name="option.name"
+                            >
+                            </bk-option>
+                        </bk-select>
+                    </bk-form-item>
+                </div>
+                <div class="returnLocation">
+                    <bk-form-item label="退库城市">
+                        <bk-select
+                            :disabled="false"
+                            v-model="formData.city"
+                            style="width: 80%"
+                            ext-cls="select-custom"
+                            ext-popover-cls="select-popover-custom"
+                            searchable
+                        >
+                            <bk-option
+                                key="0"
+                                id="0"
+                                name="所有地区"
+                            >
+                            </bk-option>
+                            <bk-option
+                                v-for="option in cityList"
+                                :key="option.id"
+                                :id="option.name"
+                                :name="option.name"
+                            >
+                            </bk-option>
+                        </bk-select>
+                    </bk-form-item>
+                </div>
+                <div class="returnReason">
+                    <bk-form-item label="退库原因">
+                        <bk-select
+                            :disabled="false"
+                            v-model="formData.reason"
+                            style="width: 80%"
+                            ext-cls="select-custom"
+                            ext-popover-cls="select-popover-custom"
+                            searchable
+                        >
+                            <bk-option
+                                v-for="option in reasonList"
+                                :key="option.id"
+                                :id="option.id"
+                                :name="option.reason_name"
+                            >
+                            </bk-option>
+                        </bk-select>
+                    </bk-form-item>
+                </div>
+                <div class="remark">
+                    <bk-form-item label="备注">
+                        <bk-input
+                            type="textarea"
+                            v-model="formData.remark"
+                            placeholder="请输入备注"
+                            style="width:90%"
+                        ></bk-input>
+                    </bk-form-item>
+                </div>
+            </bk-form>
+        </bk-dialog>
+        <bk-dialog
+            v-model="returnDialogVisible"
+            theme="primary"
+            width="600"
+            :render-directive="'if'"
+            :mask-close="false"
+            :header-position="left"
+            @confirm="returnGoods"
+            :esc-close="false"
+            title=""
+        >
+            确认提交?
+        </bk-dialog>
     </div>
 </template>
 
@@ -140,7 +191,7 @@
                         title: '个人物资查询', link: { name: 'personalGoods' }
                     },
                     {
-                        title: '物资退库', link: { name: 'returnGoods' }
+                        title: '物资退库'
                     }
                 ],
                 formData: {
@@ -175,6 +226,7 @@
                     selectedRows: [] // 存放被选中行数
                 },
                 data: '',
+                formDialogVisible: false,
                 returnDialogVisible: false,
                 FIRST: true
             }
@@ -199,7 +251,8 @@
             }
         },
         created () {
-            if (!this.$route.params.isFromPersonalGoods) { // 如果不是从个人物资查询页面的跳转则直接返回个人物资查询页面
+            if (!this.$route.query.idList) {
+                // 如果不是从个人物资查询页面的跳转则直接返回个人物资查询页面
                 this.$router.replace({ name: 'personalGoods' })
             }
             this.loadData()
@@ -207,7 +260,7 @@
         methods: {
             loadData () {
                 this.username = this.$store.state.user.userInfo.username // 从state中获取用户名
-                this.idList = JSON.stringify(this.$route.params.idList.selectedRows)
+                this.idList = JSON.parse(this.$route.query.idList).selectedRows
                 this.getPersonalGoods()
                 this.getPosition()
                 this.getWithdrawReasons()
@@ -223,7 +276,7 @@
                 return parentCode
             },
             checkIdList () {
-                if (this.data.length !== JSON.parse(this.idList).length && this.FIRST === true) { // 传进来的id存在状态为非使用的情况
+                if (this.data.length !== this.idList.length && this.FIRST === true) { // 传进来的id存在状态为非使用的情况
                     this.handleError({ theme: 'warning' }, '状态非在使用的物资不可退库')
                     this.FIRST = false
                 }
@@ -254,7 +307,7 @@
                 this.$http.get(GET_PERSONAL_GOODS_URL, {
                     params: {
                         username: this.username,
-                        form: this.get_params.form,
+                        ...this.get_params.form,
                         page: this.get_params.page,
                         pageLimit: this.get_params.pageLimit,
                         idList: this.idList
@@ -275,25 +328,23 @@
                     console.log('错误为：', err)
                 })
             },
-            dialogVisible () { // 提交确认对话框
+            clickDialogVisible () { // 提交确认对话框
                 if (this.selected.selectedRows.length === 0) {
                     this.handleError({ theme: 'warning' }, '未选择任何数据')
                     return
                 }
-                this.returnDialogVisible = true
+                this.formDialogVisible = true
             },
             returnGoods () { // 退库函数
                 this.$http.post(ADD_WITHDRAW_APPLY_URL, { good_ids: this.selected.selectedRows, reason_id: this.formData.reason, province: this.formData.province, city: this.formData.city, remark: this.formData.remark }).then(res => {
                     if (res && res.result === true) {
                         this.handleError({ theme: 'success' }, '退库成功')
-                        this.idList = JSON.parse(this.idList) // 转为列表类型
                         for (let index = 0; index < this.selected.selectedRows.length; index++) {
                             const idx = this.idList.indexOf(this.selected.selectedRows[index])
                             if (idx !== -1) {
                                 this.idList.splice(idx, 1)
                             }
                         }
-                        this.idList = JSON.stringify(this.idList) // 转回字符串
                         this.selected.selectedRows = []
                         this.pagination.current = 1
                         this.get_params.page = this.pagination.current
@@ -348,17 +399,19 @@
 </script>
 
 <style lang="postcss" scoped>
-.returnGoods-wrapper{
-    .breadCrumb{
-        margin: 15px 20px;
-    }
-    .message-table{
-        .return{
-            text-align: right;
+    .returnGoods-wrapper {
+        padding: 15px 20px;
+        .message-table {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            height: 50px;
+            .message-label {
+                display: flex;
+                width: 200px;
+                align-items: center;
+            }
         }
     }
-    .returnData{
-        margin: 20px 10px;
-    }
-}
 </style>
