@@ -2,10 +2,12 @@
     <div class="form-manage">
         <div class="header">
             <bk-divider align="left">
-                <bk-tag
-                    type="filled"
-                    style="font-size: 13px"
-                ><span>物品管理</span></bk-tag>
+                <router-link :to="{ name: 'itemManagement' }">
+                    <bk-tag
+                        type="filled"
+                        style="font-size: 13px"
+                    ><span>物品管理</span></bk-tag>
+                </router-link>
                 <bk-tag
                     type="filled"
                     style="font-size: 13px"
@@ -336,7 +338,7 @@
                         config.theme = 'success'
                         config.message = '添加物品成功'
                         this.$bkMessage(config)
-                        this.$router.go(0)
+                        this.$router.push({ name: 'itemManagement' })
                     } else {
                         config.theme = 'error'
                         config.message = res.message
@@ -358,6 +360,7 @@
                         config.theme = 'success'
                         config.message = '编辑物品信息成功'
                         this.$bkMessage(config)
+                        this.$router.push({ name: 'itemManagement' })
                     } else {
                         config.theme = 'error'
                         config.message = res.message

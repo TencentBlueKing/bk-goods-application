@@ -376,6 +376,7 @@
     .applyManagement-wrapper {
         margin-top: 10px;
         padding-bottom: 20px;
+        overflow-x: hidden;
         .condition-form {
             padding: 30px 0 0 0;
         }

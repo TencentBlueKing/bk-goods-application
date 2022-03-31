@@ -29,7 +29,7 @@
             </bk-dropdown-menu>
         </div>
         <bk-table
-            height="430"
+            height="350"
             :data="history"
             :size="medium"
             :pagination="pagination"
