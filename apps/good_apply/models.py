@@ -7,6 +7,7 @@ from django.db import models
 # 秘书
 class Secretary(models.Model):
     username = models.CharField(max_length=30, unique=True, verbose_name="秘书用户名")
+    org_id = models.BigIntegerField(verbose_name="所在组id", null=True, blank=True)
 
     class Meta:
         verbose_name = "秘书表"
@@ -18,6 +19,7 @@ class Position(models.Model):
     position_code = models.CharField(max_length=10, unique=True, verbose_name="地区代码")
     name = models.CharField(max_length=20, verbose_name="地区名")
     parent_code = models.CharField(max_length=10, null=True, verbose_name="上级地区代码")
+    org_id = models.BigIntegerField(verbose_name="所在组id", null=True, blank=True)
 
     class Meta:
         verbose_name = "地区表"
@@ -47,6 +49,7 @@ class Apply(TimeBasic):
     position = models.CharField(max_length=100, verbose_name="所在地区")
     status = models.IntegerField(default=1, choices=STATUS_TYPE, verbose_name="申请状态")
     apply_user = models.CharField(max_length=30, verbose_name="申请人")
+    org_id = models.BigIntegerField(verbose_name="所在组id", null=True, blank=True)
 
     class Meta:
         verbose_name = "申请表"
@@ -82,7 +85,28 @@ class Review(TimeBasic):
     reviewer_identity = models.IntegerField(verbose_name="审核人身份", choices=IDENTITY_TYPES)
     result = models.IntegerField(verbose_name="审核结果", choices=RESULT_TYPES)
     reason = models.CharField(max_length=255, verbose_name="审核意见")
+    org_id = models.BigIntegerField(verbose_name="所在组id", null=True, blank=True)
 
     class Meta:
         verbose_name = "申请审核表"
         verbose_name_plural = "申请审核表"
+
+# 组表
+
+
+class Group(models.Model):
+    id = models.BigIntegerField(verbose_name="组id", primary_key=True)
+    group_name = models.CharField(max_length=20, verbose_name="组名")
+
+    class Meta:
+        verbose_name = "组表"
+        verbose_name_plural = "组表"
+
+
+class Groupperson(models.Model):
+    username = models.CharField(max_length=255, verbose_name="用户名")
+    org_id = models.BigAutoField(verbose_name="所在组id", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "组成员表"
+        verbose_name_plural = "组成员表"

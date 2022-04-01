@@ -7,6 +7,7 @@ from django.db import models
 
 class GoodType(models.Model):
     type_name = models.CharField(max_length=20, unique=True, verbose_name="类型名称")
+    org_id = models.BigIntegerField(verbose_name="所在组id", null=True, blank=True)
 
     class Meta:
         verbose_name = "商品类型表"
@@ -37,6 +38,7 @@ class Good(TimeBasic):
     remark = models.CharField(max_length=255, verbose_name="商品备注")
     specifications = models.TextField(verbose_name="规格参数")
     status = models.BooleanField(default=1, choices=STATUS_TYPE, verbose_name="商品状态")
+    org_id = models.BigIntegerField(verbose_name="所在组id", null=True, blank=True)
 
     class Meta:
         verbose_name = "商品表",
@@ -86,6 +88,7 @@ class Cart(TimeBasic):
     username = models.CharField(max_length=30, verbose_name="用户名")
     good_id = models.IntegerField(verbose_name="商品id")
     num = models.IntegerField(verbose_name="数量")
+    org_id = models.BigIntegerField(verbose_name="所在组id", null=True, blank=True)
 
     class Meta:
         verbose_name = "购物车表"
@@ -127,6 +130,7 @@ class GroupApply(TimeBasic):
     phone = models.CharField(max_length=30, verbose_name="联系电话", blank=True, null=True)
     status = models.IntegerField(choices=STATUS_TYPE, verbose_name="物资状态")
     remarks = models.CharField(max_length=255, verbose_name="备注")
+    org_id = models.BigIntegerField(verbose_name="所在组id", null=True, blank=True)
 
     class Meta:
         verbose_name = "部门所需物资表"
@@ -173,6 +177,7 @@ class Withdraw(TimeBasic):
     position = models.CharField(max_length=100, verbose_name="退库地址")
     remark = models.CharField(max_length=255, verbose_name="备注")
     status = models.BooleanField(default=0, verbose_name="退库状态")
+    org_id = models.BigIntegerField(verbose_name="所在组id", null=True, blank=True)
 
     class Meta:
         verbose_name = "物资退回表"
@@ -182,6 +187,7 @@ class Withdraw(TimeBasic):
 # 退库原因表
 class WithdrawReason(models.Model):
     reason_type = models.CharField(max_length=20, verbose_name="退货原因")
+    org_id = models.BigIntegerField(verbose_name="所在组id", null=True, blank=True)
 
     class Meta:
         verbose_name = "退库原因表"
