@@ -30,6 +30,8 @@ import moment from 'moment'
 import bkMagic from 'bk-magic-vue'
 // 全量引入 bk-magic-vue 样式
 import 'bk-magic-vue/dist/bk-magic-vue.min.css'
+import ElementUI from 'element-ui'
+import 'element-ui/lib/theme-chalk/index.css'
 VMdPreview.use(githubTheme)
 VMdEditor.use(githubTheme,
     { Hljs: hljs })
@@ -37,6 +39,7 @@ Vue.use(VMdEditor)
 Vue.use(VMdPreview)
 
 Vue.use(bkMagic)
+Vue.use(ElementUI)
 
 Vue.component('app-exception', Exception)
 Vue.component('app-auth', AuthComponent)
