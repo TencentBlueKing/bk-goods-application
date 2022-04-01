@@ -17,7 +17,11 @@ from openpyxl import load_workbook
 
 @require_POST
 def import_cart_excel(request):
-    def handle_excel_data(rows, CANNOT_ADD, err_msg):  # 处理传入的列表数据，判断是否加入部门所需物资表
+    """
+    管理员导入物资
+    """
+    def handle_excel_data(rows, CANNOT_ADD, err_msg):
+        """处理传入的列表数据，判断是否加入部门所需物资表"""
         group_apply_create_list = []  # 存放GroupApply对象
         for row_index, row in enumerate(rows):
             if row_index == 0:  # 标题行

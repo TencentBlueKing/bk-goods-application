@@ -6,6 +6,11 @@ from bkstorages.backends.bkrepo import BKRepoStorage
 
 
 def generate_can_not_apply_excel(can_not_apply_list, username):
+    """
+    生成申请失败excel
+    can_not_apply_list: 申请失败的列表
+    username: 用户名
+    """
     work_book = xlwt.Workbook(encoding='utf-8')  # 创建excel对象
     work_sheet = work_book.add_sheet('格式错误物资表')
     excel_title = ['使用人', '物品编码', '物品名称', '数量', '参考单价', '需求地点',
