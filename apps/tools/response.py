@@ -24,6 +24,7 @@ def get_result(data: dict) -> dict:
 
 
 def success_code(data):
+    """成功响应统一返回格式"""
     return {
         "code": 200,
         "result": True,

@@ -53,6 +53,9 @@ def home(request):
 
 
 class PositionViewSet(viewsets.ModelViewSet):
+    """
+    地区表视图集
+    """
     queryset = Position.objects.all()
     serializer_class = PositionSerializer
 
@@ -76,10 +79,14 @@ class PositionViewSet(viewsets.ModelViewSet):
 
 
 class ApplyViewSet(viewsets.ModelViewSet):
+    """
+    申请表视图集
+    """
     queryset = Apply.objects.all()
     serializer_class = ApplySerializers
 
     def update(self, request, *args, **kwargs):
+        """重写update方法，更新申请时require_date，position，status，apply_user，apply_time非必须传入"""
         if not request.data.get('require_date'):
             require_date = Apply.objects.get(id=request.data['id']).require_date
             request.data['require_date'] = require_date
@@ -284,6 +291,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
 
     @action(methods=['POST'], detail=False)
     def examine_apply(self, request):
+        """审核申请"""
         flag, leader_or_secretary = is_leader_or_secretary(request)
         if not flag:
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)

@@ -2,24 +2,13 @@
     <div class="shopcart-wrapper">
         <div
             class="header"
-            v-if="!isAdmin"
-        >
-            <bk-divider align="left">
-                <bk-tag
-                    type="filled"
-                    style="font-size: 13px"
-                ><span>购物车</span></bk-tag>
-            </bk-divider>
-        </div>
-        <div
-            class="header"
             v-if="isAdmin"
         >
             <bk-divider align="left">
                 <bk-tag
                     type="filled"
                     style="font-size: 13px"
-                ><span>物资导入及申请</span></bk-tag>
+                ><span>{{ isAdmin ? '物资导入及申请' : '购物车' }}</span></bk-tag>
             </bk-divider>
         </div>
         <div class="cart-body-wapper">

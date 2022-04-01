@@ -44,6 +44,7 @@
 <style lang="postcss" scoped>
     .applyHistory-wrapper {
         overflow-y: auto;
+        overflow-x: hidden;
         .condition-form {
             padding: 30px 0 0 0;
         }

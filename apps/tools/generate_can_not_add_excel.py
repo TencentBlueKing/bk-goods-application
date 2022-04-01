@@ -6,6 +6,12 @@ from bkstorages.backends.bkrepo import BKRepoStorage
 
 
 def generate_can_not_add_excel(err_code_list, username, err_msg):
+    """
+    生成添加失败excel
+    err_code_list: 有错误的物品编码列表
+    username: 用户名
+    err_msg: 错误信息
+    """
     work_book = xlwt.Workbook(encoding='utf-8')  # 创建excel对象
     work_sheet = work_book.add_sheet('格式错误物资表')
     excel_title = ['错误物资编码']

@@ -288,6 +288,7 @@
 
 <style lang="postcss" scoped>
     .applyHome-wrapper {
+        overflow-x: hidden;
         .switcher {
             padding: 15px 0px 0px 0px;
         }
