@@ -336,7 +336,6 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
         page_limit = int(request.GET.get('pageLimit', 10))
         page = int(request.GET.get('page', 1))
         id_list = request.GET.get('idList', None)
-        org_id = req.get("org_id")
         personal_serializer = personalSerializer(data={
             "username": username
         })
@@ -344,7 +343,7 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
             raise ValueError(get_error_message(personal_serializer))
 
         # 获得查询集
-        queryset = GroupApply.objects.filter(Q(username=username) & Q(org_id=org_id))
+        queryset = GroupApply.objects.filter(username=username)
 
         unnecessary_goods = []  # 用于记录被过滤掉的物品
         # 获取form的内容
@@ -380,10 +379,10 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
         if location and location != '0':
             query = query & Q(position__icontains=location)
         if status and int(status) != 0:
-            query = query & Q(status=status) & Q(org_id=org_id)
+            query = query & Q(status=status)
         queryset = queryset.filter(query)
         if good_type and int(good_type) != 0:
-            goods = Good.objects.filter(Q(good_type_id=good_type, ) & Q(status=1) & Q(org_id=org_id))
+            goods = Good.objects.filter(good_type_id=good_type, status=1)
             good_codes = []
             for good in goods:
                 good_codes.append(good.good_code)
