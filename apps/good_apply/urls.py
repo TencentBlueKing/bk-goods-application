@@ -21,14 +21,12 @@ from . import views
 urlpatterns = [
     url(r"^$", views.home),
     path("analysis_apply_excel", analysis_apply_excel.analysis_apply_excel),  # 解析excel数据
-    path("get_leader", views.get_leader),  # 获取用户的导员
-    path("if_leader_or_secretary", views.if_leader_or_secretary),  # 是否是管理员（秘书）或导员
-    path("get_apply_users", views.get_apply_users),  # 获取可管理的用户
 ]
 
 router = DefaultRouter()
 router.register(r'position', views.PositionViewSet, basename="position")
 router.register(r'apply', views.ApplyViewSet, basename="apply")
+router.register(r'OrganizationMember', views.OrganizationMemberViewSet, basename="GroupPerson")
 
 urlpatterns += [
     path('', include(router.urls))

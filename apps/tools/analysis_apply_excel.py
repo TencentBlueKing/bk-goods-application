@@ -1,8 +1,10 @@
 import base64
 import datetime
+import json
 import os
 
 import xlrd
+from apps.good_apply.models import Organization
 from apps.good_apply.serializers import PreApplySerializers
 from apps.tools.generate_can_not_apply_excel import \
     generate_can_not_apply_excel
@@ -10,6 +12,7 @@ from apps.tools.param_check import get_error_message
 from apps.tools.response import get_result
 from apps.tools.tool_get_import_file import tool_get_import_file
 from apps.tools.tool_get_xlsx_excel_data import tool_get_xlsx_excel_data
+from apps.tools.tool_valid_user_in_the_org import valid_user_in_the_org
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
 from bkstorages.backends.bkrepo import BKRepoStorage
@@ -65,9 +68,19 @@ def analysis_apply_excel(request):
         return validated_list
 
     body = request.body
+    json_body = json.loads(body)
     username = request.user.username
+    org_id = json_body.get('org_id', None)
 
-    dir_path = 'analysis_apply_excel'
+    if not org_id:
+        raise BusinessException(StatusEnums.ORG_INFO_ERROR)
+
+    valid_user_in_the_org(org_id, username)
+
+    # 获取组名拼接dir_path
+    org_name = Organization.objects.filter(id=org_id).first().org_name
+
+    dir_path = os.path.join(org_name, 'analysis_apply_excel')
     file, file_path = tool_get_import_file(body, dir_path, 'file', 'fileName')
 
     storage = BKRepoStorage()
@@ -147,7 +160,7 @@ def analysis_apply_excel(request):
         }
         return get_result(result)
     else:
-        can_not_apply_file_url = generate_can_not_apply_excel(CANNOT_APPLY, username)
+        can_not_apply_file_url = generate_can_not_apply_excel(CANNOT_APPLY, username, org_name)
         result = {
             "code": StatusEnums.IMPORT_ERROR.code,
             "result": False,
