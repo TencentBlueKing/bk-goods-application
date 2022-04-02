@@ -5,7 +5,7 @@ import xlwt
 from bkstorages.backends.bkrepo import BKRepoStorage
 
 
-def generate_can_not_apply_excel(can_not_apply_list, username):
+def generate_can_not_apply_excel(can_not_apply_list, username, org_name):
     """
     生成申请失败excel
     can_not_apply_list: 申请失败的列表
@@ -38,7 +38,7 @@ def generate_can_not_apply_excel(can_not_apply_list, username):
 
     file_name = username + '_analysis_err_code_' + datetime.datetime.today().strftime('%Y-%m-%d__%H') + '.xls'
 
-    dir_path = 'analysis_err_excel'
+    dir_path = os.path.join(org_name, 'analysis_err_excel')
 
     # 检查文件夹是否存在
     if not os.path.exists(dir_path):

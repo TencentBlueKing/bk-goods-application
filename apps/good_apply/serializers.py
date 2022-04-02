@@ -1,6 +1,6 @@
 import datetime
 
-from apps.good_apply.models import Apply, Position
+from apps.good_apply.models import Apply, OrganizationMember, Position
 from rest_framework import serializers
 
 
@@ -105,3 +105,12 @@ class PositionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Position
         fields = ['id', 'code', 'name']
+
+
+class OrganizationMemberSerializer(serializers.ModelSerializer):
+    """
+    组成员表序列化器
+    """
+    class Meta:
+        model = OrganizationMember
+        fields = ['id', 'username', 'org_id']

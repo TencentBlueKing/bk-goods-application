@@ -37,9 +37,8 @@ class Position(models.Model):
 class Apply(TimeBasic):
     STATUS_TYPE = (
         (0, "申请终止"),
-        (1, "导员审核中"),
-        (2, "管理员审核中"),
-        (3, "审核完成")
+        (1, "管理员审核中"),
+        (2, "审核完成")
     )
     good_code = models.CharField(max_length=30, verbose_name="物资编号")
     good_name = models.CharField(max_length=50, verbose_name="物资名称")
@@ -73,8 +72,7 @@ class Apply(TimeBasic):
 # 申请审核表
 class Review(TimeBasic):
     IDENTITY_TYPES = (
-        (1, '导员'),
-        (2, '管理员')
+        (1, '管理员'),
     )
     RESULT_TYPES = (
         (1, '通过'),
@@ -110,3 +108,18 @@ class OrganizationMember(models.Model):
     class Meta:
         verbose_name = "组成员表"
         verbose_name_plural = "组成员表"
+
+
+class ApplyToOrg(TimeBasic):
+    STATUS_TYPE = (
+        (1, '审核中'),
+        (2, '同意加入'),
+        (3, '拒绝加入')
+    )
+
+    apply_group_id = models.BigIntegerField(verbose_name='申请加入组id')
+    status = models.IntegerField(verbose_name='申请状态', choices=STATUS_TYPE)
+
+    class Meta:
+        verbose_name = "申请加入组表"
+        verbose_name_plural = "申请加入组表"

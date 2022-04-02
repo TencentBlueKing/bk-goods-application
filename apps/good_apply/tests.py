@@ -86,14 +86,11 @@ class ApplyModelTestCase(TestCase):
         """创建不同类型的model对象"""
         self.stop_obj = Apply.objects.create(good_code='TEST1', good_name="测试物品1", num=5, require_date='2021-3-14',
                                              reason='测试用例', position='广东，广州', status=0, apply_user='admin')
-        self.leader_examining_obj = Apply.objects.create(good_code='TEST2', good_name="测试物品2", num=5,
-                                                         require_date='2021-3-14', reason='测试用例',
-                                                         position='广东，广州', status=1, apply_user='admin')
         self.secretary_examining_obj = Apply.objects.create(good_code='TEST3', good_name="测试物品3", num=5,
                                                             require_date='2021-3-14', reason='测试用例',
-                                                            position='广东，广州', status=2, apply_user='admin')
+                                                            position='广东，广州', status=1, apply_user='admin')
         self.done_obj = Apply.objects.create(good_code='TEST4', good_name="测试物品4", num=5, require_date='2021-3-14',
-                                             reason='测试用例', position='广东，广州', status=3, apply_user='admin')
+                                             reason='测试用例', position='广东，广州', status=2, apply_user='admin')
 
         self.request = RequestFactory()
         self.user = User.objects.create_superuser(username='admin', password='123456')
@@ -112,7 +109,6 @@ class ApplyModelTestCase(TestCase):
     def test_get_status_display(self):
         """测试枚举类型文字是否符合"""
         self.assertEqual(self.stop_obj.get_status_display(), '申请终止')
-        self.assertEqual(self.leader_examining_obj.get_status_display(), '导员审核中')
         self.assertEqual(self.secretary_examining_obj.get_status_display(), '管理员审核中')
         self.assertEqual(self.done_obj.get_status_display(), '审核完成')
 
@@ -209,9 +205,9 @@ class ApplyModelTestCase(TestCase):
     def test_update_good_apply_api(self):
         """测试更新申请信息接口"""
         request = self.request.patch(path=self.update_good_apply_url, data={
-            'id': self.leader_examining_obj.id,
-            'good_code': self.leader_examining_obj.good_code,
-            'good_name': self.leader_examining_obj.good_name,
+            'id': self.secretary_examining_obj.id,
+            'good_code': self.secretary_examining_obj.good_code,
+            'good_name': self.secretary_examining_obj.good_name,
             'reason': 'unit test',
             'num': 99
         }, content_type="application/json")
@@ -222,7 +218,7 @@ class ApplyModelTestCase(TestCase):
     @override_settings(MIDDLEWARE=TEST_MIDDLEWARE)
     def test_stop_good_apply_api(self):
         """测试终结申请接口"""
-        request = self.request.patch(path=self.stop_good_apply_url, data={'id': self.leader_examining_obj.id},
+        request = self.request.patch(path=self.stop_good_apply_url, data={'id': self.secretary_examining_obj.id},
                                      content_type="application/json")
         request.data = json.loads(request.body)
         response = ApplyViewSet().stop_good_apply(request)
@@ -248,10 +244,6 @@ class ReviewModelTestCase(TestCase):
 
     def setUp(self):
         """创建不同类型的model实例"""
-        self.leader_success_obj = Review.objects.create(apply_id=1, reviewer='admin',
-                                                        reviewer_identity=1, result=1, reason='单元测试')
-        self.leader_fail_obj = Review.objects.create(apply_id=1, reviewer='admin',
-                                                     reviewer_identity=1, result=2, reason='单元测试')
         self.secretary_success_obj = Review.objects.create(apply_id=1, reviewer='admin',
                                                            reviewer_identity=2, result=1, reason='单元测试')
         self.secretary_fail_obj = Review.objects.create(apply_id=1, reviewer='admin',
@@ -261,10 +253,9 @@ class ReviewModelTestCase(TestCase):
 
     def test_get_reviewer_identity_display(self):
         """创建不同类型的model实例"""
-        self.assertEqual(self.leader_success_obj.get_reviewer_identity_display(), '导员')
         self.assertEqual(self.secretary_success_obj.get_reviewer_identity_display(), '管理员')
 
     def test_get_result_display(self):
         """测试枚举类型文字是否符合"""
-        self.assertEqual(self.leader_success_obj.get_result_display(), '通过')
-        self.assertEqual(self.leader_fail_obj.get_result_display(), '未通过')
+        self.assertEqual(self.secretary_success_obj.get_result_display(), '通过')
+        self.assertEqual(self.secretary_fail_obj.get_result_display(), '未通过')

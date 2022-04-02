@@ -13,23 +13,24 @@ specific language governing permissions and limitations under the License.
 import datetime
 import os
 
-from apps.good_apply.models import Apply, Position, Review
+from apps.good_apply.models import (Apply, OrganizationMember, Position,
+                                    Review, Secretary)
 from apps.good_apply.serializers import (ApplyCheckSerializers,
                                          ApplyPostSerializers,
                                          ApplySerializers, IDListSeralizers,
+                                         OrganizationMemberSerializer,
                                          PositionSerializer)
-from apps.tools.auth_check import (get_users_in_group, is_leader_or_secretary,
-                                   sub_users_in_group)
-from apps.tools.decorators import check_leader_or_secretary_permission
+from apps.tools.auth_check import if_secretary
 from apps.tools.param_check import (check_param_id, check_param_page,
                                     check_param_size, check_param_str,
                                     get_error_message)
 from apps.tools.response import get_result, success_code
+from apps.tools.tool_get_normal_member import tool_get_normal_member
 from apps.tools.tool_get_start_end import tool_get_start_end
 from apps.tools.tool_paginator import tool_paginator
+from apps.tools.tool_valid_user_in_the_org import valid_user_in_the_org
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
-from blueapps.utils import get_client_by_request
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
@@ -37,7 +38,6 @@ from django.http import JsonResponse
 from django.shortcuts import render
 # 开发框架中通过中间件默认是需要登录态的，如有不需要登录的，可添加装饰器login_exempt
 # 装饰器引入 from blueapps.account.decorators import login_exempt
-from django.views.decorators.http import require_GET
 from rest_framework import viewsets
 from rest_framework.decorators import action
 
@@ -62,7 +62,11 @@ class PositionViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False)
     def get_root_position_list(self, request):
         """获取一级地区"""
-        positions = self.queryset.filter(parent_code__isnull=True)
+        req_data = request.GET
+        org_id = req_data.get('org_id', None)
+        valid_user_in_the_org(org_id, request.user.username)
+        query = Q(parent_code__isnull=True) & Q(org_id=org_id)
+        positions = self.queryset.filter(query)
         position_list = [position.to_json() for position in positions]
         return JsonResponse(success_code(position_list))
 
@@ -70,10 +74,13 @@ class PositionViewSet(viewsets.ModelViewSet):
     def get_sub_position_list(self, request):
         """（根据上级地区代码）获取下级地区"""
         req_data = request.GET
+        org_id = req_data.get('org_id', None)
+        valid_user_in_the_org(org_id, request.user.username)
         parent_code = req_data.get('parent_code', None)
         if not check_param_str(parent_code):
             raise BusinessException(StatusEnums.AREA_ERROR)
-        positions = Position.objects.filter(parent_code=parent_code)
+        query = Q(parent_code=parent_code) & Q(org_id=org_id)
+        positions = Position.objects.filter(query)
         position_list = [position.to_json() for position in positions]
         return JsonResponse(success_code(position_list))
 
@@ -106,15 +113,19 @@ class ApplyViewSet(viewsets.ModelViewSet):
 
     @action(methods=['POST'], detail=False)
     def submit_apply_list(self, request):
-        """提交物资申请"""
+        """
+        提交物资申请
+        若是普通用户提交申请，则直接生成申请表，状态为管理员审核中
+        若是管理员提交申请，则生成申请表，并且状态为已审核，且会生成审核表
+        """
         req = request.data
         username = request.user.username
         apply_list = req.get('apply_list')
-        flag, leader_or_secretary = is_leader_or_secretary(request)
+        org_id = req.get('org_id', None)
+        valid_user_in_the_org(org_id, username)
+        flag = if_secretary(request, org_id)
         apply_status = 1
-        if leader_or_secretary == 0:
-            apply_status = 3
-        elif leader_or_secretary == 1:
+        if flag:
             apply_status = 2
         if not isinstance(apply_list, list):
             raise BusinessException(StatusEnums.APPLY_GOODS_ERROR)
@@ -125,7 +136,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
             apply_serializers = ApplyCheckSerializers(data=apply)
             if not apply_serializers.is_valid():
                 message = get_error_message(apply_serializers)
-                return get_result({"code": 1, "result": False, "message": message})
+                return get_result({"code": 400, "result": False, "message": message})
             validated_data = apply_serializers.validated_data
             positions = [validated_data.get('school'), validated_data.get('academy'),
                          validated_data.get('detail_position')]
@@ -136,7 +147,8 @@ class ApplyViewSet(viewsets.ModelViewSet):
                           reason=validated_data.get('reason'),
                           position=','.join(positions),
                           status=apply_status,
-                          apply_user=validated_data.get('apply_user'))
+                          apply_user=validated_data.get('apply_user'),
+                          org_id=org_id)
             applys.append(apply)
 
         # 批量添加物资申请表
@@ -145,16 +157,10 @@ class ApplyViewSet(viewsets.ModelViewSet):
         if flag:
             reviews = []
             new_create_apply_ids = Apply.objects.exclude(id__in=old_apply_ids).values_list('id', flat=True)
-            if leader_or_secretary == 0:  # 管理员
-                for new_create_apply_id in new_create_apply_ids:
-                    review = Review(apply_id=new_create_apply_id, reviewer=username, reviewer_identity=2,
-                                    result=1, reason="管理员自身提交的申请，无需审核")
-                    reviews.append(review)
-            elif leader_or_secretary == 1:  # 导员
-                for new_create_apply_id in new_create_apply_ids:
-                    review = Review(apply_id=new_create_apply_id, reviewer=username, reviewer_identity=1,
-                                    result=1, reason="导员自身提交的申请，第一级无需审核")
-                    reviews.append(review)
+            for new_create_apply_id in new_create_apply_ids:
+                review = Review(apply_id=new_create_apply_id, reviewer=username, reviewer_identity=1,
+                                result=1, reason="管理员自身提交的申请，无需审核", org_id=org_id)
+                reviews.append(review)
             if reviews:
                 Review.objects.bulk_create(reviews)
 
@@ -164,22 +170,18 @@ class ApplyViewSet(viewsets.ModelViewSet):
         """
         获取需要审核的物资列表
         """
-        uesrname = request.user.username
-        flag, leader_or_secretary = is_leader_or_secretary(request)
+        req_data = request.GET
+        username = request.user.username
+        org_id = req_data.get('org_id')
+        valid_user_in_the_org(org_id, username)
+        flag = if_secretary(request, org_id)
         if not flag:
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)
-        req_data = request.GET
-        if leader_or_secretary == 0:
-            # 秘书, 查询审核中
-            query = Q(status=2)
-            # 可查询的所有人
-            user_usernames = [user.get('username') for user in get_users_in_group(request, group_id=6)]
-        else:
-            # 导员，查询未审核
-            query = Q(status=1)
-            users = sub_users_in_group(request, username=request.user.username, group_id=6)
-            user_usernames = [user.get('username') for user in users]
-            user_usernames.append(uesrname)
+        # 管理员, 查询审核中
+        query = Q(status=1) & Q(org_id=org_id)
+        # 可查询的所有普通成员
+        normal_member_queryset = tool_get_normal_member(org_id)
+        user_usernames = [member.username for member in normal_member_queryset]
 
         # 申请人-查询条件
         apply_user = req_data.get('apply_user', None)
@@ -212,14 +214,14 @@ class ApplyViewSet(viewsets.ModelViewSet):
         """
         查询自己的物资申请
         """
+        username = request.user.username
         sql_str = (
             "select apply.id, apply.good_code, apply.good_name, "
             "apply.create_time as create_time, apply.num, apply.reason, "
             "(case apply.`status` "
             "when 0 then '申请终止' "
-            "when 1 then '导员审核中' "
-            "when 2 then '管理员审核中' "
-            "when 3 then '审核完成' "
+            "when 1 then '管理员审核中' "
+            "when 2 then '审核完成' "
             "end) as `status`,"
             "review.reviewer, "
             "(case review.result "
@@ -233,8 +235,11 @@ class ApplyViewSet(viewsets.ModelViewSet):
             "where apply.apply_user = %s "
             "and apply.create_time between %s and %s "
         )
-        params = [request.user.username]
+        params = [username]
         req_data = request.GET
+        org_id = req_data.get('org_id', None)
+        valid_user_in_the_org(org_id, username)
+        sql_str = sql_str + 'and apply.org_id = {}'.format(org_id)
         # 时间-范围查询
         start_time, end_time = tool_get_start_end(req_data, 'start_time', 'end_time')
         params.append(start_time)
@@ -292,11 +297,13 @@ class ApplyViewSet(viewsets.ModelViewSet):
     @action(methods=['POST'], detail=False)
     def examine_apply(self, request):
         """审核申请"""
-        flag, leader_or_secretary = is_leader_or_secretary(request)
+        body = request.data
+        org_id = body.get('org_id', None)
+        username = request.user.username
+        valid_user_in_the_org(org_id, username)
+        flag = if_secretary(request, org_id)
         if not flag:
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)
-        username = request.user.username
-        body = request.data
         apply_id_list = body.get('apply_id_list')
         model = body.get('model')
         remark = body.get('remark')
@@ -317,34 +324,31 @@ class ApplyViewSet(viewsets.ModelViewSet):
             }
             return get_result(result)
 
-        # 根据不同身份设置不同的审核结果以及身份标识
-        if leader_or_secretary == 0:  # 秘书
-            reviewer_identity = 2
-            review_result = 3
-        else:
-            reviewer_identity = 1
-            if model == 'reject':
-                review_result = 3
-            elif model == 'agree':
-                review_result = 2
+        reviewer_identity = 1
+        review_result = 2
+
         if model == 'reject':  # 拒绝申请：
             review_list = []
             with transaction.atomic():
-                applies = Apply.objects.filter(id__in=apply_id_list)
+                # 更新申请表状态
+                applies = Apply.objects.filter(id__in=apply_id_list, org_id=org_id)
                 applies.update(status=review_result)
+                # 创建对应审核表
                 for apply_id in apply_id_list:
                     review_obj = Review(apply_id=apply_id, reviewer=username,
-                                        reviewer_identity=reviewer_identity, result=2, reason=remark)
+                                        reviewer_identity=reviewer_identity, result=2, reason=remark, org_id=org_id)
                     review_list.append(review_obj)
                 Review.objects.bulk_create(review_list)
         elif model == 'agree':  # 同意申请
             review_list = []
             with transaction.atomic():
-                applies = Apply.objects.filter(id__in=apply_id_list)
+                # 更新申请表状态
+                applies = Apply.objects.filter(id__in=apply_id_list, org_id=org_id)
                 applies.update(status=review_result)
+                # 创建对应审核表
                 for apply_id in apply_id_list:
                     review_obj = Review(apply_id=apply_id, reviewer=username,
-                                        reviewer_identity=reviewer_identity, result=1, reason=remark)
+                                        reviewer_identity=reviewer_identity, result=1, reason=remark, org_id=org_id)
                     review_list.append(review_obj)
                 Review.objects.bulk_create(review_list)
 
@@ -356,10 +360,13 @@ class ApplyViewSet(viewsets.ModelViewSet):
         """编辑物资申请"""
         apply = request.data
         apply_id = apply.get("id")
+        org_id = apply.get('org_id', None)
+        username = request.user.username
+        valid_user_in_the_org(org_id, username)
         if not check_param_id(apply_id):
             raise BusinessException(StatusEnums.APPLY2_GOODS_ERROR)
         # 检查物资申请是否存在且该状态是否还可被修改
-        if not Apply.objects.filter(id=apply_id, status=1).exists():
+        if not Apply.objects.filter(id=apply_id, status=1, org_id=org_id).exists():
             raise BusinessException(StatusEnums.MODIFY_ERROR)
         # 修改参数校验
         apply_serializers = ApplyPostSerializers(data=apply)
@@ -372,7 +379,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
                  "num": validated_data.get('num'),
                  "reason": validated_data.get('reason')}
         # 更新
-        Apply.objects.filter(id=apply_id).update(**apply, update_time=datetime.datetime.now())
+        Apply.objects.filter(id=apply_id, org_id=org_id).update(**apply, update_time=datetime.datetime.now())
         return get_result({"message": "修改物资申请信息成功"})
 
     @action(methods=['PATCH'], detail=False)
@@ -380,27 +387,31 @@ class ApplyViewSet(viewsets.ModelViewSet):
         """终止物资申请"""
         req_data = request.data
         apply_id = req_data.get("id")
+        org_id = req_data.get('org_id')
+        username = request.user.username
+        valid_user_in_the_org(org_id, username)
         if not check_param_id(apply_id):
             raise BusinessException(StatusEnums.APPLY2_GOODS_ERROR)
-        apply = Apply.objects.filter(id=apply_id)
+        apply = Apply.objects.filter(id=apply_id, org_id=org_id)
         if not apply.exists():
             raise BusinessException(StatusEnums.NOTFOUND_ERROR)
-        if not (apply[0].status == 1 or apply[0].status == 2):
+        if not (apply[0].status == 1):
             raise BusinessException(StatusEnums.NODELETE_ERROR)
         apply.update(status=0, update_time=datetime.datetime.now())
         return get_result({"message": "物资申请终止成功"})
 
     @action(methods=['DELETE'], detail=True)
-    def delete_good_apply(self, request, pk):
+    def delete_good_apply(self, request, pk, org_id):
         """删除物资申请"""
-
         apply_id = pk
+        username = request.user.username
+        valid_user_in_the_org(org_id, username)
         if not check_param_id(apply_id):
             raise BusinessException(StatusEnums.APPLY2_GOODS_ERROR)
-        apply = Apply.objects.filter(id=apply_id)
+        apply = Apply.objects.filter(id=apply_id, org_id=org_id)
         if not apply.exists():
             raise BusinessException(StatusEnums.NOAPPLY_ERROR)
-        if apply[0].status == 2:
+        if apply[0].status == 1:
             raise BusinessException(StatusEnums.DELETE_ERROR)
         apply.delete()
         return get_result({"message": "物资申请删除成功"})
@@ -408,61 +419,49 @@ class ApplyViewSet(viewsets.ModelViewSet):
     @action(methods=['GET'], detail=False)
     def get_apply_status(self, request):
         """获取所有申请状态"""
+        req_data = request.GET
+        username = request.user.username
+        org_id = req_data.get('org_id', None)
+        valid_user_in_the_org(org_id, username)
         apply_status_list = []
         for item in Apply.STATUS_TYPE:
             apply_status_list.append({'id': item[0], 'name': item[1]})
         return JsonResponse(success_code(apply_status_list))
 
 
-@require_GET
-def if_leader_or_secretary(request):
-    """是否是秘书/管理员"""
-    flag, leader_or_secretary = is_leader_or_secretary(request)
-    return get_result({"result": flag, "data": {'identity': leader_or_secretary}})
+class OrganizationMemberViewSet(viewsets.ModelViewSet):
+    """
+    组成员表视图集
+    """
+    queryset = OrganizationMember.objects.all()
+    serializer_class = OrganizationMemberSerializer
 
+    @action(methods=['GET'], detail=False)
+    def get_apply_users(self, request):
+        """审批页面，获取可管理人员"""
+        req_data = request.GET
+        org_id = req_data.get('org_id')
+        username = request.user.username
+        valid_user_in_the_org(org_id, username)
+        flag = if_secretary(request, org_id)
+        if not flag:
+            raise BusinessException(StatusEnums.AUTHORITY_ERROR)
 
-@check_leader_or_secretary_permission
-def get_apply_users(request, leader_or_secretary):
-    """审批页面，获取申请人列表：秘书获取所有/导员获取本组的申请人"""
-    if leader_or_secretary == 0:  # 秘书
-        users = [{'id': user.get('id'),
-                  'username': user.get('username'),
-                  'display_name': user.get('display_name')}
-                 for user in get_users_in_group(request, group_id=6)]
-    else:  # 导员
-        users = sub_users_in_group(request, username=request.user.username, group_id=6)
-    return JsonResponse(success_code(users))
+        # 根据用户名和组id查秘书表，查看用户是否为此组秘书
 
+        query = Q(username=username)
+        query = query & Q(org_id=org_id)
+        sec_org = Secretary.objects.filter(query)
+        if not sec_org:
+            raise BusinessException(StatusEnums.AUTHORITY_ERROR)
 
-def get_leaders_fun(request, username):
-    client = get_client_by_request(request=request)
-    response = client.usermanage.retrieve_user(lookup_field="username",
-                                               id=username,
-                                               fields="leader")
-    result = response.get('result')
-    if not result:
-        # 请求接口失败，返回请求结果，包括出错信息
-        return response
-    leaders = [leader.get('username') for leader in response.get('data').get('leader')]  # !默认有一个admin导员
-    return leaders
+        normal_persons = tool_get_normal_member(org_id)
 
-
-@require_GET
-def get_leader(request):
-    """根据用户username获取导员"""
-    username = request.user.username
-    flag, leader_or_secretary = is_leader_or_secretary(request)
-    # 查询蓝鲸平台，单个用户信息-返回组长信息
-    leaders = []
-    if not flag:
-        leaders = get_leaders_fun(request, username)
-    elif leader_or_secretary == 1:
-        users = sub_users_in_group(request, username=username, group_id=6)
-        username = users[0]['username']
-        leaders = get_leaders_fun(request, username)
-    if leaders:
-        return get_result({"message": "获取成功", "data": ','.join(leaders)})
-    elif leader_or_secretary == 0:
-        return JsonResponse(success_code({}))
-    else:
-        raise BusinessException(StatusEnums.HANDLE_ERROR)
+        users = [
+            {
+                'id': person.id,
+                'username': person.username
+            }
+            for person in normal_persons
+        ]
+        return JsonResponse(success_code(users))

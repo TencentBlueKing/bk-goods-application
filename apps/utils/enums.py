@@ -70,7 +70,7 @@ class StatusEnums(Enum):
     HANDLE_ERROR = (8600, '获取失败')
     MYDELETE_ERROR = (8700, '删除失败')
     # IMPORT_FILE_FORMAT_ERROR = (8600, '文件格式错误')
-    LACK_ORG_INFO_ERROR = (8800, '缺少组信息')
+    ORG_INFO_ERROR = (8800, '组信息错误')
 
     @property
     def code(self):

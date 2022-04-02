@@ -4,6 +4,7 @@ from apps.good_purchase.models import (Cart, Good, GoodType, GroupApply,
                                        UserInfo, Withdraw, WithdrawReason)
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
+from blueapps.account.models import User
 from rest_framework import serializers
 
 
@@ -120,7 +121,7 @@ class delExcelSerializer(serializers.Serializer):
     username = serializers.CharField()
 
     def validate_username(self, value):
-        if not UserInfo.objects.filter(username=value).exists():
+        if not User.objects.filter(username=value).exists():
             raise BusinessException(StatusEnums.USERNAME_NOT_EXIST_ERROR)
         else:
             return value

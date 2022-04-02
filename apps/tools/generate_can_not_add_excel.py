@@ -5,7 +5,7 @@ import xlwt
 from bkstorages.backends.bkrepo import BKRepoStorage
 
 
-def generate_can_not_add_excel(err_code_list, username, err_msg):
+def generate_can_not_add_excel(err_code_list, username, err_msg, org_name):
     """
     生成添加失败excel
     err_code_list: 有错误的物品编码列表
@@ -42,7 +42,7 @@ def generate_can_not_add_excel(err_code_list, username, err_msg):
 
     file_name = username + '_import_err_code_' + datetime.datetime.today().strftime('%Y-%m-%d__%H') + '.xls'
 
-    dir_path = 'import_err_excel'
+    dir_path = os.path.join(org_name, 'import_err_excel')
 
     # 检查文件夹是否存在
     if not os.path.exists(dir_path):
