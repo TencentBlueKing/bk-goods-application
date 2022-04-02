@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.conf.urls import url
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
@@ -31,11 +30,11 @@ router = DefaultRouter()
 router.register(r'withdraw', views.WithdrawViewSet, basename="withdraw")
 router.register(r'withdraw_reason', views.WithdrawReasonViewSet, basename="withdraw_reason")
 router.register(r'user_info', views.UserInfoViewSet, basename="user_info")
-
 router.register(r'cart', views.CartViewSet, basename="cart")
 router.register(r'group_apply', views.GroupApplyViewSet, basename="group_apply")
 router.register(r'good', views.GoodViewSet, basename="goods")
 router.register(r'goodtype', views.GoodTypeViewSet, basename='goodtype')
+router.register(r'organization', views.OraganizationViewSet, basename='organization')
 
 urlpatterns += [
     path('', include(router.urls))
