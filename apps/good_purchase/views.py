@@ -150,7 +150,7 @@ def del_pics(request):
     return outcome
 
 
-class UserInfoViewSet(viewsets.ModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     queryset = UserInfo.objects.all()
     serializer_class = UserInfoSerializer
 
@@ -161,7 +161,6 @@ class UserInfoViewSet(viewsets.ModelViewSet):
             'phone': self.queryset.filter(username=request.user.username).first().phone,
             'position': self.queryset.filter(username=request.user.username).first().position,
             'isScretary': False,
-            'isLeader': False
         }
         flag, leader_or_secretary = is_leader_or_secretary(request)
         if flag:
@@ -241,7 +240,7 @@ class CartViewSet(viewsets.ModelViewSet):
             update_goods_ids = []
             for update_goods in update_goods_list:
                 update_goods_ids.append(update_goods["id"])
-            cart_all_id = Cart.objects.values_list("id", flat=True)
+            cart_all_id = Cart.objects.filter(org_id=org_id).values_list("id", flat=True)
             if not set(update_goods_ids).issubset(set(cart_all_id)):
                 raise BusinessException(StatusEnums.CART_UPDATE_ERROR)
             all_goods = []
@@ -467,7 +466,7 @@ class GoodViewSet(viewsets.ModelViewSet):
           根据商品id获取商品详情信息
           """
         req_data = request.GET
-        good_id = req_data.get("good_id", 0)
+        good_id = req_data.get("good_id", None)
         org_id = req_data.get("org_id")
 
         # 校验参数
@@ -549,7 +548,7 @@ class GoodViewSet(viewsets.ModelViewSet):
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)
         good = request.data
         org_id = good.get("org_id")
-        good_id = good.get("id", 0)
+        good_id = good.get("id", None)
         # 参数校验
         good_serializers = GoodSerializers(data=good)
         if not good_serializers.is_valid():
@@ -580,7 +579,7 @@ class GoodViewSet(viewsets.ModelViewSet):
         if not flag:
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)
         req = request.data
-        good_id = req.get('id', 0)
+        good_id = req.get('id', None)
         org_id = req.get("org_id")
         # 校验参数
         if not check_param_id(good_id):
