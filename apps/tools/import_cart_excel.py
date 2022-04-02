@@ -1,16 +1,20 @@
 import base64
+import json
 import os.path
 
 import xlrd
-from apps.good_purchase.models import Good, GroupApply, UserInfo
+from apps.good_apply.models import Organization, OrganizationMember
+from apps.good_purchase.models import Good, GroupApply
 # from apps.good_purchase.serializers import GroupApplySerializers
 from apps.tools.generate_can_not_add_excel import generate_can_not_add_excel
 from apps.tools.response import get_result
 from apps.tools.tool_get_import_file import tool_get_import_file
 from apps.tools.tool_get_xls_excel_data import tool_get_xls_excel_data
 from apps.tools.tool_get_xlsx_excel_data import tool_get_xlsx_excel_data
+from apps.tools.tool_valid_user_in_the_org import valid_user_in_the_org
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
+from blueapps.account.models import UserProperty
 from django.views.decorators.http import require_POST
 from openpyxl import load_workbook
 
@@ -20,7 +24,7 @@ def import_cart_excel(request):
     """
     管理员导入物资
     """
-    def handle_excel_data(rows, CANNOT_ADD, err_msg):
+    def handle_excel_data(rows, CANNOT_ADD, err_msg, org_id):
         """处理传入的列表数据，判断是否加入部门所需物资表"""
         group_apply_create_list = []  # 存放GroupApply对象
         for row_index, row in enumerate(rows):
@@ -36,18 +40,18 @@ def import_cart_excel(request):
             good_code = gapply_item[1]
 
             # 判断商品是否存在于商品表中，判断用户名是否存在于用户表中
-            if not Good.objects.filter(good_code=good_code, status=1).exists():
+            if not Good.objects.filter(good_code=good_code, status=1, org_id=org_id).exists():
                 CANNOT_ADD.append(good_code)
                 err_msg.append('{}: 无对应商品'.format(good_code))
                 continue
-            if not UserInfo.objects.filter(username=username).exists():
+            if not OrganizationMember.objects.filter(username=username, org_id=org_id).exists():
                 CANNOT_ADD.append(good_code)
                 err_msg.append('{}: 无对应用户'.format(good_code))
                 continue
 
             phone = ''
-            if UserInfo.objects.filter(username=username).first().phone:
-                phone = UserInfo.objects.filter(username=username).first().phone
+            if UserProperty.objects.filter(user=request.user.id).first().phone:
+                phone = UserProperty.objects.filter(user=request.user.id).first().phone
 
             num = gapply_item[2]
 
@@ -71,8 +75,11 @@ def import_cart_excel(request):
 
     body = request.body
     username = request.user.username
+    org_id = json.loads(body).get('org_id', None)
+    valid_user_in_the_org(org_id, username)
 
-    dir_path = 'import_cart_excel'
+    org_name = Organization.objects.filter(id=org_id).first().group_name
+    dir_path = os.path.join(org_name, 'import_cart_excel')
     file, file_path = tool_get_import_file(body, dir_path, 'file', 'fileName')
 
     # 将file以base64格式译码
@@ -97,7 +104,7 @@ def import_cart_excel(request):
             os.remove(file_path)
 
         if len(rows) > 1:
-            receive_handle_result = handle_excel_data(rows, CANNOT_ADD, err_msg)  # 处理数据
+            receive_handle_result = handle_excel_data(rows, CANNOT_ADD, err_msg, org_id)  # 处理数据
         else:
             raise BusinessException(StatusEnums.IMPORT_FILE_EMPTY_ERROR)
 
@@ -115,7 +122,7 @@ def import_cart_excel(request):
             os.remove(file_path)
 
         if len(rows) > 1:
-            receive_handle_result = handle_excel_data(rows, CANNOT_ADD, err_msg)  # 处理数据
+            receive_handle_result = handle_excel_data(rows, CANNOT_ADD, err_msg, org_id)  # 处理数据
         else:
             raise BusinessException(StatusEnums.IMPORT_FILE_EMPTY_ERROR)
 
@@ -137,7 +144,7 @@ def import_cart_excel(request):
         }
         return get_result(result)
     else:
-        can_not_add_file_url = generate_can_not_add_excel(CANNOT_ADD, username, err_msg)
+        can_not_add_file_url = generate_can_not_add_excel(CANNOT_ADD, username, err_msg, org_name)
         result = {
             "code": StatusEnums.IMPORT_ERROR.code,
             "result": True,

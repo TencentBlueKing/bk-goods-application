@@ -3,6 +3,7 @@ import os
 
 from apps.good_purchase.serializers import delExcelSerializer
 from apps.tools.response import get_result
+from apps.tools.tool_valid_user_in_the_org import valid_user_in_the_org
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
 from bkstorages.backends.bkrepo import BKRepoStorage
@@ -17,9 +18,11 @@ def del_excel(request):
     body = request.body
     body = json.loads(body)
 
+    username = request.user.username
+    org_id = body.get('org_id')
+    valid_user_in_the_org(org_id, username)
     dir_name = body.get('dirName')
     file_name = body.get('fileName')
-    username = request.user.username
     del_serializer = delExcelSerializer(data={"username": username})
 
     if not del_serializer.is_valid():

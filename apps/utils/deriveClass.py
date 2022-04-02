@@ -8,7 +8,7 @@ from bkstorages.backends.bkrepo import BKRepoStorage
 
 
 class DeriveModel(object):
-    def __init__(self, model, goods, username):
+    def __init__(self, model, goods, username, org_id):
         self.model = model  # 模型种类
         self.goods = goods  # 数据
         self.username = username  # 导出人
@@ -18,6 +18,7 @@ class DeriveModel(object):
         self.excel_data = []  # excel文件数据
         self.file_name = ''  # excel文件名
         self.dir_path = ''  # excel文件所在文件夹
+        self.org_id = org_id  # 组id
         self.file_url = ''  # excel文件资源路径
         self.result = ''  # 标准化result
         self.storage = None  # 存储对象
@@ -33,9 +34,9 @@ class DeriveModel(object):
     def init_personal_data(self):  # 初始化个人物资数据
         for group_apply_id in self.goods['selectedRows']:  # 遍历列表获得单个物资编码
 
-            group_apply = GroupApply.objects.filter(id=group_apply_id).first()  # 根据物品编码查询对应申请表
+            group_apply = GroupApply.objects.filter(id=group_apply_id, org_id=self.org_id).first()  # 根据物品编码查询对应申请表
             good_code = group_apply.good_code
-            good = Good.objects.filter(good_code=good_code).first()  # 根据物品编码查询对应物品
+            good = Good.objects.filter(good_code=good_code, org_id=self.org_id).first()  # 根据物品编码查询对应物品
 
             unit = []  # 存放一行excel信息
             unit.append(good_code)  # 物资编码
@@ -44,7 +45,7 @@ class DeriveModel(object):
             unit.append(good_name)
 
             good_type_id = good.good_type_id  # 物资类型
-            good_type = GoodType.objects.filter(id=good_type_id).first().type_name
+            good_type = GoodType.objects.filter(id=good_type_id, org_id=self.org_id).first().type_name
             unit.append(good_type)
 
             good_price = good.price  # 物品价格
@@ -74,9 +75,9 @@ class DeriveModel(object):
         for cart_id in self.goods['selectedRows']:
 
             unit = []  # 存放一行excel信息
-            good_cart = Cart.objects.filter(id=cart_id).first()  # 根据id查询对应购物车
+            good_cart = Cart.objects.filter(id=cart_id, org_id=self.org_id).first()  # 根据id查询对应购物车
             good_id = good_cart.good_id
-            good = Good.objects.filter(id=good_id, status=1).first()  # 根据物品id查询对应物品
+            good = Good.objects.filter(id=good_id, status=1, org_id=self.org_id).first()  # 根据物品id查询对应物品
 
             good_user = good_cart.username  # 使用人
             unit.append(good_user)
@@ -111,7 +112,7 @@ class DeriveModel(object):
         for apply_id in self.goods['selectedRows']:  # 遍历获取单个物品id
             unit = []  # 存放一行excel数据
 
-            apply = Apply.objects.filter(id=apply_id).first()  # 根据申请表id查询对应申请表
+            apply = Apply.objects.filter(id=apply_id, org_id=self.org_id).first()  # 根据申请表id查询对应申请表
             good_code = apply.good_code
 
             apply_user = apply.apply_user  # 使用人
@@ -171,11 +172,11 @@ class DeriveModel(object):
                 datetime.datetime.today().strftime('%Y-%m-%d__%H') + '.xls'
         # 规定文件夹名
         if self.model == 1:
-            self.dir_path = 'personal_goods'
+            self.dir_path = os.path.join(self.org_id, 'personal_goods')
         elif self.model == 2:
-            self.dir_path = 'cart'
+            self.dir_path = os.path.join(self.org_id, 'cart')
         elif self.model == 3:
-            self.dir_path = 'apply_history'
+            self.dir_path = os.path.join(self.org_id, 'apply_history')
 
         # 检查文件夹是否存在
         if not os.path.exists(self.dir_path):
