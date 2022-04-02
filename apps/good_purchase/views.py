@@ -18,7 +18,7 @@ from tempfile import NamedTemporaryFile
 
 from apps.good_apply.models import Organization, OrganizationMember, Secretary
 from apps.good_purchase.models import (Cart, Good, GoodType, GroupApply,
-                                       UserInfo, Withdraw, WithdrawReason)
+                                       Withdraw, WithdrawReason)
 from apps.good_purchase.serializers import (CartSerializer,
                                             CheckWithdrawsSeralizers,
                                             ConfirmReceiptSerializer,
@@ -31,7 +31,6 @@ from apps.good_purchase.serializers import (CartSerializer,
                                             WithdrawSerializer,
                                             personalFormSerializer,
                                             personalSerializer)
-from apps.tools.auth_check import is_leader_or_secretary
 from apps.tools.decorators import check_secretary_permission
 from apps.tools.param_check import (check_apply_update_param, check_param_id,
                                     check_param_str, get_error_message)
@@ -41,6 +40,7 @@ from apps.tools.tool_paginator import tool_paginator
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
 from bkstorages.backends.bkrepo import BKRepoStorage
+from blueapps.account.models import User, UserProperty
 from config.default import os
 from django.core.files.base import File
 from django.db import transaction
@@ -151,29 +151,31 @@ def del_pics(request):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = UserInfo.objects.all()
+    queryset = User.objects.all()
     serializer_class = UserInfoSerializer
 
     def list(self, request, *args, **kwargs):
+        # req = request.data
+        # org_id = req.get("org_id")
+        user_id = self.queryset.filter(username=request.user.username).first().id
         user_info = {
             'id': self.queryset.filter(username=request.user.username).first().id,
             'username': request.user.username,
-            'phone': self.queryset.filter(username=request.user.username).first().phone,
-            'position': self.queryset.filter(username=request.user.username).first().position,
+            'phone': UserProperty.filter(user_id=user_id, key='phone').first().value,
+            'position': UserProperty.filter(user_id=user_id, key='position').first().value,
             'isScretary': False,
         }
-        flag, leader_or_secretary = is_leader_or_secretary(request)
-        if flag:
-            if leader_or_secretary == 0:
-                user_info['isScretary'] = True
-            elif leader_or_secretary == 1:
-                user_info['isLeader'] = True
+        # flag = if_secretary(request, org_id)
+        # if flag:
+        #     user_info['isScretary'] = True
         return JsonResponse(success_code(user_info))
 
     @action(methods=['post'], detail=False)
     def edit_user_info(self, request):
         username = request.user.username  # 获取用户名
-        if not UserInfo.objects.filter(username=username).exists():
+        req = request.data
+        org_id = req.get("org_id")
+        if not User.objects.filter(username=username, org_id=org_id).exists():
             raise BusinessException(StatusEnums.USER_NOT_EXIST_ERROR)
         req = request.data
         phone = req.get('phone')
@@ -185,7 +187,7 @@ class UserViewSet(viewsets.ModelViewSet):
         }
         user_info_serializer = UserInfoCheckSerializer(data=user_info)
         if user_info_serializer.is_valid():  # 参数校验
-            UserInfo.objects.filter(username=username).update(
+            User.objects.filter(username=username, org_id=org_id).update(
                 phone=user_info.get('phone'), position=user_info.get('position'))
             return get_result({'code': 200, 'message': '修改成功'})
         err_msg = get_error_message(user_info_serializer)
@@ -518,12 +520,12 @@ class GoodViewSet(viewsets.ModelViewSet):
     @action(methods=['post'], detail=False)
     def add_good(self, request):
         """添加商品"""
-        flag, leader_or_secretary = is_leader_or_secretary(request)
-        if not flag:
-            raise BusinessException(StatusEnums.AUTHORITY_ERROR)
         good = request.data
-        # 参数校验
         org_id = good.get("org_id")
+        # flag = is_secretary(request, org_id)
+        # if not flag:
+        #     raise BusinessException(StatusEnums.AUTHORITY_ERROR)
+        # 参数校验
         good_serializers = GoodSerializers(data=good)
         if not good_serializers.is_valid():
             message = get_error_message(good_serializers)
@@ -543,11 +545,11 @@ class GoodViewSet(viewsets.ModelViewSet):
     @action(methods=['post'], detail=False)
     def update_good(self, request):
         """修改商品信息"""
-        flag, leader_or_secretary = is_leader_or_secretary(request)
-        if not flag:
-            raise BusinessException(StatusEnums.AUTHORITY_ERROR)
         good = request.data
         org_id = good.get("org_id")
+        # flag = is_secretary(request, org_id)
+        # if not flag:
+        #     raise BusinessException(StatusEnums.AUTHORITY_ERROR)
         good_id = good.get("id", None)
         # 参数校验
         good_serializers = GoodSerializers(data=good)
@@ -575,12 +577,12 @@ class GoodViewSet(viewsets.ModelViewSet):
     @action(methods=['post'], detail=False)
     def down_good(self, request):
         """商品下架"""
-        flag, leader_or_secretary = is_leader_or_secretary(request)
-        if not flag:
-            raise BusinessException(StatusEnums.AUTHORITY_ERROR)
         req = request.data
         good_id = req.get('id', None)
         org_id = req.get("org_id")
+        # flag = is_secretary(request, org_id)
+        # if not flag:
+        #     raise BusinessException(StatusEnums.AUTHORITY_ERROR)
         # 校验参数
         if not check_param_id(good_id):
             raise BusinessException(StatusEnums.GOODID_ERROR)
@@ -607,11 +609,11 @@ class GoodTypeViewSet(viewsets.ModelViewSet):
     @action(methods=['POST'], detail=False)
     def add_good_type(self, request):
         """新增商品类型"""
-        flag, leader_or_secretary = is_leader_or_secretary(request)
-        if not flag:
-            raise BusinessException(StatusEnums.AUTHORITY_ERROR)
         req = request.data
         org_id = req.get("org_id")
+        # flag = is_secretary(request, org_id)
+        # if not flag:
+        #     raise BusinessException(StatusEnums.AUTHORITY_ERROR)
         # 参数校验
         good_type_serializers = GoodTypeSerializers(data=req)
         if not good_type_serializers.is_valid():
