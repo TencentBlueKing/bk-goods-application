@@ -1,16 +1,6 @@
 <template>
     <div class="applyHome-wrapper">
-        <div class="switcher">
-            <bk-tag style="margin-right: 10px">批量申请</bk-tag>
-            <bk-switcher
-                v-model="showMultiImport"
-                theme="primary"
-            ></bk-switcher>
-        </div>
-        <div
-            class="info-table"
-            v-if="!showMultiImport"
-        >
+        <div class="info-table" v-if="!showMultiImport">
             <apply-form
                 ref="applyForm"
                 :leaders="leaders"
@@ -19,10 +9,7 @@
                 @campusChange="changeCollegeList"
             ></apply-form>
         </div>
-        <div
-            class="multi-import-page"
-            v-if="showMultiImport"
-        >
+        <div class="multi-import-page" v-if="showMultiImport">
             <multi-table
                 @showInput="changeInputVisible"
                 ref="multiTable"
@@ -38,15 +25,9 @@
             ok-text="确定提交"
             title="请完善信息"
         >
-            <bk-form
-                :label-width="130"
-                ref="inputForm"
-            >
-                <bk-container
-                    :col="12"
-                    :margin="6"
-                >
-                    <bk-row style="margin: 25px;">
+            <bk-form :label-width="130" ref="inputForm">
+                <bk-container :col="12" :margin="6">
+                    <bk-row style="margin: 25px">
                         <bk-col :span="12">
                             <div class="leaders">
                                 <bk-form-item label="导员">
@@ -55,7 +36,7 @@
                             </div>
                         </bk-col>
                     </bk-row>
-                    <bk-row style="margin: 25px;">
+                    <bk-row style="margin: 25px">
                         <bk-col :span="12">
                             <div class="campus">
                                 <bk-form-item
@@ -76,7 +57,7 @@
                             </div>
                         </bk-col>
                     </bk-row>
-                    <bk-row style="margin: 25px;">
+                    <bk-row style="margin: 25px">
                         <bk-col :span="12">
                             <div class="college">
                                 <bk-form-item
@@ -97,7 +78,7 @@
                             </div>
                         </bk-col>
                     </bk-row>
-                    <bk-row style="margin: 25px;">
+                    <bk-row style="margin: 25px">
                         <bk-col :span="12">
                             <div class="specificLocation">
                                 <bk-form-item
@@ -113,7 +94,7 @@
                             </div>
                         </bk-col>
                     </bk-row>
-                    <bk-row style="margin: 25px;">
+                    <bk-row style="margin: 25px">
                         <bk-col :span="12">
                             <div class="apply-reason">
                                 <bk-form-item
@@ -171,7 +152,8 @@
             })
         },
         watch: {
-            showMultiImport (val) { // 监听批量导入页面是否展示
+            '$store.state.isApplyViewSwitcherOn' (val) {
+                this.showMultiImport = val
                 if (val) {
                     this.$nextTick(() => {
                         this.$refs.multiTable.changUploadName()
@@ -184,6 +166,12 @@
         },
         created () {
             this.loadData() // 创建实例时加载数据
+        },
+        mounted () {
+            this.$store.commit('updateViewInfo', {
+                viewInfo: '批量申请',
+                hasApplyViewSwitcher: true
+            })
         },
         methods: {
             loadData () {
@@ -201,7 +189,7 @@
             },
             changeCollegeList (val) {
                 const parentCode = this.getParentCode(val)
-                console.log(this.campusList)
+                // console.log(this.campusList)
                 this.$http.get(getSubPositionListUrl, { params: { parent_code: parentCode } }).then(res => {
                     this.collegeList = res.data
                 })
