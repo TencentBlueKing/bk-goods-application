@@ -23,8 +23,13 @@ const routes = [
         path: window.PROJECT_CONFIG.SITE_URL,
         name: 'appMain',
         component: MainEntry,
-        redirect: 'applyHome',
+        redirect: 'home',
         children: [
+            {
+                path: 'home',
+                name: 'home',
+                component: () => import('@/views/Home.vue')
+            },
             {
                 path: 'applyHome',
                 name: 'applyHome',

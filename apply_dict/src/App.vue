@@ -10,6 +10,7 @@
             :navigation-type="'top-bottom'"
             :need-menu="false"
             @toggle="handleToggle"
+            v-if="$route.name !== 'home'"
         >
             <div class="top">
                 <div class="top-blank"></div>
@@ -107,6 +108,10 @@
             </template>
         </bk-navigation>
         <app-auth ref="bkAuth"></app-auth>
+        <Home
+            class="home-wrapper"
+            v-if="$route.name === 'home'"
+        ></Home>
     </div>
 </template>
 
@@ -114,12 +119,10 @@
     import { mapState } from 'vuex'
     import { bus } from '@/common/bus'
     import userCenter from './views/main/userCenter.vue'
-
+    import Home from './views/Home.vue'
     export default {
         name: 'monitor-navigation',
-        components: {
-            userCenter
-        },
+        components: { userCenter, Home },
         data () {
             return {
                 routerKey: +new Date(),
