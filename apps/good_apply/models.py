@@ -100,6 +100,12 @@ class Organization(models.Model):
         verbose_name = "组表"
         verbose_name_plural = "组表"
 
+    def to_json(self):
+        return {
+            "id": self.id,
+            "group_name": self.group_name
+        }
+
 
 class OrganizationMember(models.Model):
     username = models.CharField(max_length=255, verbose_name="用户名")
@@ -108,6 +114,13 @@ class OrganizationMember(models.Model):
     class Meta:
         verbose_name = "组成员表"
         verbose_name_plural = "组成员表"
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "user_name": self.user_name,
+            "org_id": self.org_id
+        }
 
 
 class ApplyToOrg(TimeBasic):
@@ -123,3 +136,13 @@ class ApplyToOrg(TimeBasic):
     class Meta:
         verbose_name = "申请加入组表"
         verbose_name_plural = "申请加入组表"
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "apply_group_id": self.apply_group_id,
+            "user_name": self.create_user,
+            "create_time": self.create_time,
+            "update_time": self.update_time,
+            "status": self.get_status_display(),
+        }
