@@ -4,12 +4,12 @@
         :class="{ his: $route.name === 'applyHistory' }"
     >
         <div class="header">
-            <bk-divider align="left">
+            <!-- <bk-divider align="left">
                 <bk-tag
                     type="filled"
                     style="font-size: 13px"
                 ><span>{{$route.meta.alias}}</span></bk-tag>
-            </bk-divider>
+            </bk-divider> -->
         </div>
         <router-view :key="$route.path"></router-view>
     </div>

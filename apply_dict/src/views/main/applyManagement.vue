@@ -187,6 +187,12 @@
         created () {
             this.getApply()
         },
+        mounted () {
+            this.$store.commit('updateViewInfo', {
+                viewInfo: '申请管理',
+                hasApplyViewSwitcher: false
+            })
+        },
         methods: {
             getApply () { // 获取申请列表
                 this.$http.get(getApplyUrl, {

@@ -28,6 +28,12 @@
             return {
             }
         },
+        mounted () {
+            this.$store.commit('updateViewInfo', {
+                viewInfo: '历史记录',
+                hasApplyViewSwitcher: false
+            })
+        },
         methods: {
             handleSearch (formData) {
                 this.$refs.historyTable.search(formData)

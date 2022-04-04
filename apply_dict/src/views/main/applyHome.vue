@@ -1,12 +1,5 @@
 <template>
     <div class="applyHome-wrapper">
-        <div class="switcher">
-            <bk-tag style="margin-right: 10px">批量申请</bk-tag>
-            <bk-switcher
-                v-model="showMultiImport"
-                theme="primary"
-            ></bk-switcher>
-        </div>
         <div
             class="info-table"
             v-if="!showMultiImport"
@@ -179,7 +172,8 @@
             })
         },
         watch: {
-            showMultiImport (val) { // 监听批量导入页面是否展示
+            '$store.state.isApplyViewSwitcherOn' (val) {
+                this.showMultiImport = val
                 if (val) {
                     this.$nextTick(() => {
                         this.$refs.multiTable.changUploadName()
@@ -192,6 +186,12 @@
         },
         created () {
             this.loadData() // 创建实例时加载数据
+        },
+        mounted () {
+            this.$store.commit('updateViewInfo', {
+                viewInfo: '批量申请',
+                hasApplyViewSwitcher: true
+            })
         },
         methods: {
             loadData () {
