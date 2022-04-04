@@ -31,7 +31,7 @@
         <bk-dialog
             v-model="inputVisible"
             theme="primary"
-            :width="700"
+            :width="500"
             :mask-close="false"
             :header-position="'center'"
             :confirm-fn="confirmMultiCommit"
@@ -39,14 +39,14 @@
             title="请完善信息"
         >
             <bk-form
-                :label-width="130"
+                :label-width="80"
                 ref="inputForm"
             >
                 <bk-container
                     :col="12"
                     :margin="6"
                 >
-                    <bk-row style="margin: 25px;">
+                    <bk-row style="margin-bottom: 25px;">
                         <bk-col :span="12">
                             <div class="leaders">
                                 <bk-form-item label="导员">
@@ -55,7 +55,7 @@
                             </div>
                         </bk-col>
                     </bk-row>
-                    <bk-row style="margin: 25px;">
+                    <bk-row style="margin-bottom: 25px;">
                         <bk-col :span="12">
                             <div class="campus">
                                 <bk-form-item
@@ -63,7 +63,10 @@
                                     :required="true"
                                     :property="'multiCampus'"
                                 >
-                                    <bk-select v-model="multiInput.campus">
+                                    <bk-select
+                                        v-model="multiInput.campus"
+                                        style="width: 80%"
+                                    >
                                         <bk-option
                                             v-for="option in campusList"
                                             :key="option.id"
@@ -76,7 +79,7 @@
                             </div>
                         </bk-col>
                     </bk-row>
-                    <bk-row style="margin: 25px;">
+                    <bk-row style="margin-bottom: 25px;">
                         <bk-col :span="12">
                             <div class="college">
                                 <bk-form-item
@@ -84,7 +87,10 @@
                                     :required="true"
                                     :property="'multiCollege'"
                                 >
-                                    <bk-select v-model="multiInput.college">
+                                    <bk-select
+                                        v-model="multiInput.college"
+                                        style="width: 80%"
+                                    >
                                         <bk-option
                                             v-for="option in collegeList"
                                             :key="option.id"
@@ -97,7 +103,7 @@
                             </div>
                         </bk-col>
                     </bk-row>
-                    <bk-row style="margin: 25px;">
+                    <bk-row style="margin-bottom: 25px;">
                         <bk-col :span="12">
                             <div class="specificLocation">
                                 <bk-form-item
@@ -108,12 +114,13 @@
                                     <bk-input
                                         v-model="multiInput.specificLocation"
                                         placeholder=""
+                                        style="width: 80%"
                                     ></bk-input>
                                 </bk-form-item>
                             </div>
                         </bk-col>
                     </bk-row>
-                    <bk-row style="margin: 25px;">
+                    <bk-row style="margin-bottom: 25px;">
                         <bk-col :span="12">
                             <div class="apply-reason">
                                 <bk-form-item
@@ -124,6 +131,7 @@
                                     <bk-input
                                         type="textarea"
                                         v-model="multiInput.applyReason"
+                                        style="width: 80%"
                                     ></bk-input>
                                 </bk-form-item>
                             </div>
@@ -201,7 +209,6 @@
             },
             changeCollegeList (val) {
                 const parentCode = this.getParentCode(val)
-                console.log(this.campusList)
                 this.$http.get(getSubPositionListUrl, { params: { parent_code: parentCode } }).then(res => {
                     this.collegeList = res.data
                 })
@@ -294,12 +301,21 @@
         }
         .info-table {
             width: 100%;
-            padding: 30px 0;
+            padding-bottom: 30px;
             overflow: auto;
         }
         .multi-import-page {
             padding: 15px 0 0 0;
             width: 100%;
         }
+    }
+    /deep/.bk-dialog-wrapper .bk-dialog-content {
+        border-radius: 8px;
+    }
+    /deep/.bk-dialog-wrapper .bk-dialog-footer {
+        border-radius: 8px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 </style>

@@ -132,8 +132,7 @@
                     <bk-col :span="3">
                         <div style="text-align: center;line-height: 90px;">
                             <bk-button
-                                size="large"
-                                :outline="true"
+                                size="medium"
                                 theme="primary"
                                 title="查询"
                                 @click.stop.prevent="search"

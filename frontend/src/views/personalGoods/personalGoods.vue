@@ -160,90 +160,77 @@
                 <bk-button
                     :theme="'primary'"
                     title="查询"
-                    :outline="true"
                     @click="search"
-                    size="large"
+                    size="medium"
                 >查询数据</bk-button>
             </div>
         </div>
         <div class="more-options">
-            <bk-dropdown-menu
-                @show="isDropdownShow = true"
-                @hide="isDropdownShow = false"
-                ref="dropdown"
-            >
-                <div
-                    class="dropdown-trigger-btn"
-                    style="padding-left: 19px;"
-                    slot="dropdown-trigger"
-                >
-                    <span>批量操作</span>
-                    <i :class="['bk-icon icon-angle-down',{ 'icon-flip': isDropdownShow }]"></i>
-                </div>
-                <ul
-                    class="bk-dropdown-list"
-                    slot="dropdown-content"
-                >
-                    <li>
-                        <a
-                            href="javascript:;"
-                            @click="deriveExcel"
-                        >导出数据</a>
-                    </li>
-                    <li>
-                        <a
-                            href="javascript:;"
-                            @click="confirmReceiptDialog"
-                        >确认收货</a>
-                    </li>
-                    <li>
-                        <a
-                            href="javascript:;"
-                            @click="returnGoods"
-                        >物资退库</a>
-                    </li>
-                </ul>
-            </bk-dropdown-menu>
-        </div>
-        <div class="goods">
-            <bk-table
-                style="margin-top: 15px"
-                :height="435"
-                :data="data"
-                :size="medium"
-                :pagination="pagination"
-                @select="selectRow"
-                @select-all="selectAll"
-                @row-mouse-enter="handleRowMouseEnter"
-                @row-mouse-leave="handleRowMouseLeave"
-                @page-change="handlePageChange"
-                @page-limit-change="handlePageLimitChange"
-            >
-                <bk-table-column
-                    type="selection"
-                    width="60"
-                ></bk-table-column>
-                <bk-table-column
-                    label="物资编码"
-                    prop="good_code"
-                ></bk-table-column>
-                <bk-table-column
-                    label="物品名称"
-                    prop="good_name"
-                ></bk-table-column>
-                <bk-table-column
-                    label="所在地区"
-                    prop="position"
-                ></bk-table-column>
-                <bk-table-column
-                    label="使用人"
-                    prop="username"
-                ></bk-table-column>
-                <bk-table-column
-                    label="状态"
-                    prop="status"
-                ></bk-table-column>
-            </bk-table>
+            <el-tabs>
+                <el-tab-pane>
+                    <span
+                        slot="label"
+                        class="tab-label"
+                    >
+                        <el-dropdown
+                            @command="handleCommand"
+                            style="margin-top: -3px"
+                        >
+                            <span class="el-dropdown-link">
+                                批量操作<i class="el-icon-arrow-down el-icon--right"></i>
+                            </span>
+                            <el-dropdown-menu slot="dropdown">
+                                <el-dropdown-item command="derive">导出数据</el-dropdown-item>
+                                <el-dropdown-item command="confirm">确认收货</el-dropdown-item>
+                                <el-dropdown-item command="return">物资退库</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </el-dropdown>
+                        <div style="height: 5px; background: blue; width: 60px; margin-top:-8px; ; border-radius: 6px"></div>
+                    </span>
+                    <div class="goods">
+                        <bk-table
+                            style="margin-top: 15px"
+                            :height="300"
+                            :data="data"
+                            :size="medium"
+                            :pagination="pagination"
+                            @select="selectRow"
+                            @select-all="selectAll"
+                            @row-mouse-enter="handleRowMouseEnter"
+                            @row-mouse-leave="handleRowMouseLeave"
+                            @page-change="handlePageChange"
+                            @page-limit-change="handlePageLimitChange"
+                            :header-cell-style="{ background: '#fff' }"
+                        >
+                            <bk-table-column
+                                type="selection"
+                                width="60"
+                            ></bk-table-column>
+                            <bk-table-column
+                                label="物资编码"
+                                prop="good_code"
+                            ></bk-table-column>
+                            <bk-table-column
+                                label="物品名称"
+                                prop="good_name"
+                            ></bk-table-column>
+                            <bk-table-column
+                                label="所在地区"
+                                prop="position"
+                            ></bk-table-column>
+                            <bk-table-column
+                                label="使用人"
+                                prop="username"
+                            ></bk-table-column>
+                            <bk-table-column label="状态">
+                                <template slot-scope="props">
+                                    <bk-tag ext-cls="custom-tag">{{props.row.status}}</bk-tag>
+                                </template>
+                            </bk-table-column>
+                        </bk-table>
+                    </div>
+                </el-tab-pane>
+            </el-tabs>
         </div>
         <bk-dialog
             v-model="confirmReceiptDialogVisible"
@@ -525,6 +512,15 @@
             },
             refresh () {
                 this.$router.go(0)
+            },
+            handleCommand (command) {
+                if (command === 'derive') {
+                    this.deriveExcel()
+                } else if (command === 'confirm') {
+                    this.confirmReceiptDialog()
+                } else if (command === 'return') {
+                    this.returnGoods()
+                }
             }
         }
     }
@@ -553,5 +549,42 @@
         .goods {
             margin-top: 10px;
         }
+    }
+    /deep/.bk-table-enable-row-transition .bk-table-body td {
+        border: none !important;
+    }
+    /deep/.bk-table {
+        border: none !important;
+        &:before {
+            height: 0px !important;
+        }
+    }
+    /deep/.bk-table-outer-border:after {
+        width: 0px !important;
+    }
+    /deep/.bk-table-pagination-wrapper {
+        border: none !important;
+    }
+    /deep/.el-tabs__nav {
+        float: right;
+    }
+    /deep/.el-tabs__item {
+        width: 120px;
+        height: 50px;
+        display: flex;
+        flex-direction: column;
+        place-content: center;
+        place-items: center;
+        border: #409eff solid 2px;
+        border-radius: 8px;
+    }
+    /deep/.el-tabs__active-bar {
+        display: none;
+    }
+    /deep/.el-tabs__nav-wrap::after {
+        background-color: #409eff;
+    }
+    .custom-tag {
+        color: #409EFF;
     }
 </style>

@@ -1,167 +1,163 @@
 <template>
     <div class="table-content">
-        <div class="more-options">
-            <bk-dropdown-menu
-                @show="isDropdownShow = true"
-                @hide="isDropdownShow = false"
-                ref="dropdown"
-            >
-                <div
-                    class="dropdown-trigger-btn"
-                    style="padding-left: 19px;"
-                    slot="dropdown-trigger"
+        <el-tabs>
+            <el-tab-pane>
+                <span
+                    slot="label"
+                    class="tab-label"
                 >
-                    <span>批量操作</span>
-                    <i :class="['bk-icon icon-angle-down',{ 'icon-flip': isDropdownShow }]"></i>
-                </div>
-                <ul
-                    class="bk-dropdown-list"
-                    slot="dropdown-content"
+                    <el-dropdown @command="handleCommand" style="margin-top: -3px">
+                        <span class="el-dropdown-link">
+                            批量操作<i class="el-icon-arrow-down el-icon--right"></i>
+                        </span>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item command="export">导出数据</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                    <div style="height: 5px; background: blue; width: 60px; margin-top:-8px; ; border-radius: 6px"></div>
+                </span>
+                <bk-table
+                    height="350"
+                    :data="history"
+                    :size="medium"
+                    :pagination="pagination"
+                    @select="selectRow"
+                    @select-all="selectAll"
+                    @page-change="handlePageChange"
+                    @page-limit-change="handlePageLimitChange"
+                    :header-cell-style="{ background: '#fff' }"
                 >
-                    <li>
-                        <a
-                            href="javascript:;"
-                            @click="exportData"
-                            class="multi-export"
-                        >导出数据</a>
-                    </li>
-                </ul>
-            </bk-dropdown-menu>
-        </div>
-        <bk-table
-            height="350"
-            :data="history"
-            :size="medium"
-            :pagination="pagination"
-            @select="selectRow"
-            @select-all="selectAll"
-            @page-change="handlePageChange"
-            @page-limit-change="handlePageLimitChange"
-            style="margin-top:10px"
-        >
-            <bk-table-column
-                type="selection"
-                width="60"
-            ></bk-table-column>
-            <bk-table-column
-                label="物品名称"
-                width="150"
-            >
-                <template slot-scope="props">
-                    <bk-input
-                        v-model="props.row.good_name"
-                        v-if="editId === props.row.id"
-                    ></bk-input>
-                    <div v-else>
-                        {{props.row.good_name}}
-                    </div>
-                </template>
-            </bk-table-column>
-            <bk-table-column
-                label="物品编码"
-                width="150"
-            >
-                <template slot-scope="props">
-                    <bk-input
-                        v-model="props.row.good_code"
-                        v-if="editId === props.row.id"
-                    ></bk-input>
-                    <div v-else>
-                        {{props.row.good_code}}
-                    </div>
-                </template>
-            </bk-table-column>
-            <bk-table-column
-                label="申请时间"
-                prop="create_time"
-                width="160"
-            ></bk-table-column>
-            <bk-table-column
-                label="数量"
-                width="100"
-            >
-                <template slot-scope="props">
-                    <bk-input
-                        v-model="props.row.num"
-                        v-if="editId === props.row.id"
-                        type="number"
-                        :precision="0"
-                        :min="1"
-                    ></bk-input>
-                    <div v-else>
-                        {{props.row.num}}
-                    </div>
-                </template>
-            </bk-table-column>
-            <bk-table-column label="申请原因">
-                <template slot-scope="props">
-                    <bk-input
-                        v-model="props.row.reason"
-                        v-if="editId === props.row.id"
-                    ></bk-input>
-                    <div v-else>
-                        {{props.row.reason}}
-                    </div>
-                </template>
-            </bk-table-column>
-            <bk-table-column
-                label="状态"
-                prop="status"
-                width="110"
-            ></bk-table-column>
-            <bk-table-column
-                label="审核人"
-                prop="reviewer"
-                width="120"
-            ></bk-table-column>
-            <bk-table-column
-                label="审核日期"
-                width="180"
-            >
-                <template slot-scope="props">
-                    {{moment(props.row.review_time).format('YYYY-MM-DD HH:mm:ss')}}
-                </template>
-            </bk-table-column>
-            <bk-table-column
-                label="备注"
-                prop="reason"
-            ></bk-table-column>
-            <bk-table-column
-                label="操作"
-                width="150"
-                fixed="right"
-            >
-                <template slot-scope="props">
-                    <bk-button
-                        class="mr10"
-                        theme="primary"
-                        text
-                        @click="clickEdit(props.row)"
-                        :disabled="props.row.status !== '导员审核中'"
-                    >编辑</bk-button>
-                    <bk-button
-                        class="mr10"
-                        theme="primary"
-                        text
-                        @click="confirmEdit(props.row)"
-                        v-if="editId === props.row.id"
-                    >保存</bk-button>
-                    <bk-popconfirm
-                        content="确定删除记录？"
-                        width="280"
-                        @confirm="confirmDelete(props.row)"
-                        trigger="click"
+                    <bk-table-column
+                        type="selection"
+                        width="60"
+                    ></bk-table-column>
+                    <bk-table-column
+                        label="物品名称"
+                        width="80"
                     >
-                        <bk-button
-                            :disabled="props.row.status === '管理员审核中'"
-                            class="mr10"
-                            theme="primary"
-                            text
-                        >删除</bk-button>
-                    </bk-popconfirm>
-                </template>
-            </bk-table-column>
-        </bk-table>
+                        <template slot-scope="props">
+                            <bk-input
+                                v-model="props.row.good_name"
+                                v-if="editId === props.row.id"
+                            ></bk-input>
+                            <div v-else>
+                                {{props.row.good_name}}
+                            </div>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column
+                        label="物品编码"
+                        width="100"
+                    >
+                        <template slot-scope="props">
+                            <bk-input
+                                v-model="props.row.good_code"
+                                v-if="editId === props.row.id"
+                            ></bk-input>
+                            <div v-else>
+                                {{props.row.good_code}}
+                            </div>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column
+                        label="申请时间"
+                        prop="create_time"
+                        width="180"
+                    >
+                        <template slot-scope="props">
+                            <bk-tag ext-cls="custom-tag">{{props.row.create_time}}</bk-tag>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column
+                        label="数量"
+                        width="100"
+                    >
+                        <template slot-scope="props">
+                            <bk-input
+                                v-model="props.row.num"
+                                v-if="editId === props.row.id"
+                                type="number"
+                                :precision="0"
+                                :min="1"
+                            ></bk-input>
+                            <div v-else>
+                                {{props.row.num}}
+                            </div>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column label="申请原因">
+                        <template slot-scope="props">
+                            <bk-input
+                                v-model="props.row.reason"
+                                v-if="editId === props.row.id"
+                            ></bk-input>
+                            <div v-else>
+                                {{props.row.reason}}
+                            </div>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column
+                        label="状态"
+                        width="150"
+                    >
+                        <template slot-scope="props">
+                            <bk-tag :theme="getStatusTheme(props.row.status)">{{ props.row.status }}</bk-tag>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column
+                        label="审核人"
+                        prop="reviewer"
+                        width="120"
+                    ></bk-table-column>
+                    <bk-table-column
+                        label="审核日期"
+                        width="180"
+                    >
+                        <template slot-scope="props">
+                            <bk-tag ext-cls="custom-tag">{{moment(props.row.review_time).format('YYYY-MM-DD HH:mm:ss')}}</bk-tag>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column
+                        label="备注"
+                        prop="reason"
+                    ></bk-table-column>
+                    <bk-table-column
+                        label="操作"
+                        width="150"
+                    >
+                        <template slot-scope="props">
+                            <bk-button
+                                class="mr10"
+                                theme="primary"
+                                text
+                                @click="clickEdit(props.row)"
+                                :disabled="props.row.status !== '导员审核中'"
+                            >编辑</bk-button>
+                            <bk-button
+                                class="mr10"
+                                theme="primary"
+                                text
+                                @click="confirmEdit(props.row)"
+                                v-if="editId === props.row.id"
+                            >保存</bk-button>
+                            <bk-popconfirm
+                                content="确定删除记录？"
+                                width="280"
+                                @confirm="confirmDelete(props.row)"
+                                trigger="click"
+                            >
+                                <bk-button
+                                    :disabled="props.row.status === '管理员审核中'"
+                                    class="mr10"
+                                    theme="primary"
+                                    text
+                                >删除</bk-button>
+                            </bk-popconfirm>
+                        </template>
+                    </bk-table-column>
+                </bk-table>
+            </el-tab-pane>
+        </el-tabs>
     </div>
 </template>
 
@@ -329,10 +325,83 @@
                 config.message = message
                 config.offsetY = 80
                 this.$bkMessage(config)
+            },
+            getStatusTheme (status) {
+                let theme = ''
+                switch (status) {
+                    case '申请终止':
+                        theme = 'danger'
+                        break
+                    case '导员审核中':
+                        theme = 'info'
+                        break
+                    case '管理员审核中':
+                        theme = 'warning'
+                        break
+                    case '审核完成':
+                        theme = 'success'
+                        break
+                    default:
+                        theme = ''
+                        break
+                }
+                return theme
+            },
+            handleCommand (command) {
+                if (command === 'export') {
+                    this.exportData()
+                }
             }
         }
     }
 </script>
 
 <style lang="postcss" scoped>
+    .table-content {
+        .tab-label {
+            display: flex;
+            flex-direction: column;
+            place-content: center;
+            place-items: center;
+            .el-dropdown-link {
+            }
+        }
+    }
+    .custom-tag {
+        color: #2dcb56;
+    }
+    /deep/.bk-table-enable-row-transition .bk-table-body td {
+        border: none !important;
+    }
+    /deep/.bk-table {
+        border: none !important;
+        &:before {
+            height: 0px !important;
+        }
+    }
+    /deep/.bk-table-outer-border:after {
+        width: 0px !important;
+    }
+    /deep/.bk-table-pagination-wrapper {
+        border: none !important;
+    }
+    /deep/.el-tabs__nav {
+        float: right;
+    }
+    /deep/.el-tabs__item {
+        width: 120px;
+        height: 50px;
+        display: flex;
+        flex-direction: column;
+        place-content: center;
+        place-items: center;
+        border: #409eff solid 2px;
+        border-radius: 8px;
+    }
+    /deep/.el-tabs__active-bar {
+        display: none;
+    }
+    /deep/.el-tabs__nav-wrap::after {
+        background-color: #409eff;
+    }
 </style>
