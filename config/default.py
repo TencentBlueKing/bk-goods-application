@@ -10,6 +10,8 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import json
+import os
 
 from blueapps.conf.default_settings import *  # noqa
 from blueapps.conf.log import get_logging_config_dict
@@ -188,3 +190,5 @@ BKREPO_PROJECT = os.environ['BKREPO_PROJECT']
 BKREPO_BUCKET = os.environ['BKREPO_BUCKET']
 
 DEFAULT_FILE_STORAGE = 'bkstorages.backends.bkrepo.BKRepoStorage'
+
+INNER_LIST = json.loads(os.getenv('INNER_LIST')) if os.getenv('INNER_LIST') else []

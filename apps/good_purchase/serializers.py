@@ -154,6 +154,16 @@ class ConfirmReceiptSerializer(serializers.Serializer):
                                     )
 
 
+class MemberIDListSerializer(serializers.Serializer):
+    member_id_list = serializers.ListField(required=True,
+                                           error_messages={'required': '用户id列表不可为空',
+                                                           'invalid': '用户id列表参数不合法'},
+                                           child=serializers.IntegerField(min_value=1,
+                                                                          error_messages={'min_value': '用户id存在不合法id',
+                                                                                          'invalid': '用户id类型不合法'}),
+                                           )
+
+
 class WithdrawSerializer(serializers.ModelSerializer):
 
     class Meta:

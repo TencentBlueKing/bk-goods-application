@@ -21,6 +21,9 @@ class StatusEnums(Enum):
     IMPORT_FILE_EMPTY_ERROR = (4008, '导入文件为空')
     AUTHORITY_ERROR = (4009, '权限不足')
     USER_NOT_EXIST_ERROR = (4010, '用户不存在，可先前往填写个人信息')
+    SECRETARY_EXIST_ERROR = (4011, '用户已是管理员')
+    SECRETARY_LACK_ERROR = (4012, '管理员不足')
+    USER_EXIST_ERROR = (4013, '用户已存在')
 
     # 服务端错误
     STOCK_ERROR = (5001, "库存不足")

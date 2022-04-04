@@ -27,6 +27,7 @@ router = DefaultRouter()
 router.register(r'position', views.PositionViewSet, basename="position")
 router.register(r'apply', views.ApplyViewSet, basename="apply")
 router.register(r'OrganizationMember', views.OrganizationMemberViewSet, basename="GroupPerson")
+router.register(r'OrganizationMember', views.OrganizationMemberViewSet, basename="GroupPerson")
 
 urlpatterns += [
     path('', include(router.urls))

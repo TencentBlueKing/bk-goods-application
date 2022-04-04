@@ -11,15 +11,24 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import datetime
+import json
 import os
 
-from apps.good_apply.models import (Apply, OrganizationMember, Position,
-                                    Review, Secretary)
+from apps.good_apply.models import (Apply, ApplyToOrg, Organization,
+                                    OrganizationMember, Position, Review,
+                                    Secretary)
 from apps.good_apply.serializers import (ApplyCheckSerializers,
                                          ApplyPostSerializers,
-                                         ApplySerializers, IDListSeralizers,
+                                         ApplySerializers,
+                                         ApplyToOrgExamineSerializer,
+                                         ApplyToOrgSerializer,
+                                         IDListSeralizers,
                                          OrganizationMemberSerializer,
-                                         PositionSerializer)
+                                         OrgIDSerializer, PositionSerializer,
+                                         SecretaryAddSecretarySerializer,
+                                         SecretaryPermissionTransferSerializer)
+from apps.good_apply.tasks import send_email
+from apps.good_purchase.serializers import MemberIDListSerializer
 from apps.tools.auth_check import if_secretary
 from apps.tools.param_check import (check_param_id, check_param_page,
                                     check_param_size, check_param_str,
@@ -31,6 +40,8 @@ from apps.tools.tool_paginator import tool_paginator
 from apps.tools.tool_valid_user_in_the_org import valid_user_in_the_org
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
+from blueapps.account.models import User, UserProperty
+from blueapps.conf import settings
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
@@ -465,3 +476,283 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             for person in normal_persons
         ]
         return JsonResponse(success_code(users))
+
+    @action(methods=['POST'], detail=False)
+    def add_member_to_org(self, request):
+        """添加组成员"""
+        # 身份校验
+        org_id = request.data.get('org_id')
+        username = request.user.username
+        valid_user_in_the_org(org_id, username)
+        flag = if_secretary(request, org_id)
+        if not flag:
+            raise BusinessException(StatusEnums.AUTHORITY_ERROR)
+
+        # 参数校验
+        member_id_list = request.data.get('member_id_list')
+        member_id_list_serializer = MemberIDListSerializer(data={
+            'member_id_list': member_id_list
+        })
+        if not member_id_list_serializer.is_valid():
+            message = get_error_message(member_id_list_serializer)
+            return get_result({"code": 400, "result": False, "message": message})
+
+        # 批量创建组成员
+        create_list = []
+        for member_id in member_id_list:
+            member_name = User.objects.filter(id=member_id).username
+            # 判断用户是否已经再组中
+            if OrganizationMember.objects.filter(org_id=org_id, username=username).exists():
+                raise BusinessException(StatusEnums.USER_EXIST_ERROR)
+            create_list.append(OrganizationMember(username=member_name, org_id=org_id))
+        OrganizationMember.objects.bulk_create(create_list)
+        return JsonResponse(success_code('操作成功'))
+
+
+class ApplyToOrgViewSet(viewsets.ModelViewSet):
+    """
+    申请入组表视图集
+    """
+    queryset = ApplyToOrg.objects.all()
+    serializer_class = ApplyToOrgSerializer
+
+    def list(self, request, *args, **kwargs):
+        """获取入组申请"""
+        req_data = request.GET
+        org_id = req_data.get('org_id')
+        username = request.user.username
+        valid_user_in_the_org(org_id, username)
+        flag = if_secretary(request, org_id)
+        if not flag:
+            # 普通用户, 查询审核中
+            query = Q(status=1) & Q(org_id=org_id)
+
+            query = query & Q(create_user=username)
+
+            # 时间-范围查询
+            start_time, end_time = tool_get_start_end(req_data, 'start_time', 'end_time')
+            query = query & Q(create_time__range=(start_time, end_time))
+        else:
+            # 管理员, 查询审核中
+            query = Q(status=1) & Q(org_id=org_id)
+
+            # 申请人-查询条件
+            apply_user = req_data.get('apply_user', None)
+            query = query & Q(create_user=apply_user)
+
+            # 地点-模糊查询
+            position = req_data.get('position', None)
+            if check_param_str(position):
+                query = query & Q(position__contains=position)
+
+            # 时间-范围查询
+            start_time, end_time = tool_get_start_end(req_data, 'start_time', 'end_time')
+            query = query & Q(create_time__range=(start_time, end_time))
+
+        cur_applys, total_num = tool_paginator(req_data, ApplyToOrg, query, 'page', 'size')
+        data = {"total_num": total_num,
+                "apply_list": [apply.to_json() for apply in cur_applys]}
+        return JsonResponse(success_code(data))
+
+    @action(methods=['POST'], detail=False)
+    def examine_apply(self, request):
+        """审核入组申请"""
+        # 身份校验
+        org_id = request.data.get('org_id')
+        username = request.user.username
+        valid_user_in_the_org(org_id, username)
+        flag = if_secretary(request, org_id)
+        if not flag:
+            raise BusinessException(StatusEnums.AUTHORITY_ERROR)
+
+        apply_id_list = request.data.get('apply_id_list')
+        review_result = request.data.get('review_result')
+
+        # 参数校验
+        apply_serializer = ApplyToOrgExamineSerializer(data={
+            'apply_id_list': apply_id_list,
+            'review_result': review_result
+        })
+        if not apply_serializer.is_valid():
+            message = get_error_message(apply_serializer)
+            return get_result({"code": 400, "result": False, "message": message})
+        create_list = []
+        member_email_list = []
+        for apply_id in apply_id_list:
+            apply_obj = ApplyToOrg.objects.filter(id=apply_id, org_id=org_id).first()
+            if review_result == 0:  # 拒绝申请
+                apply_obj.status = 3
+                apply_obj.update_user = username
+                review_result_ch = '申请失败'
+                # 获取申请人的用户id以获取用户的email地址
+                member_id = User.objects.filter(username=apply_obj.create_user).first().id
+                member_email = UserProperty.objects.filter(user_id=member_id, key='email').first().value
+                if not member_email:
+                    continue
+                member_email_list.append(member_email)
+            elif review_result == 1:  # 同意申请
+                review_result_ch = '申请成功'
+                apply_obj.status = 2
+                apply_obj.update_user = username
+                create_list.append(OrganizationMember(username=apply_obj.create_user, org_id=org_id))
+                # 获取申请人的用户id以获取用户的email地址
+                member_id = User.objects.filter(username=apply_obj.create_user).first().id
+                member_email = UserProperty.objects.filter(user_id=member_id, key='email').first().value
+                if not member_email:
+                    continue
+                member_email_list.append(member_email)
+            if create_list:
+                OrganizationMember.objects.bulk_create(create_list)  # 组批量增加成员
+            if member_email_list:
+                org_name = Organization.objects.filter(id=org_id).first().group_name
+                send_email.delay(request=request, receiver=member_email_list, title='审核通知'
+                                 , content='你加入{org}的申请已审核，结果为{result}'.format(org=org_name
+                                                                               , result=review_result_ch))
+            return JsonResponse(success_code('审批成功'))
+
+
+class SecretaryViewSet(viewsets.ModelViewSet):
+    """
+    管理员表视图集
+    """
+    queryset = Secretary.objects.all()
+
+    @action(methods=['POST'], detail=False)
+    def permission_transfer(self, request):
+        """权限转移"""
+        # 身份校验
+        org_id = request.data.get('org_id')
+        username = request.user.username
+        valid_user_in_the_org(org_id, username)
+        flag = if_secretary(request, org_id)
+        if not flag:
+            raise BusinessException(StatusEnums.AUTHORITY_ERROR)
+
+        old_secretary_id = request.user.id
+        new_secretary_id = request.data.get('new_secretary_id', None)
+
+        # 参数校验
+        sec_serializer = SecretaryPermissionTransferSerializer(data={
+            'old_secretary_id': old_secretary_id,
+            'new_secretary_id': new_secretary_id
+        })
+
+        if not sec_serializer.is_valid():
+            message = get_error_message(sec_serializer)
+            return get_result({"code": 400, "result": False, "message": message})
+
+        old_secretary_name = username
+        new_secretary_name = User.objects.filter(id=new_secretary_id).first().username
+        # 检查与添加身份的用户是否已经是管理员
+        if Secretary.objects.filter(username=new_secretary_name, org_id=org_id).exists():
+            raise BusinessException(StatusEnums.SECRETARY_EXIST_ERROR)
+        Secretary.objects.filter(username=old_secretary_name, org_id=org_id).delete()  # 删除原有管理员身份
+        Secretary.objects.create(username=new_secretary_name, org_id=org_id)  # 赋予用户管理员身份
+        return JsonResponse(success_code('转移成功'))
+
+    @action(methods=['POST'], detail=False)
+    def permission_release(self, request):
+        """辞去管理员"""
+        # 身份校验
+        org_id = request.data.get('org_id')
+        username = request.user.username
+        valid_user_in_the_org(org_id, username)
+        flag = if_secretary(request, org_id)
+        if not flag:
+            raise BusinessException(StatusEnums.AUTHORITY_ERROR)
+
+        # 查看组管理员剩余数量
+        if Secretary.objects.filter(org_id=org_id).count() == 1:
+            raise BusinessException(StatusEnums.SECRETARY_LACK_ERROR)
+
+        Secretary.objects.filter(username=username, org_id=org_id).delete()  # 删除原有管理员身份
+        return JsonResponse(success_code('辞去管理员成功'))
+
+    @action(methods=['POST'], detail=False)
+    def add_secretary(self, request):
+        """增加管理员"""
+        # 身份校验
+        org_id = request.data.get('org_id')
+        username = request.user.username
+        valid_user_in_the_org(org_id, username)
+        flag = if_secretary(request, org_id)
+        if not flag:
+            raise BusinessException(StatusEnums.AUTHORITY_ERROR)
+
+        new_secretary_id = request.data.get('new_secretary_id')
+        sec_serializer = SecretaryAddSecretarySerializer(data={
+            'new_secretary_id': new_secretary_id
+        })
+        # 参数校验
+        if not sec_serializer.is_valid():
+            message = get_error_message(sec_serializer)
+            return get_result({"code": 400, "result": False, "message": message})
+        new_secretary_name = User.objects.filter(id=new_secretary_id).first().username
+        # 检查用户是否已在组
+        valid_user_in_the_org(org_id, new_secretary_name)
+        # 检查与添加身份的用户是否已经是管理员
+        if Secretary.objects.filter(username=new_secretary_name, org_id=org_id).exists():
+            raise BusinessException(StatusEnums.SECRETARY_EXIST_ERROR)
+        Secretary.objects.create(username=new_secretary_name, org_id=org_id)  # 赋予用户管理员身份
+        return JsonResponse(success_code('新增管理员成功'))
+
+
+def add_org_id_to_inner_list(request):
+    """添加组id进内部列表"""
+    # 参数校验
+    org_id_list = json.loads(request.body).get('org_id_list', None)
+    org_id_serializer = OrgIDSerializer(data={
+        'org_id_list': org_id_list
+    })
+    if not org_id_serializer.is_valid():
+        message = get_error_message(org_id_serializer)
+        return get_result({"code": 400, "result": False, "message": message})
+    settings.INNER_LIST += org_id_list
+
+    # 防止存在重复组id
+    settings.INNER_LIST = set(settings.INNER_LIST)
+    settings.INNER_LIST = list(settings.INNER_LIST)
+    return JsonResponse(success_code('更新内部列表成功'))
+
+
+def delete_org_id_from_inner_list(request):
+    """内部列表删除某组id"""
+    # 参数校验
+    org_id_list = json.loads(request.body).get('org_id_list', None)
+    org_id_serializer = OrgIDSerializer(data={
+        'org_id_list': org_id_list
+    })
+    if not org_id_serializer.is_valid():
+        message = get_error_message(org_id_serializer)
+        return get_result({"code": 400, "result": False, "message": message})
+    settings.INNER_LIST = list(set(settings.INNER_LIST) - set(org_id_list))
+
+    # 防止存在重复组id
+    settings.INNER_LIST = set(settings.INNER_LIST)
+    settings.INNER_LIST = list(settings.INNER_LIST)
+    return JsonResponse(success_code('更新内部列表成功'))
+
+# def delete_org(request):
+#     """删除组"""
+#     org_id_list = json.loads(request.body).get('org_id_list', None)
+#     org_id_serializer = OrgIDSerializer(data={
+#         'org_id_list': org_id_list
+#     })
+#     if not org_id_serializer.is_valid():
+#         message = get_error_message(org_id_serializer)
+#         return get_result({"code": 400, "result": False, "message": message})
+#     for org_id in org_id_list:
+#         Secretary.objects.filter(org_id=org_id).delete()
+#         Position.objects.filter(org_id=org_id).delete()
+#         Apply.objects.filter(org_id=org_id).delete()
+#         Review.objects.filter(org_id=org_id).delete()
+#         Organization.objects.filter(org_id=org_id).delete()
+#         OrganizationMember.objects.filter(org_id=org_id).delete()
+#         GoodType.objects.filter(org_id=org_id).delete()
+#         ApplyToOrg.objects.filter(apply_group_id=org_id).delete()
+#         Good.objects.filter(org_id=org_id).delete()
+#         Cart.objects.filter(org_id=org_id).delete()
+#         GroupApply.objects.filter(org_id=org_id).delete()
+#         Withdraw.objects.filter(org_id=org_id).delete()
+#         WithdrawReason.objects.filter(org_id=org_id).delete()
+#         return JsonResponse(success_code('删除成功'))
