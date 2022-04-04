@@ -16,8 +16,10 @@ import uuid
 from datetime import datetime
 from tempfile import NamedTemporaryFile
 
+from apps.good_apply.models import (ApplyToOrg, Organization,
+                                    OrganizationMember, Secretary)
 from apps.good_purchase.models import (Cart, Good, GoodType, GroupApply,
-                                       UserInfo, Withdraw, WithdrawReason)
+                                       Withdraw, WithdrawReason)
 from apps.good_purchase.serializers import (CartSerializer,
                                             CheckWithdrawsSeralizers,
                                             ConfirmReceiptSerializer,
@@ -30,16 +32,18 @@ from apps.good_purchase.serializers import (CartSerializer,
                                             WithdrawSerializer,
                                             personalFormSerializer,
                                             personalSerializer)
-from apps.tools.auth_check import is_leader_or_secretary
+from apps.tools.auth_check import if_secretary
 from apps.tools.decorators import check_secretary_permission
 from apps.tools.param_check import (check_apply_update_param, check_param_id,
                                     check_param_str, get_error_message)
 from apps.tools.response import get_cart_result, get_result, success_code
 from apps.tools.tool_delpic import tool_delpic
 from apps.tools.tool_paginator import tool_paginator
+from apps.tools.tool_valid_user_in_the_org import valid_user_in_the_org
 from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
 from bkstorages.backends.bkrepo import BKRepoStorage
+from blueapps.account.models import User, UserProperty
 from config.default import os
 from django.core.files.base import File
 from django.db import transaction
@@ -84,10 +88,14 @@ def upload_img(request):
 
 
 class WithdrawReasonViewSet(viewsets.ModelViewSet):
+
     queryset = WithdrawReason.objects.all()
     serializer_class = WithdrawReasonSerializer
 
     def list(self, request, *args, **kwargs):
+        req = request.data
+        org_id = req.get("org_id")
+        self.queryset = WithdrawReason.objects.filter(org_id=org_id)
         withdraw_reason_list = [reason.to_json() for reason in self.queryset]
         return JsonResponse(success_code(withdraw_reason_list))
 
@@ -101,6 +109,8 @@ class WithdrawViewSet(viewsets.ModelViewSet):
         """提交退回物资申请"""
         req = request.data
         username = request.user.username
+        org_id = req.get("org_id")
+        valid_user_in_the_org(org_id, request.user.username)
         check_withdraws_seralizers = CheckWithdrawsSeralizers(data=req)
         if not check_withdraws_seralizers.is_valid():
             message = get_error_message(check_withdraws_seralizers)
@@ -117,20 +127,21 @@ class WithdrawViewSet(viewsets.ModelViewSet):
         else:
             position = '无'
         remark = check_withdraws_seralizers.validated_data.get("remark", '')
-        good_ids = GroupApply.objects.filter(id__in=ids, status=2, username=username).values_list("id", flat=True)
+        good_ids = GroupApply.objects.filter(Q(id__in=ids) & Q(status=2) & Q(
+            username=username) & Q(org_id=org_id)).values_list("id", flat=True)
         if not set(ids).issubset(good_ids):
             raise BusinessException(StatusEnums.SENDBACK_ERROR)
-        if not WithdrawReason.objects.filter(id=reason_id).exists():
+        if not WithdrawReason.objects.filter(Q(id=reason_id) & Q(org_id=org_id)).exists():
             raise BusinessException(StatusEnums.DRAWBACK_ERROR)
         # 创建需要批量添加的withdraw数组
         withdraw_list = []
         for good_id in good_ids:
             withdraw = Withdraw(good_apply_id=good_id, username=username, reason_id=reason_id,
-                                position=position, remark=remark)
+                                position=position, remark=remark, org_id=org_id)
             withdraw_list.append(withdraw)
         with transaction.atomic():
             # 修改个人物资状态
-            GroupApply.objects.filter(id__in=list(good_ids)).update(status=1)
+            GroupApply.objects.filter(Q(id__in=list(good_ids)) & Q(org_id=org_id)).update(status=1)
             # 批量添加物资退回表
             Withdraw.objects.bulk_create(withdraw_list)
         return get_result({"message": "退回商品申请提交成功"})
@@ -143,31 +154,34 @@ def del_pics(request):
     return outcome
 
 
-class UserInfoViewSet(viewsets.ModelViewSet):
-    queryset = UserInfo.objects.all()
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
     serializer_class = UserInfoSerializer
 
     def list(self, request, *args, **kwargs):
+        req = request.data
+        org_id = req.get("org_id")
+        valid_user_in_the_org(org_id, request.user.username)
+        user_id = self.queryset.filter(username=request.user.username).first().id
         user_info = {
             'id': self.queryset.filter(username=request.user.username).first().id,
             'username': request.user.username,
-            'phone': self.queryset.filter(username=request.user.username).first().phone,
-            'position': self.queryset.filter(username=request.user.username).first().position,
+            'phone': UserProperty.filter(user_id=user_id, key='phone').first().value,
+            'position': UserProperty.filter(user_id=user_id, key='position').first().value,
             'isScretary': False,
-            'isLeader': False
         }
-        flag, leader_or_secretary = is_leader_or_secretary(request)
+        flag = if_secretary(request, org_id)
         if flag:
-            if leader_or_secretary == 0:
-                user_info['isScretary'] = True
-            elif leader_or_secretary == 1:
-                user_info['isLeader'] = True
+            user_info['isScretary'] = True
         return JsonResponse(success_code(user_info))
 
     @action(methods=['post'], detail=False)
     def edit_user_info(self, request):
         username = request.user.username  # 获取用户名
-        if not UserInfo.objects.filter(username=username).exists():
+        req = request.data
+        org_id = req.get("org_id")
+        valid_user_in_the_org(org_id, request.user.username)
+        if not User.objects.filter(username=username, org_id=org_id).exists():
             raise BusinessException(StatusEnums.USER_NOT_EXIST_ERROR)
         req = request.data
         phone = req.get('phone')
@@ -179,7 +193,7 @@ class UserInfoViewSet(viewsets.ModelViewSet):
         }
         user_info_serializer = UserInfoCheckSerializer(data=user_info)
         if user_info_serializer.is_valid():  # 参数校验
-            UserInfo.objects.filter(username=username).update(
+            User.objects.filter(username=username, org_id=org_id).update(
                 phone=user_info.get('phone'), position=user_info.get('position'))
             return get_result({'code': 200, 'message': '修改成功'})
         err_msg = get_error_message(user_info_serializer)
@@ -196,7 +210,10 @@ class CartViewSet(viewsets.ModelViewSet):
         获取购物车信息
         """
         username = request.user
-        good_list = Cart.objects.filter(username=username)
+        req = request.data
+        org_id = req.get("org_id")
+        valid_user_in_the_org(org_id, request.user.username)
+        good_list = Cart.objects.filter(Q(username=username) & Q(org_id=org_id))
         if not good_list.exists():
             raise BusinessException(StatusEnums.BLANK_ERROR)
         cart_list = get_cart_result(good_list, source="shop")
@@ -209,14 +226,16 @@ class CartViewSet(viewsets.ModelViewSet):
         """
         username = request.user
         req = request.data
+        org_id = req.get("org_id")
+        valid_user_in_the_org(org_id, request.user.username)
         cart_id_list = req.get("cartIdList")
         if not isinstance(cart_id_list, list):
-            cart_all_id = Cart.objects.filter(username=username).values_list("id", flat=True)
+            cart_all_id = Cart.objects.filter(Q(username=username) & Q(org_id=org_id)).values_list("id", flat=True)
             if not set(cart_id_list).issubset(set(cart_all_id)):
                 raise BusinessException(StatusEnums.CART_ADX_ERROR)
-        if not Cart.objects.filter(id__in=cart_id_list, username=username).exists():
+        if not Cart.objects.filter(Q(id__in=cart_id_list) & Q(username=username) & Q(org_id=org_id)).exists():
             raise BusinessException(StatusEnums.CART_NULL_ERROR)
-        Cart.objects.filter(id__in=cart_id_list).delete()
+        Cart.objects.filter(Q(id__in=cart_id_list) & Q(org_id=org_id)).delete()
         return get_result({"code": 200, "message": "删除成功"})
 
     @action(methods=['POST'], detail=False)
@@ -225,17 +244,19 @@ class CartViewSet(viewsets.ModelViewSet):
         更新购物车物资数量信息
         """
         req = request.data
+        org_id = req.get("org_id")
+        valid_user_in_the_org(org_id, request.user.username)
         update_goods_list = req.get("goodsList")
         if isinstance(update_goods_list, list):
             update_goods_ids = []
             for update_goods in update_goods_list:
                 update_goods_ids.append(update_goods["id"])
-            cart_all_id = Cart.objects.values_list("id", flat=True)
+            cart_all_id = Cart.objects.filter(org_id=org_id).values_list("id", flat=True)
             if not set(update_goods_ids).issubset(set(cart_all_id)):
                 raise BusinessException(StatusEnums.CART_UPDATE_ERROR)
             all_goods = []
             for good in update_goods_list:
-                temp_good = Cart.objects.get(id=good["id"])
+                temp_good = Cart.objects.get(id=good["id"], org_id=org_id)
                 temp_good.num = int(good["num"])
                 temp_good.update_time = datetime.now()
                 all_goods.append(temp_good)
@@ -252,15 +273,18 @@ class CartViewSet(viewsets.ModelViewSet):
         req = request.data
         good_info = req.get("goodInfo")
         username = request.user
+        org_id = req.get("org_id")
+        valid_user_in_the_org(org_id, request.user.username)
         if isinstance(good_info['num'], int) and good_info['num'] > 0:
-            temp_good = Cart.objects.filter(good_id=good_info["id"], username=username)
+            temp_good = Cart.objects.filter(Q(good_id=good_info["id"]) & Q(username=username) & Q(org_id=org_id))
         else:
             raise BusinessException(StatusEnums.CART_NUM_ERROR)
         if temp_good.exists():
             num = int(temp_good[0].num) + int(good_info["num"])
-            Cart.objects.filter(good_id=good_info["id"]).update(num=num, update_time=datetime.now())
+            Cart.objects.filter(Q(good_id=good_info["id"]) & Q(org_id=org_id)
+                                ).update(num=num, update_time=datetime.now())
         else:
-            Cart.objects.create(good_id=good_info['id'], username=username, num=good_info['num'])
+            Cart.objects.create(good_id=good_info['id'], username=username, num=good_info['num'], org_id=org_id)
         return get_result({"code": 200, "message": "物资成功加入购物车"})
 
 
@@ -273,7 +297,10 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
         """
         获取组内物资信息
         """
-        apply_list = GroupApply.objects.filter(status=4)
+        req = request.data
+        org_id = req.get("oeg_id")
+        valid_user_in_the_org(org_id, request.user.username)
+        apply_list = GroupApply.objects.filter(Q(status=4) & Q(org_id=org_id))
         if not apply_list.exists():
             return get_result({"code": 200, "data": [], "message": "申请状态为购买中的列表为空"})
         cart_list = get_cart_result(apply_list, source="apply")
@@ -286,10 +313,12 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
         """
         req = request.data
         apply_id = req.get("applyId")
+        org_id = req.get("org_id")
+        valid_user_in_the_org(org_id, request.user.username)
         if not check_param_id(apply_id):
             raise BusinessException(StatusEnums.CART_ADX_ERROR)
         try:
-            GroupApply.objects.get(id=apply_id).delete()
+            GroupApply.objects.get(id=apply_id, org_id=org_id).delete()
         except GroupApply.DoesNotExist:
             raise BusinessException(StatusEnums.CART_DELETE_ERROR)
         return get_result({"code": 200, "message": "删除成功"})
@@ -302,6 +331,8 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
         req = request.data
         apply_list = req.get("applyList")
         update_type = req.get("updateType")
+        org_id = req.get("org_id")
+        valid_user_in_the_org(org_id, request.user.username)
         if isinstance(apply_list, list) and check_apply_update_param(update_type):
             update_apply_ids = []
             for update_apply in update_apply_ids:
@@ -311,7 +342,7 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
                 raise BusinessException(StatusEnums.CART_UPDATE_ERROR2)
             all_applies = []
             for apply in apply_list:
-                temp_apply = GroupApply.objects.get(id=apply["id"])
+                temp_apply = GroupApply.objects.get(id=apply["id"], org_id=org_id)
                 temp_apply.num = int(apply["num"])
                 if update_type == 'status':
                     temp_apply.status = 5
@@ -331,12 +362,14 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
         获取个人物资
         """
         # 获取params
+        req = request.GET
         username = request.user.username
-        form = request.GET.get('form', None)
+        # form = request.GET.get('form', None)
         page_limit = int(request.GET.get('pageLimit', 10))
         page = int(request.GET.get('page', 1))
         id_list = request.GET.get('idList', None)
-
+        org_id = req.get("org_id")
+        valid_user_in_the_org(org_id, request.user.username)
         personal_serializer = personalSerializer(data={
             "username": username
         })
@@ -344,17 +377,16 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
             raise ValueError(get_error_message(personal_serializer))
 
         # 获得查询集
-        queryset = GroupApply.objects.filter(username=username)
+        queryset = GroupApply.objects.filter(Q(username=username) & Q(org_id=org_id))
 
         unnecessary_goods = []  # 用于记录被过滤掉的物品
-
         # 获取form的内容
-        form = json.loads(form)
-        name = form.get('name')
-        code = form.get('code')
-        location = form.get('city')
-        status = form.get('status')
-        good_type = form.get('type')
+        # form = json.loads(form)
+        name = req.get('name')
+        code = req.get('code')
+        location = req.get('city')
+        status = req.get('status')
+        good_type = req.get('type')
 
         personal_form_serializer = personalFormSerializer(data={
             "good_name": name,
@@ -381,10 +413,10 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
         if location and location != '0':
             query = query & Q(position__icontains=location)
         if status and int(status) != 0:
-            query = query & Q(status=status)
+            query = query & Q(status=status) & Q(org_id=org_id)
         queryset = queryset.filter(query)
         if good_type and int(good_type) != 0:
-            goods = Good.objects.filter(good_type_id=good_type, status=1)
+            goods = Good.objects.filter(Q(good_type_id=good_type,) & Q(status=1) & Q(org_id=org_id))
             good_codes = []
             for good in goods:
                 good_codes.append(good.good_code)
@@ -427,11 +459,13 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
         "确认收货"
         body = request.data
         id_list = body.get('idList')
+        org_id = body.get("org_id")
+        valid_user_in_the_org(org_id, request.user.username)
         serializer = ConfirmReceiptSerializer(data={"id_list": id_list})
         if not serializer.is_valid():  # 校验参数
             err_msg = get_error_message(serializer)
             return get_result({'result': False, 'message': err_msg})
-        queryset = GroupApply.objects.filter(id__in=id_list, status=5)  # 获取查询集
+        queryset = GroupApply.objects.filter(Q(id__in=id_list) & Q(status=5) & Q(org_id=org_id))  # 获取查询集
         if len(queryset) != len(id_list):  # 列表id中存在状态为非待收货的物品
             raise BusinessException(StatusEnums.PARAMS_ERROR)
         with transaction.atomic():
@@ -449,12 +483,14 @@ class GoodViewSet(viewsets.ModelViewSet):
           根据商品id获取商品详情信息
           """
         req_data = request.GET
-        good_id = req_data.get("good_id", 0)
+        good_id = req_data.get("good_id", None)
+        org_id = req_data.get("org_id")
+        valid_user_in_the_org(org_id, request.user.username)
         # 校验参数
         if not check_param_id(good_id):
             raise BusinessException(StatusEnums. GOODID_ERROR)
         try:
-            good = Good.objects.get(id=good_id, status=1).to_json()
+            good = Good.objects.get(id=good_id, status=1, org_id=org_id).to_json()
         except Good.DoesNotExist:
             raise BusinessException(StatusEnums.NOTFOUND_ERROR)
         return JsonResponse(success_code(good))
@@ -466,7 +502,10 @@ class GoodViewSet(viewsets.ModelViewSet):
         """
         req_data = request.GET
         # 筛选项参数拼接查询条件
-        query = Q(status=1)
+        # username = request.user.username
+        org_id = req_data.get("org_id")
+        valid_user_in_the_org(org_id, request.user.username)
+        query = Q(status=1) & Q(org_id=org_id)
         # 需要筛选的字段
         conditions = ('good_code', 'good_name')
         for condition in conditions:
@@ -497,10 +536,12 @@ class GoodViewSet(viewsets.ModelViewSet):
     @action(methods=['post'], detail=False)
     def add_good(self, request):
         """添加商品"""
-        flag, leader_or_secretary = is_leader_or_secretary(request)
+        good = request.data
+        org_id = good.get("org_id")
+        valid_user_in_the_org(org_id, request.user.username)
+        flag = if_secretary(request, org_id)
         if not flag:
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)
-        good = request.data
         # 参数校验
         good_serializers = GoodSerializers(data=good)
         if not good_serializers.is_valid():
@@ -508,11 +549,11 @@ class GoodViewSet(viewsets.ModelViewSet):
             return get_result({"code": 7100, "result": False, "message": message})  # 输出错误方式
         # 检查商品编码是否存在
         good_code = good_serializers.validated_data.get("good_code")
-        if Good.objects.filter(good_code=good_code, status=1).exists():
+        if Good.objects.filter(Q(good_code=good_code) & Q(status=1) & Q(org_id=org_id)).exists():
             raise BusinessException(StatusEnums.INPUT_GOODS_ERROR)
         # 检验商品类型是否存在
         good_type_id = good_serializers.validated_data.get("good_type_id")
-        if not GoodType.objects.filter(id=good_type_id).exists():
+        if not GoodType.objects.filter(Q(id=good_type_id) & Q(org_id=org_id)).exists():
             raise BusinessException(StatusEnums.CARTTYPE_NULL_ERROR)
         with transaction.atomic():
             Good.objects.create(**good)
@@ -521,55 +562,62 @@ class GoodViewSet(viewsets.ModelViewSet):
     @action(methods=['post'], detail=False)
     def update_good(self, request):
         """修改商品信息"""
-        flag, leader_or_secretary = is_leader_or_secretary(request)
+        good = request.data
+        org_id = good.get("org_id")
+        valid_user_in_the_org(org_id, request.user.username)
+        flag = if_secretary(request, org_id)
         if not flag:
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)
-        good = request.data
+        good_id = good.get("id", None)
         # 参数校验
         good_serializers = GoodSerializers(data=good)
         if not good_serializers.is_valid():
             message = get_error_message(good_serializers)
             return get_result({"code": 1, "result": False, "message": message})
         # 校验id
-        good_id = good.get("id", 0)
         if not check_param_id(good_id):
             raise BusinessException(StatusEnums.GOOD_ID_ERROR)
         # 校验商品是否存在
-        if not Good.objects.filter(id=good_id, status=1).exists():
+        if not Good.objects.filter(Q(id=good_id) & Q(status=1) & Q(org_id=org_id)).exists():
             raise BusinessException(StatusEnums.CART_NO_ERROR)
         # 检验商品编码是否重复(good_code相同，但id不同的商品)
         good_code = good_serializers.validated_data.get("good_code")
-        if Good.objects.filter(Q(good_code=good_code) & ~Q(id=good_id) & Q(status=1)).exists():
+        if Good.objects.filter(Q(good_code=good_code) & ~Q(id=good_id) & Q(status=1) & Q(org_id=org_id)).exists():
             raise BusinessException(StatusEnums.INPUT_GOODS_ERROR)
         # 校验商品类型是否存在
         good_type_id = good_serializers.validated_data.get("good_type_id")
-        if not GoodType.objects.filter(id=good_type_id).exists():
+        if not GoodType.objects.filter(Q(id=good_type_id) & Q(org_id=org_id)).exists():
             raise BusinessException(StatusEnums.CARTTYPE_NULL_ERROR)
         # 更新数据
-        Good.objects.filter(id=good_id).update(**good, update_time=datetime.now())
+        Good.objects.filter(Q(id=good_id) & Q(org_id=org_id)).update(**good, update_time=datetime.now())
         return get_result({"message": "修改商品信息成功"})
 
     @action(methods=['post'], detail=False)
     def down_good(self, request):
         """商品下架"""
-        flag, leader_or_secretary = is_leader_or_secretary(request)
+        req = request.data
+        good_id = req.get('id', None)
+        org_id = req.get("org_id")
+        valid_user_in_the_org(org_id, request.user.username)
+        flag = if_secretary(request, org_id)
         if not flag:
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)
-        req = request.data
-        good_id = req.get('id', 0)
         # 校验参数
         if not check_param_id(good_id):
             raise BusinessException(StatusEnums.GOODID_ERROR)
         # 校验商品是否存在
-        if not Good.objects.filter(id=good_id, status=1).exists():
+        if not Good.objects.filter(id=good_id, status=1, org_id=org_id).exists():
             raise BusinessException(StatusEnums.CART_NO_ERROR)
-        Good.objects.filter(id=good_id).update(status=0)
+        Good.objects.filter(Q(id=good_id) & Q(org_id=org_id)).update(status=0)
         return get_result({"message": "下架商品成功"})
 
     @action(methods=['get'], detail=False)
     def get_good_code_list(self, request):
         """获取商品编码列表"""
-        good_list = Good.objects.all()
+        req = request.data
+        org_id = req.get("org_id")
+        valid_user_in_the_org(org_id, request.user.username)
+        good_list = Good.objects.filter(org_id=org_id)
         good_type_list = [good_item.good_code for good_item in good_list]
         return JsonResponse(success_code(good_type_list))
 
@@ -581,25 +629,121 @@ class GoodTypeViewSet(viewsets.ModelViewSet):
     @action(methods=['POST'], detail=False)
     def add_good_type(self, request):
         """新增商品类型"""
-        flag, leader_or_secretary = is_leader_or_secretary(request)
+        req = request.data
+        org_id = req.get("org_id")
+        valid_user_in_the_org(org_id, request.user.username)
+        flag = if_secretary(request, org_id)
         if not flag:
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)
-        req = request.data
         # 参数校验
         good_type_serializers = GoodTypeSerializers(data=req)
         if not good_type_serializers.is_valid():
             message = get_error_message(good_type_serializers)
             return get_result({"code": 7100, "result": False, "message": message})
-        # 验证该商品类型是否存在
+        # 验证该商品类型在该组是否存在
         type_name = good_type_serializers.validated_data.get("type_name")
-        if GoodType.objects.filter(type_name=type_name).exists():
+        query = Q(type_name=type_name) & Q(org_id=org_id)
+        if GoodType.objects.filter(query).exists():
             raise BusinessException(StatusEnums.INPUT_TYPE_ERROR)
-        good_type = GoodType.objects.create(type_name=type_name)
-        return get_result({"message": "新增商品类型成功", "data": {"id": good_type.id}})
+        good_type = GoodType.objects.create(type_name=type_name, org_id=org_id)
+        return get_result({"message": "新增商品类型成功", "data": {"id": good_type.id, "org_id": org_id}})
 
     @action(methods=['get'], detail=False)
     def get_good_type_list(self, request):
         """获取商品类别列表"""
-        good_types = GoodType.objects.all()
+        req = request.data
+        org_id = req.get("id")
+        valid_user_in_the_org(org_id, request.user.username)
+        good_types = GoodType.objects.filter(org_id=org_id)
         good_type_list = [good_type.to_json() for good_type in good_types]
         return JsonResponse(success_code(good_type_list))
+
+
+class OraganizationViewSet(viewsets.ModelViewSet):
+
+    @action(methods=['post'], detail=False)
+    def create_group(self, request):
+        """创建"""
+        username = request.username
+        req = request.data
+        group_name = req.get("group_name")
+        if not Organization.objects.filter(group_name=group_name).exists():
+            org = Organization.objects.create(group_name=group_name)
+            Secretary.objects.create(username=username, org_id=org.id)
+            OrganizationMember.objects(username=username, org_id=org.id)
+            return get_result({"message": "创建组成功"})
+        raise BusinessException(StatusEnums. GROUP_ISEXISTS_ERROR)
+
+    @action(methods=['get'], detail=False)
+    def get_all_userin_groupid(self, request):
+        """获取用户所有所在组接口"""
+        username = request.username
+        """根据用户名获取他所在的组成员表查询出来"""
+        group_user = OrganizationMember.objects.filter(username=username)
+        """循环得到"""
+        group_user_id_list = [gro.to_json() for gro in group_user]
+        return JsonResponse(success_code(group_user_id_list))
+
+    @action(methods=['post'], detail=False)
+    def quit_group(self, request):
+        """用户退出组接口"""
+        req = request.data
+        username = request.username
+        org_id = req.get("org_id")
+        valid_user_in_the_org(org_id, request.user.username)
+        OrganizationMember.objects.filter(username=username, org_id=org_id).delete()
+        return get_result({"message": "退出组成功"})
+
+    # 该接口目前处理不确定，还在查询资料当中
+    # @action(methods=['post'], detail=False)
+    # def inner_group(self, request):
+    #     """获取内部组的用户信息"""
+    #     client = get_client_by_request(request=request)
+    #     # 查询组内用户信息
+    #     response = client.usermanage.list_department_profiles(id=1)
+    #     if not response.get('result'):
+    #         raise BusinessException((5004, response.get('message')))
+    #     users_list = response.get('data').get('results')  # 组内用户列表
+    #     for user in users_list:
+    #         OrganizationMember.objects.create(org_id=user["id"],username=user["username"])
+    #     return get_result({"message": "内部组成员已存入"})
+
+
+class OrganizationMemberViewSet(viewsets.ModelViewSet):
+
+    @action(methods=['get'], detail=False)
+    def get_all_group(self, request):
+        """获取所有组接口"""
+        queryset = Organization.objects.all()
+        """取出所有组信息"""
+        group_list = [group.to_json() for group in queryset]
+        return JsonResponse(success_code(group_list))
+
+    @action(methods=['get'], detail=False)
+    def check_user_if_groupmber(self, request):
+        """检查用户是否在组成员表内"""
+        username = request.username
+        if not OrganizationMember.objects.filter(username=username).exists():
+            raise BusinessException(StatusEnums.USER_NOMEMBER_ERROR)
+        return get_result({"message": "用户已有存在组"})
+
+    @action(methods=['get'], detail=False)
+    def get_all_groupmber(self, request):
+        """获取用户表所有成员"""
+        username = request.username
+        queryset = OrganizationMember.objects.filter(username=username)
+        groupmber_list = [groupmber.to_json() for groupmber in queryset]
+        return JsonResponse(success_code(groupmber_list))
+
+    @action(methods=['get'], detail=False)
+    def approval_user_groupmber(self, request):
+        """申请加入组接口"""
+        req = request.data
+        username = request.username
+        org_id = req.get("org_id")
+        valid_user_in_the_org(org_id, request.user.username)
+        if not Secretary.objects.filter(username=username).exists():
+            raise BusinessException(StatusEnums.AUTHORITY_ERROR)
+        queryset = ApplyToOrg.objects.filter(org_id=org_id)
+        ApplyToOrg_list = [applyuser.to_json() for applyuser in queryset]
+        return JsonResponse(success_code(ApplyToOrg_list))
