@@ -303,6 +303,8 @@
         width: 90%;
         margin: 0 auto;
         overflow: auto;
+        display: flex;
+        flex-direction: column;
         .toCarTab {
             position: absolute;
             bottom: 180px;
@@ -346,9 +348,10 @@
         .search {
             margin: 10px auto;
             width: 80%;
-            text-align: center;
             margin-left: 130px;
             display: flex;
+            justify-content: center;
+            align-items: center;
             .returnIndex {
                 width: 120px;
                 line-height: 35px;
@@ -365,13 +368,12 @@
             height: auto;
             width: 1040px;
             margin: 0 auto;
-            overflow: hidden;
             .goodCard {
                 width: 220px;
                 height: 265px;
                 display: inline-block;
                 float: left;
-                margin: 0 20px;
+                margin: 20px;
                 /deep/ .bk-card-body {
                     width: 100%;
                     padding: 0;
@@ -407,7 +409,7 @@
             }
         }
         .paginator {
-            margin-top: 5px;
+            margin: 20px 0;
             width: 100%;
             display: inline-block;
         }

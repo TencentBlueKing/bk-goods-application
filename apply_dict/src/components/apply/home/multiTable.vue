@@ -11,6 +11,7 @@
                 @page-limit-change="handlePageLimitChange"
                 @row-click="clickChangeRow"
                 class="apply-table"
+                :header-cell-style="{ background: '#fff' }"
             >
                 <bk-table-column
                     type="selection"
@@ -89,7 +90,7 @@
                         >
                         </bk-date-picker>
                         <div v-else>
-                            {{props.row.getDate ? moment(props.row.getDate).format('YYYY-MM-DD') : ''}}
+                            <bk-tag ext-cls="custom-tag">{{props.row.getDate ? moment(props.row.getDate).format('YYYY-MM-DD') : ''}}</bk-tag>
                         </div>
                     </template>
                 </bk-table-column>
@@ -119,7 +120,6 @@
                         <bk-button
                             style="margin: 4px 10% 0 0"
                             size="medium"
-                            :outline="true"
                             theme="primary"
                             title="提交申请"
                             @click.stop.prevent="commitMultiApply"
@@ -311,12 +311,6 @@
                     }
                 })
             },
-            changUploadName () { // 改变上传文件组件显示文本
-                const importDom = document.querySelector('.file-wrapper')
-                if (importDom !== undefined && importDom !== null) {
-                    document.querySelector('.file-wrapper').setAttribute('bk-lablename', '选择文件')
-                }
-            },
             handleError (config, message) { // 遇到后台报自定义错误时上方弹窗提醒
                 config.message = message
                 config.offsetY = 80
@@ -349,13 +343,59 @@
         }
         .multi-commit {
             margin: 30px 0;
-            text-align: right;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             /deep/ .bk-upload.button .file-wrapper {
                 font-size: 14px;
+                background-color: #63656E;
+                color: white;
+                cursor: pointer;
+            }
+            /deep/ input {
+                cursor: pointer;
+                font-size: 0;
             }
         }
     }
     /deep/ .bk-table-body-wrapper {
         overflow: auto;
+    }
+     /deep/.bk-table-enable-row-transition .bk-table-body td {
+        border: none !important;
+    }
+    /deep/.bk-table {
+        border: none !important;
+        &:before {
+            height: 0px !important;
+        }
+    }
+    /deep/.bk-table-outer-border:after {
+        width: 0px !important;
+    }
+    /deep/.bk-table-pagination-wrapper {
+        border: none !important;
+    }
+    /deep/.el-tabs__nav {
+        float: right;
+    }
+    /deep/.el-tabs__item {
+        width: 120px;
+        height: 50px;
+        display: flex;
+        flex-direction: column;
+        place-content: center;
+        place-items: center;
+        border: #409eff solid 2px;
+        border-radius: 8px;
+    }
+    /deep/.el-tabs__active-bar {
+        display: none;
+    }
+    /deep/.el-tabs__nav-wrap::after {
+        background-color: #409eff;
+    }
+    .custom-tag {
+        color: #2dcb56;
     }
 </style>
