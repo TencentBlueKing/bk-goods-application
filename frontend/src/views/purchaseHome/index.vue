@@ -1,12 +1,6 @@
 <template>
     <div class="index-wrapper">
         <div class="header">
-            <bk-divider align="left">
-                <bk-tag
-                    type="filled"
-                    style="font-size: 13px"
-                ><span>首页</span></bk-tag>
-            </bk-divider>
         </div>
         <div
             class="toCarTab"
@@ -178,6 +172,9 @@
             this.username = this.userInfo.username
             this.isAdmin = this.userInfo.isAdmin
             this.loadData() // 创建实例时加载数据
+        },
+        mounted () {
+            this.$store.commit('updateViewInfo', '采购首页')
         },
         methods: {
             loadData () { // 创建时调用获取基本数据

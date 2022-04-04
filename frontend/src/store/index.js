@@ -20,7 +20,8 @@ const store = new Vuex.Store({
     },
     // 公共 store
     state: {
-        isLeader: false
+        isLeader: false,
+        viewInfo: '' // 页面信息，用于显示在页头蓝色横线上的文字信息
     },
     // 公共 getters
     getters: {
@@ -36,6 +37,14 @@ const store = new Vuex.Store({
          */
         setMainContentLoading (state, loading) {
             state.mainContentLoading = loading
+        },
+        /**
+         * 用于显示在页头蓝色横线上的文字信息
+         * @param {geng} state
+         * @param {*} viewInfo
+         */
+        updateViewInfo (state, viewInfo = '') {
+            state.viewInfo = viewInfo
         }
     },
     actions: {
