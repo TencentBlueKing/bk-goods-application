@@ -20,14 +20,17 @@ from . import views
 
 urlpatterns = [
     url(r"^$", views.home),
+    # url('test', views.test), # TODO:测试celery
     path("analysis_apply_excel", analysis_apply_excel.analysis_apply_excel),  # 解析excel数据
 ]
 
 router = DefaultRouter()
 router.register(r'position', views.PositionViewSet, basename="position")
 router.register(r'apply', views.ApplyViewSet, basename="apply")
-router.register(r'OrganizationMember', views.OrganizationMemberViewSet, basename="GroupPerson")
-router.register(r'OrganizationMember', views.OrganizationMemberViewSet, basename="GroupPerson")
+router.register(r'organizationmember', views.OrganizationMemberViewSet, basename="organizationmember")
+router.register(r'organization', views.OrganizationViewSet, basename="organization")
+router.register(r'secretary', views.SecretaryViewSet, basename="secretary")
+router.register(r'applytoorg', views.ApplyToOrgViewSet, basename="applytoorg")
 
 urlpatterns += [
     path('', include(router.urls))

@@ -16,8 +16,6 @@ import uuid
 from datetime import datetime
 from tempfile import NamedTemporaryFile
 
-from apps.good_apply.models import (ApplyToOrg, Organization,
-                                    OrganizationMember, Secretary)
 from apps.good_purchase.models import (Cart, Good, GoodType, GroupApply,
                                        Withdraw, WithdrawReason)
 from apps.good_purchase.serializers import (CartSerializer,
@@ -657,93 +655,3 @@ class GoodTypeViewSet(viewsets.ModelViewSet):
         good_types = GoodType.objects.filter(org_id=org_id)
         good_type_list = [good_type.to_json() for good_type in good_types]
         return JsonResponse(success_code(good_type_list))
-
-
-class OraganizationViewSet(viewsets.ModelViewSet):
-
-    @action(methods=['post'], detail=False)
-    def create_group(self, request):
-        """创建"""
-        username = request.username
-        req = request.data
-        group_name = req.get("group_name")
-        if not Organization.objects.filter(group_name=group_name).exists():
-            org = Organization.objects.create(group_name=group_name)
-            Secretary.objects.create(username=username, org_id=org.id)
-            OrganizationMember.objects(username=username, org_id=org.id)
-            return get_result({"message": "创建组成功"})
-        raise BusinessException(StatusEnums. GROUP_ISEXISTS_ERROR)
-
-    @action(methods=['get'], detail=False)
-    def get_all_userin_groupid(self, request):
-        """获取用户所有所在组接口"""
-        username = request.username
-        """根据用户名获取他所在的组成员表查询出来"""
-        group_user = OrganizationMember.objects.filter(username=username)
-        """循环得到"""
-        group_user_id_list = [gro.to_json() for gro in group_user]
-        return JsonResponse(success_code(group_user_id_list))
-
-    @action(methods=['post'], detail=False)
-    def quit_group(self, request):
-        """用户退出组接口"""
-        req = request.data
-        username = request.username
-        org_id = req.get("org_id")
-        valid_user_in_the_org(org_id, request.user.username)
-        OrganizationMember.objects.filter(username=username, org_id=org_id).delete()
-        return get_result({"message": "退出组成功"})
-
-    # 该接口目前处理不确定，还在查询资料当中
-    # @action(methods=['post'], detail=False)
-    # def inner_group(self, request):
-    #     """获取内部组的用户信息"""
-    #     client = get_client_by_request(request=request)
-    #     # 查询组内用户信息
-    #     response = client.usermanage.list_department_profiles(id=1)
-    #     if not response.get('result'):
-    #         raise BusinessException((5004, response.get('message')))
-    #     users_list = response.get('data').get('results')  # 组内用户列表
-    #     for user in users_list:
-    #         OrganizationMember.objects.create(org_id=user["id"],username=user["username"])
-    #     return get_result({"message": "内部组成员已存入"})
-
-
-class OrganizationMemberViewSet(viewsets.ModelViewSet):
-
-    @action(methods=['get'], detail=False)
-    def get_all_group(self, request):
-        """获取所有组接口"""
-        queryset = Organization.objects.all()
-        """取出所有组信息"""
-        group_list = [group.to_json() for group in queryset]
-        return JsonResponse(success_code(group_list))
-
-    @action(methods=['get'], detail=False)
-    def check_user_if_groupmber(self, request):
-        """检查用户是否在组成员表内"""
-        username = request.username
-        if not OrganizationMember.objects.filter(username=username).exists():
-            raise BusinessException(StatusEnums.USER_NOMEMBER_ERROR)
-        return get_result({"message": "用户已有存在组"})
-
-    @action(methods=['get'], detail=False)
-    def get_all_groupmber(self, request):
-        """获取用户表所有成员"""
-        username = request.username
-        queryset = OrganizationMember.objects.filter(username=username)
-        groupmber_list = [groupmber.to_json() for groupmber in queryset]
-        return JsonResponse(success_code(groupmber_list))
-
-    @action(methods=['get'], detail=False)
-    def approval_user_groupmber(self, request):
-        """申请加入组接口"""
-        req = request.data
-        username = request.username
-        org_id = req.get("org_id")
-        valid_user_in_the_org(org_id, request.user.username)
-        if not Secretary.objects.filter(username=username).exists():
-            raise BusinessException(StatusEnums.AUTHORITY_ERROR)
-        queryset = ApplyToOrg.objects.filter(org_id=org_id)
-        ApplyToOrg_list = [applyuser.to_json() for applyuser in queryset]
-        return JsonResponse(success_code(ApplyToOrg_list))

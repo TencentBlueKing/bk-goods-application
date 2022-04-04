@@ -42,6 +42,7 @@ from apps.utils.enums import StatusEnums
 from apps.utils.exceptions import BusinessException
 from blueapps.account.models import User, UserProperty
 from blueapps.conf import settings
+from blueapps.utils import get_client_by_request
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
@@ -508,6 +509,30 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         OrganizationMember.objects.bulk_create(create_list)
         return JsonResponse(success_code('操作成功'))
 
+    @action(methods=['get'], detail=False)
+    def get_all_group(self, request):
+        """获取所有组接口"""
+        queryset = Organization.objects.all()
+        """取出所有组信息"""
+        group_list = [group.to_json() for group in queryset]
+        return JsonResponse(success_code(group_list))
+
+    @action(methods=['get'], detail=False)
+    def check_user_if_groupmber(self, request):
+        """检查用户是否在组成员表内"""
+        username = request.username
+        if not OrganizationMember.objects.filter(username=username).exists():
+            raise BusinessException(StatusEnums.USER_NOMEMBER_ERROR)
+        return get_result({"message": "用户已有存在组"})
+
+    @action(methods=['get'], detail=False)
+    def get_all_groupmber(self, request):
+        """获取用户表所有成员"""
+        username = request.username
+        queryset = OrganizationMember.objects.filter(username=username)
+        groupmber_list = [groupmber.to_json() for groupmber in queryset]
+        return JsonResponse(success_code(groupmber_list))
+
 
 class ApplyToOrgViewSet(viewsets.ModelViewSet):
     """
@@ -605,10 +630,23 @@ class ApplyToOrgViewSet(viewsets.ModelViewSet):
                 OrganizationMember.objects.bulk_create(create_list)  # 组批量增加成员
             if member_email_list:
                 org_name = Organization.objects.filter(id=org_id).first().group_name
-                send_email.delay(request=request, receiver=member_email_list, title='审核通知'
+                send_email.delay(receiver=member_email_list, title='审核通知'
                                  , content='你加入{org}的申请已审核，结果为{result}'.format(org=org_name
                                                                                , result=review_result_ch))
             return JsonResponse(success_code('审批成功'))
+
+        @action(methods=['get'], detail=False)
+        def approval_user_groupmber(self, request):
+            """申请加入组接口"""
+            req = request.data
+            username = request.username
+            org_id = req.get("org_id")
+            valid_user_in_the_org(org_id, request.user.username)
+            if not Secretary.objects.filter(username=username).exists():
+                raise BusinessException(StatusEnums.AUTHORITY_ERROR)
+            queryset = ApplyToOrg.objects.filter(org_id=org_id)
+            ApplyToOrg_list = [applyuser.to_json() for applyuser in queryset]
+            return JsonResponse(success_code(ApplyToOrg_list))
 
 
 class SecretaryViewSet(viewsets.ModelViewSet):
@@ -697,6 +735,62 @@ class SecretaryViewSet(viewsets.ModelViewSet):
         return JsonResponse(success_code('新增管理员成功'))
 
 
+class OrganizationViewSet(viewsets.ModelViewSet):
+
+    @action(methods=['post'], detail=False)
+    def create_group(self, request):
+        """创建"""
+        username = request.username
+        req = request.data
+        group_name = req.get("group_name")
+        if not Organization.objects.filter(group_name=group_name).exists():
+            org = Organization.objects.create(group_name=group_name)
+            Secretary.objects.create(username=username, org_id=org.id)
+            OrganizationMember.objects(username=username, org_id=org.id)
+            return get_result({"message": "创建组成功"})
+        raise BusinessException(StatusEnums. GROUP_ISEXISTS_ERROR)
+
+    @action(methods=['get'], detail=False)
+    def get_all_userin_groupid(self, request):
+        """获取用户所有所在组接口"""
+        username = request.username
+        """根据用户名获取他所在的组成员表查询出来"""
+        group_user = OrganizationMember.objects.filter(username=username)
+        """循环得到"""
+        group_user_id_list = [gro.to_json() for gro in group_user]
+        return JsonResponse(success_code(group_user_id_list))
+
+    @action(methods=['post'], detail=False)
+    def quit_group(self, request):
+        """用户退出组接口"""
+        req = request.data
+        username = request.username
+        org_id = req.get("org_id")
+        valid_user_in_the_org(org_id, request.user.username)
+        OrganizationMember.objects.filter(username=username, org_id=org_id).delete()
+        return get_result({"message": "退出组成功"})
+
+    @action(methods=['post'], detail=False)
+    def inner_group(self, request):
+        """拉取蓝鲸用户管理系统用户"""
+        # TODO: 最高权限校验
+        client = get_client_by_request(request=request)
+        # 查询组内用户信息
+        inner_list = settings.INNER_LIST
+        for bk_usermanagement_org_id in inner_list:
+            response = client.usermanage.list_department_profiles(id=bk_usermanagement_org_id)
+            if not response.get('result'):
+                raise BusinessException((5004, response.get('message')))
+            users_list = response.get('data').get('results')  # 组内用户列表
+            for user in users_list:
+                # 判断用户是否已在组内
+                if OrganizationMember.objects.filter(org_id=bk_usermanagement_org_id,
+                                                     username=user["username"]).exists():
+                    continue
+                OrganizationMember.objects.create(org_id=bk_usermanagement_org_id, username=user["username"])
+        return get_result({"message": "内部组成员已存入"})
+
+
 def add_org_id_to_inner_list(request):
     """添加组id进内部列表"""
     # 参数校验
@@ -732,27 +826,17 @@ def delete_org_id_from_inner_list(request):
     settings.INNER_LIST = list(settings.INNER_LIST)
     return JsonResponse(success_code('更新内部列表成功'))
 
-# def delete_org(request):
-#     """删除组"""
-#     org_id_list = json.loads(request.body).get('org_id_list', None)
-#     org_id_serializer = OrgIDSerializer(data={
-#         'org_id_list': org_id_list
-#     })
-#     if not org_id_serializer.is_valid():
-#         message = get_error_message(org_id_serializer)
-#         return get_result({"code": 400, "result": False, "message": message})
-#     for org_id in org_id_list:
-#         Secretary.objects.filter(org_id=org_id).delete()
-#         Position.objects.filter(org_id=org_id).delete()
-#         Apply.objects.filter(org_id=org_id).delete()
-#         Review.objects.filter(org_id=org_id).delete()
-#         Organization.objects.filter(org_id=org_id).delete()
-#         OrganizationMember.objects.filter(org_id=org_id).delete()
-#         GoodType.objects.filter(org_id=org_id).delete()
-#         ApplyToOrg.objects.filter(apply_group_id=org_id).delete()
-#         Good.objects.filter(org_id=org_id).delete()
-#         Cart.objects.filter(org_id=org_id).delete()
-#         GroupApply.objects.filter(org_id=org_id).delete()
-#         Withdraw.objects.filter(org_id=org_id).delete()
-#         WithdrawReason.objects.filter(org_id=org_id).delete()
-#         return JsonResponse(success_code('删除成功'))
+# TODO: 测试celery
+# def test(request):
+#     # client = get_client_by_request(request=request)
+#     # response = client.usermanage.list_department_profiles(id=6)
+#     # return get_result({'data': response.get('data').get('results')})
+#
+#     # receiver_list = ['790795324@qq.com']
+#     # receiver_str = ','.join(receiver_list)
+#     # client = get_client_by_request(request=request)
+#     # client.cmsi.send_mail(title='testview', content='testview', receiver=receiver_str)
+#     # return get_result({'data': '已发送'})
+#     client = get_client_by_request(request=request)
+#     send_email.delay(client=client, receiver_list=['790795324@qq.com'], title='testdelay', content='testdelay')
+#     return get_result({'data': '已发送'})

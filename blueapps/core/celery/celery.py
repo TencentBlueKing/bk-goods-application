@@ -16,7 +16,6 @@ from __future__ import absolute_import, unicode_literals
 import os
 
 from celery import Celery, platforms
-from celery.schedules import crontab
 from django.conf import settings
 
 # http://docs.celeryproject.org/en/latest/userguide/daemonizing.html#running-the-worker-with-superuser-privileges-root
@@ -27,7 +26,7 @@ platforms.C_FORCE_ROOT = True
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
 
-app = Celery("proj", broker='redis://localhost:6379/0', backend='redis://localhost')
+app = Celery("proj")
 
 # Using a string here means the worker don't have to serialize
 # the configuration object to child processes.
@@ -37,20 +36,6 @@ app.config_from_object("django.conf:settings")
 
 # Load task modules from all registered Django app configs.
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
-
-
-# 设置定时任务
-app.conf.beat_schedule = {
-    # 设置定时任务的参数,key可以自定义,见名知义,value为定时任务的相关参数的字典
-    'add_member_from_bk_usermanagement': {
-        # 指定要执行的任务函数
-        'task': 'apps.good_apply.tasks.add_member_from_bk_usermanagement',
-        # 设置定时启动的频率,每天两点执行一次任务函数
-        'schedule': crontab(minute="0", hour="2"),
-        # 传入任务函数的参数,可以是一个列表或元组,如果函数没参数则为空列表或空元组
-        'args': [settings.INNERLIST]
-    }
-}
 
 
 @app.task(bind=True)
