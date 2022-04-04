@@ -1,6 +1,7 @@
 import datetime
 
-from apps.good_apply.models import Apply, OrganizationMember, Position
+from apps.good_apply.models import (Apply, ApplyToOrg, OrganizationMember,
+                                    Position)
 from rest_framework import serializers
 
 
@@ -114,3 +115,58 @@ class OrganizationMemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrganizationMember
         fields = ['id', 'username', 'org_id']
+
+
+class ApplyToOrgSerializer(serializers.ModelSerializer):
+    """
+    入组申请表序列化器
+    """
+
+    class Meta:
+        model = ApplyToOrg
+        fields = ['apply_group_id', 'status', 'create_time', 'update_time', 'create_user', 'update_user']
+
+
+class ApplyToOrgExamineSerializer(serializers.Serializer):
+    apply_id_list = serializers.ListField(required=True,
+                                          error_messages={'required': '申请id列表不可为空',
+                                                          'invalid': '申请id列表参数不合法'},
+                                          child=serializers.IntegerField(min_value=1,
+                                                                         error_messages={'min_value': '申请存在不合法id',
+                                                                                         'invalid': '申请类型不合法'}),
+                                          )
+    review_result = serializers.IntegerField(required=True,
+                                             error_messages={'required': '审批结果不可为空',
+                                                             'invalid': '审批结果参数不合法'},
+                                             )
+
+
+class SecretaryPermissionTransferSerializer(serializers.Serializer):
+    old_secretary_id = serializers.IntegerField(required=True, error_messages={
+        'required': '旧管理员id不可为空',
+        'invalid': '旧管理员id不合法'
+    })
+    new_secretary_id = serializers.IntegerField(required=True, error_messages={
+        'required': '新管理员id不可为空',
+        'invalid': '新管理员id不合法'
+    })
+
+
+class SecretaryAddSecretarySerializer(serializers.Serializer):
+    new_secretary_id = serializers.IntegerField(required=True, error_messages={
+        'required': '新管理员id不可为空',
+        'invalid': '新管理员id不合法'
+    })
+
+
+class OrgIDSerializer(serializers.Serializer):
+    org_id = serializers.IntegerField(required=False, error_messages={
+        'required': '组id不可为空',
+        'invalid': '组id不合法'
+    })
+    org_id_list = serializers.ListField(required=False,
+                                        error_messages={'invalid': '组id列表参数不合法'},
+                                        child=serializers.IntegerField(min_value=1,
+                                                                       error_messages={'min_value': '列表存在不合法id',
+                                                                                       'invalid': 'id类型不合法'}),
+                                        )

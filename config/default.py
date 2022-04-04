@@ -188,3 +188,5 @@ BKREPO_PROJECT = os.environ['BKREPO_PROJECT']
 BKREPO_BUCKET = os.environ['BKREPO_BUCKET']
 
 DEFAULT_FILE_STORAGE = 'bkstorages.backends.bkrepo.BKRepoStorage'
+
+INNER_LIST = []

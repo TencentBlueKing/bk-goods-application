@@ -34,7 +34,6 @@ router.register(r'cart', views.CartViewSet, basename="cart")
 router.register(r'group_apply', views.GroupApplyViewSet, basename="group_apply")
 router.register(r'good', views.GoodViewSet, basename="goods")
 router.register(r'goodtype', views.GoodTypeViewSet, basename='goodtype')
-router.register(r'organization', views.OraganizationViewSet, basename='organization')
 
 urlpatterns += [
     path('', include(router.urls))
