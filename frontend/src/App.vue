@@ -12,7 +12,6 @@
             @toggle="handleToggle"
         >
             <div class="top">
-                <div class="top-blank"></div>
                 <div class="top-content">
                     <div class="top-content-info">
                         {{viewInfo}}
@@ -643,15 +642,9 @@
         box-shadow: none;
     }
     .top {
-        .top-blank {
-            height: 100px;
-        }
         .top-content {
-            position: relative;
             width: 160px;
-            height: 25px;
-            left: 130px;
-            top: -68px;
+            margin-bottom:20px;
             text-align: center;
             .top-content-info {
                 font-family: 'Roboto';
@@ -659,6 +652,7 @@
                 font-size: 20px;
                 line-height: 24px;
                 color: #000000;
+                margin-bottom: 5px;
             }
             .top-content-underline {
                 width: 160px;
