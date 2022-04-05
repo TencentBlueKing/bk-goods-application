@@ -11,58 +11,19 @@
                 :col="12"
                 :margin="6"
             >
-                <bk-row class="info-row">
-                    <bk-col :span="3">
-                        <div class="applicant">
-                            <bk-form-item
-                                label="申请人"
-                                :property="'applicant'"
-                            >
-                                <bk-tag>{{ formData.applicant }}</bk-tag>
-                            </bk-form-item>
-                        </div>
-                    </bk-col>
-                    <bk-col :span="3">
-                        <div class="group-leaders">
-                            <bk-form-item
-                                label="导员"
-                                :property="'leaders'"
-                            >
-                                <bk-tag>{{ formData.leaders }}</bk-tag>
-                            </bk-form-item>
-                        </div>
-                    </bk-col>
-                    <bk-col :span="3">
-                        <div class="apply-good-name">
-                            <bk-form-item
-                                label="申请物品名"
-                                :required="true"
-                                :property="'goodName'"
-                            >
-                                <bk-input
-                                    v-model="formData.goodName"
-                                    placeholder=""
-                                ></bk-input>
-                            </bk-form-item>
-                        </div>
-                    </bk-col>
-                    <bk-col :span="3">
-                        <div class="apply-good-code">
-                            <bk-form-item
-                                label="申请物品编号"
-                                :required="true"
-                                :property="'goodCode'"
-                            >
-                                <bk-input
-                                    v-model="formData.goodCode"
-                                    placeholder=""
-                                ></bk-input>
-                            </bk-form-item>
+                <bk-row style="margin-bottom: 20px;">
+                    <bk-col :span="4">
+                        <div style="display: flex; flex-direction: column; place-content:center; place-items:center">
+                            <h2 style="color: black">基本信息</h2>
+                            <div style="height: 8px; background: blue; width: 120px; margin-top:-10px; ; border-radius: 6px"></div>
                         </div>
                     </bk-col>
                 </bk-row>
                 <bk-row class="info-row">
-                    <bk-col :span="3">
+                    <bk-col
+                        :span="4"
+                        :offset="2"
+                    >
                         <div class="campus">
                             <bk-form-item
                                 label="校区"
@@ -81,7 +42,7 @@
                             </bk-form-item>
                         </div>
                     </bk-col>
-                    <bk-col :span="3">
+                    <bk-col :span="4">
                         <div class="college">
                             <bk-form-item
                                 label="学院"
@@ -100,38 +61,9 @@
                             </bk-form-item>
                         </div>
                     </bk-col>
-                    <bk-col :span="3">
-                        <div class="specificLocation">
-                            <bk-form-item
-                                label="具体地点"
-                                :required="true"
-                                :property="'specificLocation'"
-                            >
-                                <bk-input
-                                    v-model="formData.specificLocation"
-                                    placeholder=""
-                                ></bk-input>
-                            </bk-form-item>
-                        </div>
-                    </bk-col>
-                    <bk-col :span="3">
-                        <div class="apply-num">
-                            <bk-form-item
-                                label="申请数量"
-                                :property="'applyNum'"
-                            >
-                                <bk-input
-                                    type="number"
-                                    :min="1"
-                                    :precision="precision"
-                                    v-model="formData.num"
-                                ></bk-input>
-                            </bk-form-item>
-                        </div>
-                    </bk-col>
                 </bk-row>
-                <bk-row class="info-row">
-                    <bk-col :span="3">
+                <bk-row>
+                    <bk-col :span="4" :offset="2">
                         <div class="get-date">
                             <bk-form-item
                                 label="期望领用日期"
@@ -150,7 +82,94 @@
                             </bk-form-item>
                         </div>
                     </bk-col>
-                    <bk-col :span="9">
+                    <bk-col :span="4">
+                        <div class="specificLocation">
+                            <bk-form-item
+                                label="具体地点"
+                                :required="true"
+                                :property="'specificLocation'"
+                            >
+                                <bk-input
+                                    v-model="formData.specificLocation"
+                                    placeholder=""
+                                ></bk-input>
+                            </bk-form-item>
+                        </div>
+                    </bk-col>
+                </bk-row>
+                <bk-row style="margin-bottom: 20px;">
+                    <bk-col :span="4">
+                        <div style="display: flex; flex-direction: column; place-content:center; place-items:center">
+                            <h2 style="color: black">申请详情</h2>
+                            <div style="height: 8px; background: blue; width: 120px; margin-top:-10px; ; border-radius: 6px"></div>
+                        </div>
+                    </bk-col>
+                </bk-row>
+                <bk-row class="info-row">
+                    <bk-col
+                        :span="4"
+                        :offset="2"
+                    >
+                        <div class="applicant">
+                            <bk-form-item
+                                label="申请人"
+                                :property="'applicant'"
+                            >
+                                <bk-tag style="width:100%; height:32px; display: flex; align-items:center">{{ formData.applicant }}</bk-tag>
+                            </bk-form-item>
+                        </div>
+                    </bk-col>
+                    <bk-col :span="4">
+                        <div class="apply-num">
+                            <bk-form-item
+                                label="申请数量"
+                                :property="'applyNum'"
+                            >
+                                <bk-input
+                                    type="number"
+                                    :min="1"
+                                    :precision="precision"
+                                    v-model="formData.num"
+                                ></bk-input>
+                            </bk-form-item>
+                        </div>
+                    </bk-col>
+                </bk-row>
+                <bk-row>
+                    <bk-col
+                        :span="4"
+                        :offset="2"
+                    >
+                        <bk-row class="info-row">
+                            <div class="apply-good-name">
+                                <bk-form-item
+                                    label="申请物品名"
+                                    :required="true"
+                                    :property="'goodName'"
+                                >
+                                    <bk-input
+                                        v-model="formData.goodName"
+                                        placeholder=""
+                                    ></bk-input>
+                                </bk-form-item>
+                            </div>
+                        </bk-row>
+                        <bk-row class="info-row">
+                            <div class="apply-good-code">
+                                <bk-form-item
+                                    label="申请物品编号"
+                                    :required="true"
+                                    :property="'goodCode'"
+                                >
+                                    <bk-input
+                                        v-model="formData.goodCode"
+                                        placeholder=""
+                                    ></bk-input>
+                                </bk-form-item>
+                            </div>
+                        </bk-row>
+                    </bk-col>
+                    <bk-col :span="4">
                         <div class="apply-reason">
                             <bk-form-item
                                 :required="true"
@@ -160,6 +179,7 @@
                                 <bk-input
                                     type="textarea"
                                     v-model="formData.applyReason"
+                                    :rows="6"
                                 ></bk-input>
                             </bk-form-item>
                         </div>
@@ -170,7 +190,6 @@
                         <div class="commit">
                             <bk-button
                                 size="medium"
-                                :outline="true"
                                 theme="primary"
                                 title="提交申请"
                                 @click.stop.prevent="commitApply"
@@ -355,7 +374,9 @@
                 .apply-reason {
                 }
                 .commit {
-                    text-align: right;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
                 }
             }
         }

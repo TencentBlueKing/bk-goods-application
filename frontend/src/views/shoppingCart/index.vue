@@ -81,8 +81,14 @@
                         :key="index"
                     >
                         <div class="type-item-wapper">
-                            <div class="type-title">
-                                <bk-tag theme="info">{{item.goods_type_name}}</bk-tag>
+                            <div
+                                class="type-title"
+                                style="margin-bottom: 20px;"
+                            >
+                                <div style="display: flex; flex-direction: column; place-items: center;">
+                                    <h2 style="color: black">{{item.goods_type_name}}</h2>
+                                    <div style="height: 5px; background: blue; width: 100px; margin-top:-20px; border-radius: 6px"></div>
+                                </div>
                                 <bk-button
                                     v-if="isAdmin"
                                     theme="primary"
@@ -160,8 +166,14 @@
                         :key="index"
                     >
                         <div class="type-item-wapper">
-                            <div class="type-title">
-                                <bk-tag theme="info">{{item.goods_type_name}}</bk-tag>
+                            <div
+                                class="type-title"
+                                style="margin-bottom: 20px;"
+                            >
+                                <div style="display: flex; flex-direction: column; place-items: center;">
+                                    <h2 style="color: black">{{item.goods_type_name}}</h2>
+                                    <div style="height: 5px; background: blue; width: 100px; margin-top:-20px; border-radius: 6px"></div>
+                                </div>
                                 <bk-button
                                     v-if="isAdmin"
                                     theme="primary"
@@ -1122,5 +1134,20 @@
             cursor: not-allowed;
             background: #979ba5;
         }
+    }
+    /deep/.bk-table-enable-row-transition .bk-table-body td {
+        border: none !important;
+    }
+    /deep/.bk-table {
+        border: none !important;
+        &:before {
+            height: 0px !important;
+        }
+    }
+    /deep/.bk-table-outer-border:after {
+        width: 0px !important;
+    }
+    /deep/.bk-table-pagination-wrapper {
+        border: none !important;
     }
 </style>

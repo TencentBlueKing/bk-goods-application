@@ -3,141 +3,130 @@
         <div class="condition-form">
             <manage-form @search="handleSearch"></manage-form>
         </div>
-        <div class="applyTable">
-            <div class="more-options">
-                <bk-dropdown-menu
-                    @show="isDropdownShow = true"
-                    @hide="isDropdownShow = false"
-                    ref="dropdown"
+        <el-tabs>
+            <el-tab-pane>
+                <span
+                    slot="label"
+                    class="tab-label"
                 >
-                    <div
-                        class="dropdown-trigger-btn"
-                        style="padding-left: 19px;"
-                        slot="dropdown-trigger"
+                    <el-dropdown
+                        @command="handleCommand"
+                        style="margin-top: -3px"
                     >
-                        <span>批量操作</span>
-                        <i :class="['bk-icon icon-angle-down',{ 'icon-flip': isDropdownShow }]"></i>
-                    </div>
-                    <ul
-                        class="bk-dropdown-list"
-                        slot="dropdown-content"
+                        <span class="el-dropdown-link">
+                            批量操作<i class="el-icon-arrow-down el-icon--right"></i>
+                        </span>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item command="agree">批量同意</el-dropdown-item>
+                            <el-dropdown-item command="disagree">批量拒绝</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                    <div style="height: 5px; background: blue; width: 60px; margin-top:-8px; border-radius: 6px"></div>
+                </span>
+                <bk-table
+                    height="350"
+                    :data="apply"
+                    :size="medium"
+                    :pagination="pagination"
+                    @select="selectRow"
+                    @select-all="selectAll"
+                    @row-mouse-enter="handleRowMouseEnter"
+                    @row-mouse-leave="handleRowMouseLeave"
+                    @page-change="handlePageChange"
+                    @page-limit-change="handlePageLimitChange"
+                    :header-cell-style="{ background: '#fff' }"
+                >
+                    <bk-table-column
+                        type="selection"
+                        width="60"
+                    ></bk-table-column>
+                    <bk-table-column
+                        label="使用人"
+                        prop="apply_user"
+                        width="150"
+                    ></bk-table-column>
+                    <bk-table-column
+                        label="物品编码"
+                        prop="good_code"
+                    ></bk-table-column>
+                    <bk-table-column
+                        label="物品名称"
+                        prop="good_name"
+                        width="150"
+                    ></bk-table-column>
+                    <bk-table-column
+                        label="数量"
+                        prop="num"
+                        width="70"
+                    ></bk-table-column>
+                    <bk-table-column label="申请时间" width="200">
+                        <template slot-scope="props">
+                            <bk-tag ext-cls="custom-tag">{{props.row.apply_time}}</bk-tag>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column
+                        label="地址"
+                        prop="position"
+                    ></bk-table-column>
+                    <bk-table-column
+                        label="申请原因"
+                        prop="reason"
+                    ></bk-table-column>
+                    <bk-table-column
+                        label="操作"
+                        width="150"
                     >
-                        <li>
-                            <a
-                                href="javascript:;"
-                                @click="agree"
-                                class="multi-agree"
-                            >批量同意</a>
-                        </li>
-                        <li>
-                            <a
-                                href="javascript:;"
-                                @click="disagree"
-                                class="multi-disagree"
-                            >批量拒绝</a>
-                        </li>
-                    </ul>
-                </bk-dropdown-menu>
-            </div>
-            <bk-table
-                height="430"
-                :data="apply"
-                :size="medium"
-                :pagination="pagination"
-                @select="selectRow"
-                @select-all="selectAll"
-                @row-mouse-enter="handleRowMouseEnter"
-                @row-mouse-leave="handleRowMouseLeave"
-                @page-change="handlePageChange"
-                @page-limit-change="handlePageLimitChange"
+                        <template slot-scope="props">
+                            <bk-button
+                                class="mr10"
+                                theme="primary"
+                                text
+                                @click="singleAgree(props.row)"
+                            >同意</bk-button>
+                            <bk-button
+                                class="mr10"
+                                theme="primary"
+                                text
+                                @click="singleDisagree(props.row)"
+                            >拒绝</bk-button>
+                        </template>
+                    </bk-table-column>
+                </bk-table>
+            </el-tab-pane>
+        </el-tabs>
+        <div class="confirm-agree-dialog">
+            <bk-dialog
+                v-model="dialogVisible"
+                :render-directive="'show'"
+                theme="primary"
+                :width="700"
+                :mask-close="false"
+                :header-position="'center'"
+                :confirm-fn="confirm()"
+                :ok-text="getOkText()"
+                :title="getDialogTitle()"
             >
-                <bk-table-column
-                    type="selection"
-                    width="60"
-                ></bk-table-column>
-                <bk-table-column
-                    label="使用人"
-                    prop="apply_user"
-                ></bk-table-column>
-                <bk-table-column
-                    label="物品编码"
-                    prop="good_code"
-                ></bk-table-column>
-                <bk-table-column
-                    label="物品名称"
-                    prop="good_name"
-                ></bk-table-column>
-                <!-- <bk-table-column label="物品类型" prop="goodType"></bk-table-column> -->
-                <bk-table-column
-                    label="数量"
-                    prop="num"
-                ></bk-table-column>
-                <bk-table-column
-                    label="申请时间"
-                    prop="apply_time"
-                ></bk-table-column>
-                <bk-table-column
-                    label="地址"
-                    prop="position"
-                ></bk-table-column>
-                <bk-table-column
-                    label="申请原因"
-                    prop="reason"
-                ></bk-table-column>
-                <bk-table-column
-                    label="操作"
-                    width="150"
-                >
-                    <template slot-scope="props">
-                        <bk-button
-                            class="mr10"
-                            theme="primary"
-                            text
-                            @click="singleAgree(props.row)"
-                        >同意</bk-button>
-                        <bk-button
-                            class="mr10"
-                            theme="primary"
-                            text
-                            @click="singleDisagree(props.row)"
-                        >拒绝</bk-button>
-                    </template>
-                </bk-table-column>
-            </bk-table>
-            <div class="confirm-agree-dialog">
-                <bk-dialog
-                    v-model="dialogVisible"
-                    :render-directive="'show'"
-                    theme="primary"
-                    :width="700"
-                    :mask-close="false"
-                    :header-position="'center'"
-                    :confirm-fn="confirm()"
-                    :ok-text="getOkText()"
-                    :title="getDialogTitle()"
-                >
-                    <div class="input-remark">
-                        <bk-form
-                            :label-width="100"
-                            :model="remark"
-                            :rules="rules"
-                            ref="remark"
+                <div class="input-remark">
+                    <bk-form
+                        :label-width="100"
+                        :model="remark"
+                        :rules="rules"
+                        ref="remark"
+                    >
+                        <bk-form-item
+                            label="备注"
+                            :required="true"
+                            :property="'inputRemark'"
                         >
-                            <bk-form-item
-                                label="备注"
-                                :required="true"
-                                :property="'inputRemark'"
-                            >
-                                <bk-input
-                                    type="textarea"
-                                    v-model="remark"
-                                    placeholder="请输入"
-                                ></bk-input>
-                            </bk-form-item>
-                        </bk-form>
-                    </div>
-                </bk-dialog>
-            </div>
+                            <bk-input
+                                type="textarea"
+                                v-model="remark"
+                                placeholder="请输入"
+                            ></bk-input>
+                        </bk-form-item>
+                    </bk-form>
+                </div>
+            </bk-dialog>
         </div>
     </div>
 </template>
@@ -185,7 +174,9 @@
                     selectedRows: [] // 存放被选中行数
                 },
                 okText: '',
-                dialogTitle: ''
+                dialogTitle: '',
+                singleList: [],
+                multi: ''
             }
         },
         computed: {
@@ -213,6 +204,13 @@
                     }
                 })
             },
+            handleCommand (command) {
+                if (command === 'agree') {
+                    this.agree()
+                } else if (command === 'disagree') {
+                    this.disagree()
+                }
+            },
             getOkText () {
                 return this.okText
             },
@@ -220,30 +218,47 @@
                 return this.dialogTitle
             },
             singleAgree (row) { // 单个审核时触发
-                if (this.selected.selectedRows.indexOf(row.id) === -1) {
-                    this.selected.selectedRows.push(row.id)
-                }
-                this.agree()
+                this.singleList.push(row.id)
+                this.mode = 'single'
+                this.okText = '确定同意'
+                this.dialogTitle = '同意申请'
+                this.dialogVisible = true
             },
             singleDisagree (row) { // 单个审核时触发
-                if (this.selected.selectedRows.indexOf(row.id) === -1) {
-                    this.selected.selectedRows.push(row.id)
-                }
-                this.disagree()
+                this.singleList.push(row.id)
+                this.mode = 'single'
+                this.okText = '确定拒绝'
+                this.dialogTitle = '拒绝申请'
+                this.dialogVisible = true
             },
             agree () { // 批量审核时触发
                 if (this.selected.selectedRows.length === 0) {
                     this.handleError({ theme: 'warning' }, '未选择任何数据')
                     return
                 }
+                this.mode = 'multi'
                 this.okText = '确定同意'
                 this.dialogTitle = '同意申请'
-                this.triggerHandler()
+                this.dialogVisible = true
+            },
+            disagree () { // 批量审核时触发
+                if (this.selected.selectedRows.length === 0) {
+                    this.handleError({ theme: 'warning' }, '未选择任何数据')
+                    return
+                }
+                this.mode = 'multi'
+                this.okText = '确定拒绝'
+                this.dialogTitle = '拒绝申请'
                 this.dialogVisible = true
             },
             confirmAgree () {
                 this.$refs.remark.validate().then(validator => {
-                    const examineApplyParamsIdList = this.selected.selectedRows
+                    let examineApplyParamsIdList = []
+                    if (this.mode === 'single') {
+                        examineApplyParamsIdList = this.singleList
+                    } else if (this.mode === 'multi') {
+                        examineApplyParamsIdList = this.selected.selectedRows
+                    }
                     const remark = this.remark
                     this.$http.post(examineApplyUrl, { apply_id_list: examineApplyParamsIdList, model: 'agree', remark: remark }).then(res => {
                         if (res.result === true) {
@@ -253,6 +268,7 @@
                         }
                     })
                     this.selected.selectedRows = []
+                    this.singleList = []
                     this.dialogVisible = false
                     this.getApply()
                 }, validator => {
@@ -260,19 +276,14 @@
                     // alert(`${validator.field}：${validator.content}`)
                 })
             },
-            disagree () { // 批量审核时触发
-                if (this.selected.selectedRows.length === 0) {
-                    this.handleError({ theme: 'warning' }, '未选择任何数据')
-                    return
-                }
-                this.okText = '确定拒绝'
-                this.dialogTitle = '拒绝申请'
-                this.triggerHandler()
-                this.dialogVisible = true
-            },
             confirmDisagree () {
                 this.$refs.remark.validate().then(validator => {
-                    const examineApplyParamsIdList = this.selected.selectedRows
+                    let examineApplyParamsIdList = []
+                    if (this.mode === 'single') {
+                        examineApplyParamsIdList = this.singleList
+                    } else if (this.mode === 'multi') {
+                        examineApplyParamsIdList = this.selected.selectedRows
+                    }
                     const remark = this.remark
                     this.$http.post(examineApplyUrl, { apply_id_list: examineApplyParamsIdList, model: 'reject', remark: remark }).then(res => {
                         if (res.result === true) {
@@ -282,6 +293,7 @@
                         }
                     })
                     this.selected.selectedRows = []
+                    this.singleList = []
                     this.dialogVisible = false
                     this.getApply()
                 }, validator => {
@@ -370,9 +382,6 @@
                 this.pagination.current = page
                 this.getParams.page = this.pagination.current
                 this.getApply()
-            },
-            triggerHandler () {
-                this.$refs.dropdown.hide()
             }
         }
     }
@@ -402,5 +411,42 @@
                 }
             }
         }
+    }
+    /deep/.bk-table-enable-row-transition .bk-table-body td {
+        border: none !important;
+    }
+    /deep/.bk-table {
+        border: none !important;
+        &:before {
+            height: 0px !important;
+        }
+    }
+    /deep/.bk-table-outer-border:after {
+        width: 0px !important;
+    }
+    /deep/.bk-table-pagination-wrapper {
+        border: none !important;
+    }
+    /deep/.el-tabs__nav {
+        float: right;
+    }
+    /deep/.el-tabs__item {
+        width: 120px;
+        height: 50px;
+        display: flex;
+        flex-direction: column;
+        place-content: center;
+        place-items: center;
+        border: #409eff solid 2px;
+        border-radius: 8px;
+    }
+    /deep/.el-tabs__active-bar {
+        display: none;
+    }
+    /deep/.el-tabs__nav-wrap::after {
+        background-color: #409eff;
+    }
+    .custom-tag {
+        color: #2dcb56;
     }
 </style>
