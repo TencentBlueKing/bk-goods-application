@@ -520,7 +520,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False)
     def check_user_if_groupmber(self, request):
         """检查用户是否在组成员表内"""
-        username = request.username
+        username = request.user.username
         if not OrganizationMember.objects.filter(username=username).exists():
             raise BusinessException(StatusEnums.USER_NOMEMBER_ERROR)
         return get_result({"message": "用户已有存在组"})
@@ -528,8 +528,15 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False)
     def get_all_groupmber(self, request):
         """获取用户表所有成员"""
-        username = request.username
-        queryset = OrganizationMember.objects.filter(username=username)
+        req = request.data
+        org_id = req.get('org_id')
+        username = request.user.username
+        valid_user_in_the_org(org_id, username)
+        flag = if_secretary(request, org_id)
+        if not flag:
+            raise BusinessException(StatusEnums.AUTHORITY_ERROR)
+        # 管理员获取除了当前组内其他的用户表中的成员
+        queryset = OrganizationMember.objects.exclude(org_id=org_id)
         groupmber_list = [groupmber.to_json() for groupmber in queryset]
         return JsonResponse(success_code(groupmber_list))
 
@@ -635,18 +642,16 @@ class ApplyToOrgViewSet(viewsets.ModelViewSet):
                                                                                , result=review_result_ch))
             return JsonResponse(success_code('审批成功'))
 
-        @action(methods=['get'], detail=False)
-        def approval_user_groupmber(self, request):
-            """申请加入组接口"""
-            req = request.data
-            username = request.username
-            org_id = req.get("org_id")
-            valid_user_in_the_org(org_id, request.user.username)
-            if not Secretary.objects.filter(username=username).exists():
-                raise BusinessException(StatusEnums.AUTHORITY_ERROR)
-            queryset = ApplyToOrg.objects.filter(org_id=org_id)
-            ApplyToOrg_list = [applyuser.to_json() for applyuser in queryset]
-            return JsonResponse(success_code(ApplyToOrg_list))
+    @action(methods=['post'], detail=False)
+    def approval_user_groupmber(self, request):
+        """申请加入组接口"""
+        req = request.data
+        username = request.user.username
+        org_id = req.get("org_id")
+        if not OrganizationMember.objects.filter(username=username, org_id=org_id).exists():
+            ApplyToOrg.objects.create(apply_user=username, apply_group_id=org_id, status=1)
+            return get_result({"message": "已成功申请加入该组！"})
+        return get_result({"message": "你已经在该组当中，无需再次申请"})
 
 
 class SecretaryViewSet(viewsets.ModelViewSet):
@@ -740,7 +745,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     @action(methods=['post'], detail=False)
     def create_group(self, request):
         """创建"""
-        username = request.username
+        username = request.user.username
         req = request.data
         group_name = req.get("group_name")
         if not Organization.objects.filter(group_name=group_name).exists():
@@ -753,21 +758,28 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False)
     def get_all_userin_groupid(self, request):
         """获取用户所有所在组接口"""
-        username = request.username
-        """根据用户名获取他所在的组成员表查询出来"""
-        group_user = OrganizationMember.objects.filter(username=username)
-        """循环得到"""
-        group_user_id_list = [gro.to_json() for gro in group_user]
-        return JsonResponse(success_code(group_user_id_list))
+        username = request.user.username
+        # 根据用户名获取他所在的组成员表查询出来
+        group_user_list = OrganizationMember.objects.filter(username=username)
+        group_list = []
+        for group_user in group_user_list:
+            org_id = OrganizationMember.objects.filter(username=group_user.username).org_id
+            group = Organization.objects.filter(id=org_id).first()
+            group_list.append(group.to_json())
+        return JsonResponse(success_code(group_list))
 
     @action(methods=['post'], detail=False)
     def quit_group(self, request):
         """用户退出组接口"""
         req = request.data
-        username = request.username
+        username = request.user.username
         org_id = req.get("org_id")
         valid_user_in_the_org(org_id, request.user.username)
+        if Secretary.objects.filter(username=username):
+            return get_result({"message": "管理员无法退组，请转交管理员身份再执行相关操作"})
         OrganizationMember.objects.filter(username=username, org_id=org_id).delete()
+        Apply.objects.filter(apply_user=username, org_id=org_id).delete()
+        # GoodApply.objects.filter(username=username, org_id=org_id).delete()
         return get_result({"message": "退出组成功"})
 
     @action(methods=['post'], detail=False)
@@ -827,16 +839,18 @@ def delete_org_id_from_inner_list(request):
     return JsonResponse(success_code('更新内部列表成功'))
 
 # TODO: 测试celery
-# def test(request):
-#     # client = get_client_by_request(request=request)
-#     # response = client.usermanage.list_department_profiles(id=6)
-#     # return get_result({'data': response.get('data').get('results')})
-#
-#     # receiver_list = ['790795324@qq.com']
-#     # receiver_str = ','.join(receiver_list)
-#     # client = get_client_by_request(request=request)
-#     # client.cmsi.send_mail(title='testview', content='testview', receiver=receiver_str)
-#     # return get_result({'data': '已发送'})
-#     client = get_client_by_request(request=request)
-#     send_email.delay(client=client, receiver_list=['790795324@qq.com'], title='testdelay', content='testdelay')
-#     return get_result({'data': '已发送'})
+
+
+def test(request):
+    # client = get_client_by_request(request=request)
+    # response = client.usermanage.list_department_profiles(id=6)
+    # return get_result({'data': response.get('data').get('results')})
+
+    # receiver_list = ['790795324@qq.com']
+    # receiver_str = ','.join(receiver_list)
+    # client = get_client_by_request(request=request)
+    # client.cmsi.send_mail(title='testview', content='testview', receiver=receiver_str)
+    # return get_result({'data': '已发送'})
+    client = get_client_by_request(request=request)
+    send_email.delay(client=client, receiver_list=['790795324@qq.com'], title='testdelay', content='testdelay')
+    return get_result({'data': '已发送'})
