@@ -134,7 +134,6 @@ class ApplyViewSet(viewsets.ModelViewSet):
         username = request.user.username
         apply_list = req.get('apply_list')
         org_id = req.get('org_id', None)
-        valid_user_in_the_org(org_id, username)
         flag = if_secretary(request, org_id)
         apply_status = 1
         if flag:
@@ -183,9 +182,7 @@ class ApplyViewSet(viewsets.ModelViewSet):
         获取需要审核的物资列表
         """
         req_data = request.GET
-        username = request.user.username
         org_id = req_data.get('org_id')
-        valid_user_in_the_org(org_id, username)
         flag = if_secretary(request, org_id)
         if not flag:
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)
@@ -312,7 +309,6 @@ class ApplyViewSet(viewsets.ModelViewSet):
         body = request.data
         org_id = body.get('org_id', None)
         username = request.user.username
-        valid_user_in_the_org(org_id, username)
         flag = if_secretary(request, org_id)
         if not flag:
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)
@@ -454,7 +450,6 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         req_data = request.GET
         org_id = req_data.get('org_id')
         username = request.user.username
-        valid_user_in_the_org(org_id, username)
         flag = if_secretary(request, org_id)
         if not flag:
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)
@@ -483,8 +478,10 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         """添加组成员"""
         # 身份校验
         org_id = request.data.get('org_id')
+        # 验证是否蓝鲸内部组
+        if org_id in settings.INNER_LIST:
+            raise BusinessException(StatusEnums.INNER_CURD_ERROR)
         username = request.user.username
-        valid_user_in_the_org(org_id, username)
         flag = if_secretary(request, org_id)
         if not flag:
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)
@@ -546,7 +543,6 @@ class ApplyToOrgViewSet(viewsets.ModelViewSet):
         req_data = request.GET
         org_id = req_data.get('org_id')
         username = request.user.username
-        valid_user_in_the_org(org_id, username)
         flag = if_secretary(request, org_id)
         if not flag:
             # 普通用户, 查询审核中
@@ -584,8 +580,10 @@ class ApplyToOrgViewSet(viewsets.ModelViewSet):
         """审核入组申请"""
         # 身份校验
         org_id = request.data.get('org_id')
+        # 验证是否蓝鲸内部组
+        if org_id in settings.INNER_LIST:
+            raise BusinessException(StatusEnums.INNER_CURD_ERROR)
         username = request.user.username
-        valid_user_in_the_org(org_id, username)
         flag = if_secretary(request, org_id)
         if not flag:
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)
@@ -660,8 +658,10 @@ class SecretaryViewSet(viewsets.ModelViewSet):
         """权限转移"""
         # 身份校验
         org_id = request.data.get('org_id')
+        # 验证是否蓝鲸内部组
+        if org_id in settings.INNER_LIST:
+            raise BusinessException(StatusEnums.INNER_CURD_ERROR)
         username = request.user.username
-        valid_user_in_the_org(org_id, username)
         flag = if_secretary(request, org_id)
         if not flag:
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)
@@ -693,8 +693,10 @@ class SecretaryViewSet(viewsets.ModelViewSet):
         """辞去管理员"""
         # 身份校验
         org_id = request.data.get('org_id')
+        # 验证是否蓝鲸内部组
+        if org_id in settings.INNER_LIST:
+            raise BusinessException(StatusEnums.INNER_CURD_ERROR)
         username = request.user.username
-        valid_user_in_the_org(org_id, username)
         flag = if_secretary(request, org_id)
         if not flag:
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)
@@ -711,8 +713,9 @@ class SecretaryViewSet(viewsets.ModelViewSet):
         """增加管理员"""
         # 身份校验
         org_id = request.data.get('org_id')
-        username = request.user.username
-        valid_user_in_the_org(org_id, username)
+        # 验证是否蓝鲸内部组
+        if org_id in settings.INNER_LIST:
+            raise BusinessException(StatusEnums.INNER_CURD_ERROR)
         flag = if_secretary(request, org_id)
         if not flag:
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)
@@ -748,7 +751,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             Secretary.objects.create(username=username, org_id=org.id)
             OrganizationMember.objects(username=username, org_id=org.id)
             return get_result({"message": "创建组成功"})
-        raise BusinessException(StatusEnums. GROUP_ISEXISTS_ERROR)
+        raise BusinessException(StatusEnums.GROUP_ISEXISTS_ERROR)
 
     @action(methods=['get'], detail=False)
     def get_all_userin_groupid(self, request):
@@ -775,19 +778,38 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         """拉取蓝鲸用户管理系统用户"""
         # TODO: 最高权限校验
         client = get_client_by_request(request=request)
+        org_id = request.data.get('org_id', None)
         # 查询组内用户信息
-        inner_list = settings.INNER_LIST
+        if not org_id:  # 更新整个内部列表
+            inner_list = settings.INNER_LIST
+        else:  # 更新单个组
+            if org_id in settings.INNER_LIST:
+                inner_list = [org_id]
+            else:
+                raise BusinessException(StatusEnums.ORG_NOT_IN_INNER_ERROR)
+        existed_list = Organization.objects.values_list("id", flat=True)  # 系统目前已存在组
         for bk_usermanagement_org_id in inner_list:
+            if bk_usermanagement_org_id not in existed_list:  # 若此组还不在申请系统，则先创建组
+                response_get_org_info = client.usermanage.retrieve_department(id=bk_usermanagement_org_id)
+                org_name = response_get_org_info.get('data').get('name')
+                Organization.objects.create(id=bk_usermanagement_org_id, group_name=org_name)
+            # 同步组成员信息
             response = client.usermanage.list_department_profiles(id=bk_usermanagement_org_id)
             if not response.get('result'):
                 raise BusinessException((5004, response.get('message')))
             users_list = response.get('data').get('results')  # 组内用户列表
+            secretary_dict = users_list[0].get('leader')
+            secretary_list = list()
+            for leader in secretary_dict:
+                secretary_list.append(leader.get('username'))
             for user in users_list:
                 # 判断用户是否已在组内
                 if OrganizationMember.objects.filter(org_id=bk_usermanagement_org_id,
-                                                     username=user["username"]).exists():
+                                                     username=user.get('username')).exists():
                     continue
-                OrganizationMember.objects.create(org_id=bk_usermanagement_org_id, username=user["username"])
+                OrganizationMember.objects.create(org_id=bk_usermanagement_org_id, username=user.get('username'))
+                if user.get('username') in secretary_list:  # 管理员
+                    Secretary.objects.create(org_id=org_id, username=user.get('username'))
         return get_result({"message": "内部组成员已存入"})
 
 
@@ -826,17 +848,62 @@ def delete_org_id_from_inner_list(request):
     settings.INNER_LIST = list(settings.INNER_LIST)
     return JsonResponse(success_code('更新内部列表成功'))
 
+
 # TODO: 测试celery
 # def test(request):
-#     # client = get_client_by_request(request=request)
-#     # response = client.usermanage.list_department_profiles(id=6)
-#     # return get_result({'data': response.get('data').get('results')})
-#
-#     # receiver_list = ['790795324@qq.com']
-#     # receiver_str = ','.join(receiver_list)
-#     # client = get_client_by_request(request=request)
-#     # client.cmsi.send_mail(title='testview', content='testview', receiver=receiver_str)
-#     # return get_result({'data': '已发送'})
-#     client = get_client_by_request(request=request)
-#     send_email.delay(client=client, receiver_list=['790795324@qq.com'], title='testdelay', content='testdelay')
-#     return get_result({'data': '已发送'})
+    # 测试获取组成员信息
+    # client = get_client_by_request(request=request)
+    # response = client.usermanage.list_department_profiles(id=6)
+    # users_list = response.get('data').get('results')
+    # leader_dict = users_list[0].get('leader')
+    # leader_list = list()
+    # for leader in leader_dict:
+    #     leader_list.append(leader.get('username'))
+    # data = users_list[0].get('username')
+
+    # 测试获取组详细信息
+    # client = get_client_by_request(request=request)
+    # response = client.usermanage.retrieve_department(id=6)
+    #
+    # data = response.get('data').get('name')
+    # return get_result({'data': data})
+
+    # 测试celery
+    # receiver_list = ['790795324@qq.com']
+    # receiver_str = ','.join(receiver_list)
+    # client = get_client_by_request(request=request)
+    # client.cmsi.send_mail(title='testview', content='testview', receiver=receiver_str)
+
+    # client = get_client_by_request(request=request)
+    # send_email.delay(client=client, receiver_list=['790795324@qq.com'], title='testdelay', content='testdelay')
+
+    # return get_result({'data': '已发送'})
+
+    # 测试拉人
+    # client = get_client_by_request(request=request)
+    # existed_list = Organization.objects.values_list("id", flat=True)  # 系统目前已存在组
+    # inner_list = [6]
+    # for bk_usermanagement_org_id in inner_list:
+    #     if bk_usermanagement_org_id not in existed_list:  # 若此组还不在申请系统，则先创建组
+    #         response_get_org_info = client.usermanage.retrieve_department(id=bk_usermanagement_org_id)
+    #         org_name = response_get_org_info.get('data').get('name')
+    #         Organization.objects.create(id=bk_usermanagement_org_id, group_name=org_name)
+    #     # 同步组成员信息
+    #     response = client.usermanage.list_department_profiles(id=bk_usermanagement_org_id)
+    #     if not response.get('result'):
+    #         raise BusinessException((5004, response.get('message')))
+    #     users_list = response.get('data').get('results')  # 组内用户列表
+    #     secretary_dict = users_list[0].get('leader')
+    #     secretary_list = list()
+    #     for leader in secretary_dict:
+    #         secretary_list.append(leader.get('username'))
+    #     for user in users_list:
+    #         # 判断用户是否已在组内
+    #         if OrganizationMember.objects.filter(org_id=bk_usermanagement_org_id,
+    #                                              username=user.get('username')).exists():
+    #             continue
+    #         OrganizationMember.objects.create(org_id=bk_usermanagement_org_id, username=user.get('username'))
+    #         if user.get('username') in secretary_list:  # 管理员
+    #             Secretary.objects.create(org_id=bk_usermanagement_org_id, username=user.get('username'))
+    #
+    # return get_result({'data': '已成功'})

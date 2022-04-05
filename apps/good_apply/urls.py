@@ -20,7 +20,7 @@ from . import views
 
 urlpatterns = [
     url(r"^$", views.home),
-    # url('test', views.test), # TODO:测试celery
+    # url('test', views.test),
     path("analysis_apply_excel", analysis_apply_excel.analysis_apply_excel),  # 解析excel数据
 ]
 
