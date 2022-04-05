@@ -1,7 +1,6 @@
 <template>
     <div class="shopcart-wrapper">
-        <div
-            class="header"
+        <!-- <div class="header"
             v-if="isAdmin"
         >
             <bk-divider align="left">
@@ -10,7 +9,7 @@
                     style="font-size: 13px"
                 ><span>{{ isAdmin ? '物资导入及申请' : '购物车' }}</span></bk-tag>
             </bk-divider>
-        </div>
+        </div> -->
         <div class="cart-body-wapper">
             <div class="header-wapper">
                 <div class="head-total-info">
@@ -375,7 +374,9 @@
         mounted () {
             this.curUsername = this.userInfo.username // 从state中获取用户名
             this.isAdmin = this.userInfo.isAdmin
-            this.initCartData() // 若是管理员，则加载数据
+            const viewInfo = this.isAdmin ? '物资导入&申请' : '购物车'
+            this.$store.commit('updateViewInfo', viewInfo)
+            this.initCartData() // 加载数据
         },
         updated () {
             const importDom = document.querySelector('.file-wrapper')

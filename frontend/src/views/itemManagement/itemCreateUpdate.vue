@@ -1,18 +1,18 @@
 <template>
     <div class="form-manage">
         <div class="header">
-            <bk-divider align="left">
+            <!-- <bk-divider align="left">
                 <router-link :to="{ name: 'itemManagement' }">
                     <bk-tag
                         type="filled"
                         style="font-size: 13px"
                     ><span>物品管理</span></bk-tag>
-                </router-link>
-                <bk-tag
+                </router-link> -->
+            <!-- <bk-tag
                     type="filled"
                     style="font-size: 13px"
                 ><span>{{$route.query.action === 'create' ? `物品添加` : '物品编辑'}}</span></bk-tag>
-            </bk-divider>
+            </bk-divider> -->
         </div>
         <bk-container
             :col="12"
@@ -332,6 +332,10 @@
             if (this.$route.query.action === 'update' && this.$route.query.row_id) {
                 this.getGoodInfo(this.$route.query.row_id)
             }
+        },
+        mounted () {
+            const operateType = this.$route.query.action === 'create' ? `添加` : '编辑'
+            this.$store.commit('updateViewInfo', '物品管理-' + operateType)
         },
         methods: {
             getGoodTypes () {

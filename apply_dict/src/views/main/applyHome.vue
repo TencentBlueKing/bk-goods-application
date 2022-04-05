@@ -174,11 +174,11 @@
         watch: {
             '$store.state.isApplyViewSwitcherOn' (val) {
                 this.showMultiImport = val
-                if (val) {
-                    this.$nextTick(() => {
-                        this.$refs.multiTable.changUploadName()
-                    })
-                }
+                // if (val) {
+                //     this.$nextTick(() => {
+                //         this.$refs.multiTable.changUploadName()
+                //     })
+                // }
             },
             'multiInput.campus' (val) { // 监听批量导入时的页面表格的校区变量
                 this.changeCollegeList(val)
