@@ -1,6 +1,6 @@
 <template>
     <div class="returnGoods-wrapper">
-        <div class="header">
+        <!-- <div class="header">
             <bk-divider align="left">
                 <router-link :to="navList[0].link">
                     <bk-tag
@@ -13,7 +13,7 @@
                     style="font-size: 13px"
                 ><span>{{navList[1].title}}</span></bk-tag>
             </bk-divider>
-        </div>
+        </div> -->
         <div class="message-table">
             <div class="message-label">
                 <label>申请人:</label>
@@ -256,6 +256,9 @@
                 this.$router.replace({ name: 'personalGoods' })
             }
             this.loadData()
+        },
+        mounted () {
+            this.$store.commit('updateViewInfo', '个人物资-退库')
         },
         methods: {
             loadData () {

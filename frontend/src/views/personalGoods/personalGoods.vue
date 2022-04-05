@@ -1,13 +1,5 @@
 <template>
     <div class="personalGoods-wrapper">
-        <div class="header">
-            <bk-divider align="left">
-                <bk-tag
-                    type="filled"
-                    style="font-size: 13px"
-                ><span>个人物资查询</span></bk-tag>
-            </bk-divider>
-        </div>
         <div class="conditions">
             <bk-form
                 :label-width="200"
@@ -337,6 +329,9 @@
             if (this.$route.params.isFromReturnGoods) { // 判断是否来自退库的跳转
                 this.handleError({ theme: 'warning' }, '无在使用商品, 已自动跳转回个人物资查询页')
             }
+        },
+        mounted () {
+            this.$store.commit('updateViewInfo', '个人物资查询')
         },
         methods: {
             loadData () { // 渲染时请求数据

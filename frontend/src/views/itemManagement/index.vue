@@ -1,13 +1,5 @@
 <template>
     <div class="itemManagement-wrapper">
-        <div class="header">
-            <bk-divider align="left">
-                <bk-tag
-                    type="filled"
-                    style="font-size: 13px"
-                ><span>物品管理</span></bk-tag>
-            </bk-divider>
-        </div>
         <div class="header-wrapper">
             <div class="fun-bar">
                 <span>物品编号：</span>
@@ -169,6 +161,9 @@
             this.getGoods()
             this.getGoodTypes()
             this.getGoodCodeList()
+        },
+        mounted () {
+            this.$store.commit('updateViewInfo', '物品管理')
         },
         methods: {
             // 后端请求函数

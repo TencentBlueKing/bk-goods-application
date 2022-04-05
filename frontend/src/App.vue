@@ -647,11 +647,11 @@
             height: 100px;
         }
         .top-content {
-            position: absolute;
+            position: relative;
             width: 160px;
             height: 25px;
             left: 130px;
-            top: 45px;
+            top: -68px;
             text-align: center;
             .top-content-info {
                 font-family: 'Roboto';
