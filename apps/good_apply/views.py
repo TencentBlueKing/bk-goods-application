@@ -445,6 +445,18 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     serializer_class = OrganizationMemberSerializer
 
     @action(methods=['GET'], detail=False)
+    def get_org_users(self, request):
+        """获取当前所在组所有成员"""
+        req_data = request.GET
+        org_id = req_data.get('org_id')
+        username = request.user.username
+        valid_user_in_the_org(org_id, username)
+        # 获取其中一个组的成员
+        queryset = self.queryset.filter(org_id=org_id)
+        users = [user.to_json() for user in queryset]
+        return JsonResponse(success_code(users))
+
+    @action(methods=['GET'], detail=False)
     def get_apply_users(self, request):
         """审批页面，获取可管理人员"""
         req_data = request.GET
@@ -481,7 +493,6 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         # 验证是否蓝鲸内部组
         if org_id in settings.INNER_LIST:
             raise BusinessException(StatusEnums.INNER_CURD_ERROR)
-        username = request.user.username
         flag = if_secretary(request, org_id)
         if not flag:
             raise BusinessException(StatusEnums.AUTHORITY_ERROR)
@@ -500,7 +511,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         for member_id in member_id_list:
             member_name = User.objects.filter(id=member_id).username
             # 判断用户是否已经再组中
-            if OrganizationMember.objects.filter(org_id=org_id, username=username).exists():
+            if OrganizationMember.objects.filter(org_id=org_id, username=member_name).exists():
                 raise BusinessException(StatusEnums.USER_EXIST_ERROR)
             create_list.append(OrganizationMember(username=member_name, org_id=org_id))
         OrganizationMember.objects.bulk_create(create_list)
@@ -529,6 +540,35 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         queryset = OrganizationMember.objects.filter(username=username)
         groupmber_list = [groupmber.to_json() for groupmber in queryset]
         return JsonResponse(success_code(groupmber_list))
+
+    @action(methods=['POST'], detail=False)
+    def delete_member_to_org(self, request):
+        """删除组成员"""
+        # 身份校验
+        org_id = request.data.get('org_id')
+        # 验证是否蓝鲸内部组
+        if org_id in settings.INNER_LIST:
+            raise BusinessException(StatusEnums.INNER_CURD_ERROR)
+        username = request.user.username
+        flag = if_secretary(request, org_id)
+        if not flag:
+            raise BusinessException(StatusEnums.AUTHORITY_ERROR)
+
+        # 参数校验
+        member_id_list = request.data.get('member_id_list')
+        member_id_list_serializer = MemberIDListSerializer(data={
+            'member_id_list': member_id_list
+        })
+        if not member_id_list_serializer.is_valid():
+            message = get_error_message(member_id_list_serializer)
+            return get_result({"code": 400, "result": False, "message": message})
+        for member_id in member_id_list:
+            member_name = User.objects.filter(id=member_id).username
+            # 判断用户是否已经在组中
+            if OrganizationMember.objects.filter(org_id=org_id, username=member_name).exists():
+                raise BusinessException(StatusEnums.USER_EXIST_ERROR)
+            OrganizationMember.objects.filter(org_id=org_id, username=username).delete()
+        return JsonResponse(success_code('操作成功'))
 
 
 class ApplyToOrgViewSet(viewsets.ModelViewSet):
@@ -652,6 +692,21 @@ class SecretaryViewSet(viewsets.ModelViewSet):
     管理员表视图集
     """
     queryset = Secretary.objects.all()
+
+    @action(methods=['GET'], detail=False)
+    def get_org_secretary(self, request):
+        """获取秘书"""
+        # 身份校验
+        org_id = request.data.get('org_id')
+        username = request.user.username
+        if not org_id:  # 获取所有秘书
+            secs = [sec.to_json() for sec in self.queryset]
+            return JsonResponse(success_code(secs))
+        else:  # 获取一个组秘书
+            valid_user_in_the_org(org_id, username)
+            queryset = self.queryset.filter(org_id=org_id)
+            secs = [sec.to_json() for sec in queryset]
+            return JsonResponse(success_code(secs))
 
     @action(methods=['POST'], detail=False)
     def permission_transfer(self, request):
