@@ -13,7 +13,6 @@
             v-if="$route.name !== 'home'"
         >
             <div class="top">
-                <div class="top-blank"></div>
                 <div class="top-content">
                     <div class="top-content-info">
                         {{viewInfo}}
@@ -660,23 +659,21 @@
             height: 100px;
         }
         .top-content {
-            position: relative;
             width: 160px;
-            height: 25px;
-            left: 130px;
-            top: -68px;
+            margin-bottom: 20px;
             text-align: center;
             .top-content-info {
-                font-family: 'Roboto';
+                font-family: "Roboto";
                 font-style: normal;
                 font-size: 20px;
                 line-height: 24px;
+                margin-bottom: 5px;
                 color: #000000;
             }
             .top-content-underline {
                 width: 160px;
                 height: 10px;
-                background: #0051DA;
+                background: #0051da;
                 box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.25);
                 border-radius: 12px;
             }
