@@ -54,3 +54,17 @@ DATABASES.update(
 )
 
 MEDIA_URL = '%smedia/' % SITE_URL
+RABBITMQ_VHOST = os.getenv('RABBITMQ_VHOST')
+RABBITMQ_PORT = os.getenv('RABBITMQ_PORT')
+RABBITMQ_HOST = os.getenv('RABBITMQ_HOST')
+RABBITMQ_USER = os.getenv('RABBITMQ_USER')
+RABBITMQ_PASSWORD = os.getenv('RABBITMQ_PASSWORD')
+
+# 设置为 celery 后端消息队列
+BROKER_URL = 'amqp://{user}:{password}@{host}:{port}/{vhost}'.format(
+    user=RABBITMQ_USER,
+    password=RABBITMQ_PASSWORD,
+    host=RABBITMQ_HOST,
+    port=RABBITMQ_PORT,
+    vhost=RABBITMQ_VHOST,
+)
