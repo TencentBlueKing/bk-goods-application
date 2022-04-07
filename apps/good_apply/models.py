@@ -141,7 +141,7 @@ class ApplyToOrg(TimeBasic):
         return {
             "id": self.id,
             "apply_group_id": self.apply_group_id,
-            "user_name": self.create_user,
+            "username": self.create_user,
             "create_time": self.create_time,
             "update_time": self.update_time,
             "status": self.get_status_display(),

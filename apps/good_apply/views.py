@@ -525,7 +525,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             raise BusinessException(StatusEnums.USER_NOMEMBER_ERROR)
         return get_result({"message": "用户已有存在组"})
 
-    @action(methods=['get'], detail=False)
+    @action(methods=['post'], detail=False)
     def get_all_groupmber(self, request):
         """获取用户表所有成员"""
         req = request.data
@@ -649,8 +649,10 @@ class ApplyToOrgViewSet(viewsets.ModelViewSet):
         username = request.user.username
         org_id = req.get("org_id")
         if not OrganizationMember.objects.filter(username=username, org_id=org_id).exists():
-            ApplyToOrg.objects.create(apply_user=username, apply_group_id=org_id, status=1)
-            return get_result({"message": "已成功申请加入该组！"})
+            if not ApplyToOrg.objects.filter(create_user=username, apply_group_id=org_id).exists():
+                ApplyToOrg.objects.create(create_user=username, apply_group_id=org_id, status=1)
+                return get_result({"message": "已成功申请加入该组！"})
+            return get_result({"message": "已申请，无须重复申请！"})
         return get_result({"message": "你已经在该组当中，无需再次申请"})
 
 
@@ -749,9 +751,10 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         req = request.data
         group_name = req.get("group_name")
         if not Organization.objects.filter(group_name=group_name).exists():
-            org = Organization.objects.create(group_name=group_name)
-            Secretary.objects.create(username=username, org_id=org.id)
-            OrganizationMember.objects(username=username, org_id=org.id)
+            Organization.objects.create(group_name=group_name)
+            org_id = Organization.objects.filter(group_name=group_name).first().id
+            Secretary.objects.create(username=username, org_id=org_id)
+            OrganizationMember.objects.create(username=username, org_id=org_id)
             return get_result({"message": "创建组成功"})
         raise BusinessException(StatusEnums. GROUP_ISEXISTS_ERROR)
 
@@ -763,7 +766,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         group_user_list = OrganizationMember.objects.filter(username=username)
         group_list = []
         for group_user in group_user_list:
-            org_id = OrganizationMember.objects.filter(username=group_user.username).org_id
+            org_id = OrganizationMember.objects.filter(username=group_user.username, id=group_user.id).first().org_id
             group = Organization.objects.filter(id=org_id).first()
             group_list.append(group.to_json())
         return JsonResponse(success_code(group_list))
