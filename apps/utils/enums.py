@@ -24,6 +24,8 @@ class StatusEnums(Enum):
     SECRETARY_EXIST_ERROR = (4011, '用户已是管理员')
     SECRETARY_LACK_ERROR = (4012, '管理员不足')
     USER_EXIST_ERROR = (4013, '用户已存在')
+    INNER_CURD_ERROR = (4014, '与蓝鲸用户管理相关的组不可在此系统编辑信息')
+    ORG_NOT_IN_INNER_ERROR = (4015, '请先联系人员将组id加入内部列表')
 
     # 服务端错误
     STOCK_ERROR = (5001, "库存不足")

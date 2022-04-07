@@ -20,7 +20,7 @@ from . import views
 
 urlpatterns = [
     url(r"^$", views.home),
-    # url(r"^test/", views.test),
+    # url('test', views.test),
     path("analysis_apply_excel", analysis_apply_excel.analysis_apply_excel),  # 解析excel数据
 ]
 

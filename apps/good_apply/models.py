@@ -13,6 +13,12 @@ class Secretary(models.Model):
         verbose_name = "秘书表"
         verbose_name_plural = "秘书表"
 
+    def to_json(self):
+        return {
+            'username': self.username,
+            'org_id': self.org_id
+        }
+
 
 # 地区
 class Position(models.Model):
