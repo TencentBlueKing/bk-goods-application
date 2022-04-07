@@ -11,6 +11,19 @@
             :need-menu="false"
             @toggle="handleToggle"
         >
+            <div class="top">
+                <div class="top-content">
+                    <div class="top-content-info">
+                        {{viewInfo}}
+                        <bk-switcher
+                            v-model="isApplyViewSwitcherOnF"
+                            v-if="hasApplyViewSwitcher"
+                            theme="primary"
+                        ></bk-switcher>
+                    </div>
+                    <div class="top-content-underline"></div>
+                </div>
+            </div>
             <template slot="header">
                 <div class="monitor-navigation-header">
                     <ol class="header-nav">
@@ -140,7 +153,11 @@
         },
         computed: {
             ...mapState({
-                userInfo: state => state.user.userInfo
+                userInfo: state => state.user.userInfo,
+                viewInfo: state => state.viewInfo,
+                viewInfoF () {
+                    return this.viewInfo
+                }
             }),
             curHeaderNav () {
                 return this.header.list[this.header.active] || {}
@@ -172,6 +189,9 @@
             }
         },
         watch: {
+            viewInfoF (newVal, _) {
+                this.viewInfo = newVal
+            }
         },
         created () {
             const platform = window.navigator.platform.toLowerCase()
@@ -620,5 +640,27 @@
         border-radius: 0;
         -webkit-box-shadow: none;
         box-shadow: none;
+    }
+    .top {
+        .top-content {
+            width: 160px;
+            margin-bottom:20px;
+            text-align: center;
+            .top-content-info {
+                font-family: 'Roboto';
+                font-style: normal;
+                font-size: 20px;
+                line-height: 24px;
+                color: #000000;
+                margin-bottom: 5px;
+            }
+            .top-content-underline {
+                width: 160px;
+                height: 10px;
+                background: #0051DA;
+                box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.25);
+                border-radius: 12px;
+            }
+        }
     }
 </style>

@@ -1,13 +1,5 @@
 <template>
     <div class="itemManagement-wrapper">
-        <div class="header">
-            <bk-divider align="left">
-                <bk-tag
-                    type="filled"
-                    style="font-size: 13px"
-                ><span>物品管理</span></bk-tag>
-            </bk-divider>
-        </div>
         <div class="header-wrapper">
             <div class="fun-bar">
                 <span>物品编号：</span>
@@ -84,6 +76,7 @@
                 @row-mouse-leave="handleRowMouseLeave"
                 @page-change="handlePageChange"
                 @page-limit-change="handlePageLimitChange"
+                :header-cell-style="{ background: '#fff' }"
             >
                 <bk-table-column
                     type="index"
@@ -98,10 +91,11 @@
                     label="物品名称"
                     prop="good_name"
                 ></bk-table-column>
-                <bk-table-column
-                    label="物品类型"
-                    prop="good_tye_name"
-                ></bk-table-column>
+                <bk-table-column label="物品类型">
+                    <template slot-scope="props">
+                        <bk-tag ext-cls="custom-tag">{{props.row.good_type_name}}</bk-tag>
+                    </template>
+                </bk-table-column>
                 <bk-table-column
                     label="参考价"
                     prop="price"
@@ -169,6 +163,9 @@
             this.getGoods()
             this.getGoodTypes()
             this.getGoodCodeList()
+        },
+        mounted () {
+            this.$store.commit('updateViewInfo', '物品管理')
         },
         methods: {
             // 后端请求函数
@@ -290,8 +287,8 @@
 <style scoped lang="postcss">
     @import "./index.css";
     /* .title-wapper{
-                    margin-top: 10px;
-                } */
+                                    margin-top: 10px;
+                                } */
     .header-wrapper {
         display: flex;
         flex-wrap: wrap;
@@ -389,5 +386,23 @@
     /deep/ .bk-dialog-wrapper .bk-dialog-header .bk-dialog-header-inner,
     .bk-dialog-wrapper .bk-dialog-header p {
         font-size: 20px;
+    }
+    /deep/.bk-table-enable-row-transition .bk-table-body td {
+        border: none !important;
+    }
+    /deep/.bk-table {
+        border: none !important;
+        &:before {
+            height: 0px !important;
+        }
+    }
+    /deep/.bk-table-outer-border:after {
+        width: 0px !important;
+    }
+    /deep/.bk-table-pagination-wrapper {
+        border: none !important;
+    }
+    .custom-tag {
+        color: #409EFF;
     }
 </style>

@@ -20,7 +20,10 @@ const store = new Vuex.Store({
     },
     // 公共 store
     state: {
-        mainContentLoading: false
+        mainContentLoading: false,
+        viewInfo: '', // 页面信息，用于显示在页头蓝色横线上的文字信息
+        hasApplyViewSwitcher: true, // 标识当前页面是否是申请页面,由于首页有值，故
+        isApplyViewSwitcherOn: false // 若当前页面是是申请页面，标识当前是批量申请还是单个申请
     },
     // 公共 getters
     getters: {
@@ -36,6 +39,12 @@ const store = new Vuex.Store({
          */
         setMainContentLoading (state, loading) {
             state.mainContentLoading = loading
+        },
+
+        updateViewInfo (state, context = {}) {
+            state.viewInfo = context.viewInfo
+            state.hasApplyViewSwitcher = context.hasApplyViewSwitcher
+            state.isApplyViewSwitcherOn = context.isApplyViewSwitcherOn
         }
     },
     actions: {

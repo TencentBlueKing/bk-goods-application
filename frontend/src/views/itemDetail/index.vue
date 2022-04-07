@@ -197,6 +197,9 @@
                 this.getDetailInfo()
             }
         },
+        mounted () {
+            this.$store.commit('updateViewInfo', '物品详情')
+        },
         methods: {
             getDetailInfo () {
                 this.$http.get(GET_GOOD_DETAIL_URL, {
