@@ -1,7 +1,6 @@
 <template>
     <div class="shopcart-wrapper">
-        <div
-            class="header"
+        <!-- <div class="header"
             v-if="isAdmin"
         >
             <bk-divider align="left">
@@ -10,7 +9,7 @@
                     style="font-size: 13px"
                 ><span>{{ isAdmin ? '物资导入及申请' : '购物车' }}</span></bk-tag>
             </bk-divider>
-        </div>
+        </div> -->
         <div class="cart-body-wapper">
             <div class="header-wapper">
                 <div class="head-total-info">
@@ -82,8 +81,14 @@
                         :key="index"
                     >
                         <div class="type-item-wapper">
-                            <div class="type-title">
-                                <bk-tag theme="info">{{item.goods_type_name}}</bk-tag>
+                            <div
+                                class="type-title"
+                                style="margin-bottom: 20px;"
+                            >
+                                <div style="display: flex; flex-direction: column; place-items: center;">
+                                    <h2 style="color: black">{{item.goods_type_name}}</h2>
+                                    <div style="height: 5px; background: blue; width: 100px; margin-top:-20px; border-radius: 6px"></div>
+                                </div>
                                 <bk-button
                                     v-if="isAdmin"
                                     theme="primary"
@@ -161,8 +166,14 @@
                         :key="index"
                     >
                         <div class="type-item-wapper">
-                            <div class="type-title">
-                                <bk-tag theme="info">{{item.goods_type_name}}</bk-tag>
+                            <div
+                                class="type-title"
+                                style="margin-bottom: 20px;"
+                            >
+                                <div style="display: flex; flex-direction: column; place-items: center;">
+                                    <h2 style="color: black">{{item.goods_type_name}}</h2>
+                                    <div style="height: 5px; background: blue; width: 100px; margin-top:-20px; border-radius: 6px"></div>
+                                </div>
                                 <bk-button
                                     v-if="isAdmin"
                                     theme="primary"
@@ -363,7 +374,9 @@
         mounted () {
             this.curUsername = this.userInfo.username // 从state中获取用户名
             this.isAdmin = this.userInfo.isAdmin
-            this.initCartData() // 若是管理员，则加载数据
+            const viewInfo = this.isAdmin ? '物资导入&申请' : '购物车'
+            this.$store.commit('updateViewInfo', viewInfo)
+            this.initCartData() // 加载数据
         },
         updated () {
             const importDom = document.querySelector('.file-wrapper')
@@ -1121,5 +1134,20 @@
             cursor: not-allowed;
             background: #979ba5;
         }
+    }
+    /deep/.bk-table-enable-row-transition .bk-table-body td {
+        border: none !important;
+    }
+    /deep/.bk-table {
+        border: none !important;
+        &:before {
+            height: 0px !important;
+        }
+    }
+    /deep/.bk-table-outer-border:after {
+        width: 0px !important;
+    }
+    /deep/.bk-table-pagination-wrapper {
+        border: none !important;
     }
 </style>

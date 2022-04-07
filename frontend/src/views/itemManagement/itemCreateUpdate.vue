@@ -1,18 +1,18 @@
 <template>
     <div class="form-manage">
         <div class="header">
-            <bk-divider align="left">
+            <!-- <bk-divider align="left">
                 <router-link :to="{ name: 'itemManagement' }">
                     <bk-tag
                         type="filled"
                         style="font-size: 13px"
                     ><span>物品管理</span></bk-tag>
-                </router-link>
-                <bk-tag
+                </router-link> -->
+            <!-- <bk-tag
                     type="filled"
                     style="font-size: 13px"
                 ><span>{{$route.query.action === 'create' ? `物品添加` : '物品编辑'}}</span></bk-tag>
-            </bk-divider>
+            </bk-divider> -->
         </div>
         <bk-container
             :col="12"
@@ -26,129 +26,158 @@
                 ref="checkForm"
                 :label-width="100"
             >
-                <bk-row
-                    class="good-row"
-                    style="display: flex;"
-                >
-                    <bk-form-item
-                        label="物品编码"
-                        :required="true"
-                        :property="'good_code'"
-                        style="width: 25%"
+                <bk-row class="good-row">
+                    <bk-col
+                        :span="5"
+                        :offset="1"
                     >
-                        <bk-input
-                            v-model="goodFormData.good_code"
-                            placeholder="请输入1到30个以内的字符"
-                        ></bk-input>
-                    </bk-form-item>
-                    <bk-form-item
-                        label="物品类型"
-                        :required="true"
-                        :property="'good_type_id'"
-                        style="margin-left:10px; width: 25%"
-                    >
-                        <bk-select
-                            :disabled="false"
-                            v-model="goodFormData.good_type_id"
-                            searchable
+                        <bk-form-item
+                            label="物品编码"
+                            :required="true"
+                            :property="'good_code'"
                         >
-                            <bk-option
-                                v-for="goodType in goodTypeList"
-                                :key="goodType.id"
-                                :id="goodType.id"
-                                :name="goodType.type_name"
-                            >
-                            </bk-option>
-                            <div
-                                slot="extension"
-                                @click="addGoodTypeDialog.visiable = true"
-                                style="cursor: pointer"
-                            >
-                                <i class="bk-icon icon-plus-circle"></i>新增
-                            </div>
-                        </bk-select>
-                    </bk-form-item>
-                    <bk-form-item
-                        label="参考价"
-                        :required="true"
-                        :property="'price'"
-                        style="margin-left:10px; width: 25%"
-                    >
-                        <bk-input
-                            type="number"
-                            :precision="2"
-                            v-model="goodFormData.price"
+                            <bk-input
+                                v-model="goodFormData.good_code"
+                                placeholder="请输入1到30个以内的字符"
+                            ></bk-input>
+                        </bk-form-item>
+                    </bk-col>
+                    <bk-col :span="5">
+                        <bk-form-item
+                            label="物品名称"
+                            :required="true"
+                            :property="'good_name'"
                         >
-                        </bk-input>
-                    </bk-form-item>
-                    <bk-form-item
-                        label="物品名称"
-                        :required="true"
-                        :property="'good_name'"
-                        style="margin-left:10px; width: 25%"
+                            <bk-input
+                                v-model="goodFormData.good_name"
+                                placeholder="请输入物品名称（50字以内）"
+                            ></bk-input>
+                        </bk-form-item>
+                    </bk-col>
+                </bk-row>
+                <bk-row>
+                    <bk-col
+                        :span="5"
+                        :offset="1"
                     >
-                        <bk-input
-                            v-model="goodFormData.good_name"
-                            placeholder="请输入物品名称（50字以内）"
-                        ></bk-input>
-                    </bk-form-item>
+                        <bk-row class="good-row">
+                            <bk-form-item
+                                label="物品类型"
+                                :required="true"
+                                :property="'good_type_id'"
+                                style="margin-left:10px"
+                            >
+                                <bk-select
+                                    v-model="goodFormData.good_type_id"
+                                    searchable
+                                    style="width: 98%"
+                                >
+                                    <bk-option
+                                        v-for="goodType in goodTypeList"
+                                        :key="goodType.id"
+                                        :id="goodType.id"
+                                        :name="goodType.type_name"
+                                    >
+                                    </bk-option>
+                                    <div
+                                        slot="extension"
+                                        @click="addGoodTypeDialog.visiable = true"
+                                        style="cursor: pointer"
+                                    >
+                                        <i class="bk-icon icon-plus-circle"></i>新增
+                                    </div>
+                                </bk-select>
+                            </bk-form-item>
+                        </bk-row>
+                        <bk-row class="good-row">
+                            <bk-form-item
+                                label="参考价"
+                                :required="true"
+                                :property="'price'"
+                                style="margin-left:10px"
+                            >
+                                <bk-input
+                                    type="number"
+                                    :precision="2"
+                                    v-model="goodFormData.price"
+                                    style="width: 98%"
+                                >
+                                </bk-input>
+                            </bk-form-item>
+                        </bk-row>
+                    </bk-col>
+                    <bk-col :span="5">
+                        <bk-form-item
+                            label="备注"
+                            :required="true"
+                            :property="'remark'"
+                        >
+                            <bk-input
+                                type="textarea"
+                                v-model="goodFormData.remark"
+                                placeholder="请输入物品备注"
+                                :rows="4"
+                            ></bk-input>
+                        </bk-form-item>
+                    </bk-col>
                 </bk-row>
                 <bk-row class="good-row">
-                    <bk-form-item
-                        label="备注"
-                        :required="true"
-                        :property="'remark'"
+                    <bk-col
+                        :span="10"
+                        :offset="1"
                     >
-                        <bk-input
-                            type="textarea"
-                            v-model="goodFormData.remark"
-                            placeholder="请输入物品备注"
-                            style="width: 80%"
-                        ></bk-input>
-                    </bk-form-item>
+                        <bk-form-item
+                            label="参考图"
+                            :required="true"
+                            :property="'pics'"
+                        >
+                            <bk-upload
+                                :theme="'picture'"
+                                :with-credentials="true"
+                                :handle-res-code="handleRes"
+                                :limit="picsLimit"
+                                :custom-request="uploadImg"
+                                :files="goodFormData.pics"
+                                @on-delete="deleteImg"
+                            ></bk-upload>
+                        </bk-form-item>
+                    </bk-col>
                 </bk-row>
                 <bk-row class="good-row">
-                    <bk-form-item
-                        label="参考图"
-                        :required="true"
-                        :property="'pics'"
+                    <bk-col
+                        :span="10"
+                        :offset="1"
                     >
-                        <bk-upload
-                            :theme="'picture'"
-                            :with-credentials="true"
-                            :handle-res-code="handleRes"
-                            :limit="picsLimit"
-                            :custom-request="uploadImg"
-                            :files="goodFormData.pics"
-                            @on-delete="deleteImg"
-                        ></bk-upload>
-                    </bk-form-item>
+                        <bk-form-item
+                            label="物品介绍"
+                            :property="'introduce'"
+                        >
+                            <v-md-editor
+                                v-model="goodFormData.introduce"
+                                left-toolbar="undo redo | image"
+                                :disabled-menus="[]"
+                                @upload-image="handleUploadImage"
+                            />
+                        </bk-form-item>
+                    </bk-col>
                 </bk-row>
                 <bk-row class="good-row">
-                    <bk-form-item
-                        label="物品介绍"
-                        :property="'introduce'"
+                    <bk-col
+                        :span="10"
+                        :offset="1"
                     >
-                        <v-md-editor
-                            v-model="goodFormData.introduce"
-                            left-toolbar="undo redo | image"
-                            :disabled-menus="[]"
-                            @upload-image="handleUploadImage"
-                        />
-                    </bk-form-item>
-                </bk-row>
-                <bk-row class="good-row">
-                    <bk-form-item
-                        label="物品规格"
-                        :property="'specifications'"
-                    >
-                        <v-md-editor
-                            v-model="goodFormData.specifications"
-                            left-toolbar="undo redo | image"
-                            :disabled-menus="[]"
-                            @upload-image="handleUploadImage"
-                        />
-                    </bk-form-item>
+                        <bk-form-item
+                            label="物品规格"
+                            :property="'specifications'"
+                        >
+                            <v-md-editor
+                                v-model="goodFormData.specifications"
+                                left-toolbar="undo redo | image"
+                                :disabled-menus="[]"
+                                @upload-image="handleUploadImage"
+                            />
+                        </bk-form-item>
+                    </bk-col>
                 </bk-row>
             </bk-form>
         </bk-container>
@@ -304,6 +333,10 @@
             if (this.$route.query.action === 'update' && this.$route.query.row_id) {
                 this.getGoodInfo(this.$route.query.row_id)
             }
+        },
+        mounted () {
+            const operateType = this.$route.query.action === 'create' ? `添加` : '编辑'
+            this.$store.commit('updateViewInfo', '物品管理-' + operateType)
         },
         methods: {
             getGoodTypes () {

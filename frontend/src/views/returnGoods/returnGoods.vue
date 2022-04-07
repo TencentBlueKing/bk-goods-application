@@ -1,6 +1,6 @@
 <template>
     <div class="returnGoods-wrapper">
-        <div class="header">
+        <!-- <div class="header">
             <bk-divider align="left">
                 <router-link :to="navList[0].link">
                     <bk-tag
@@ -13,7 +13,7 @@
                     style="font-size: 13px"
                 ><span>{{navList[1].title}}</span></bk-tag>
             </bk-divider>
-        </div>
+        </div> -->
         <div class="message-table">
             <div class="message-label">
                 <label>申请人:</label>
@@ -23,8 +23,7 @@
                 <bk-button
                     theme="danger"
                     title="提交"
-                    :outline="true"
-                    size="large"
+                    size="medium"
                     @click="clickDialogVisible"
                 >
                     提交
@@ -43,6 +42,7 @@
                 @row-mouse-leave="handleRowMouseLeave"
                 @page-change="handlePageChange"
                 @page-limit-change="handlePageLimitChange"
+                :header-cell-style="{ background: '#fff' }"
             >
                 <bk-table-column
                     type="selection"
@@ -64,26 +64,27 @@
                     label="使用人"
                     prop="username"
                 ></bk-table-column>
-                <bk-table-column
-                    label="状态"
-                    prop="status"
-                ></bk-table-column>
+                <bk-table-column label="状态">
+                    <template slot-scope="props">
+                        <bk-tag ext-cls="custom-tag">{{props.row.status}}</bk-tag>
+                    </template>
+                </bk-table-column>
             </bk-table>
         </div>
         <bk-dialog
             v-model="formDialogVisible"
             @confirm="returnDialogVisible = true"
+            width="500px"
         >
             <bk-form
-                :label-width="200"
-                form-type="vertical"
+                :label-width="100"
             >
                 <div class="returnLocation">
                     <bk-form-item label="退库省份">
                         <bk-select
                             :disabled="false"
                             v-model="formData.province"
-                            style="width: 80%"
+                            style="width: 90%"
                             ext-cls="select-custom"
                             ext-popover-cls="select-popover-custom"
                             searchable
@@ -109,7 +110,7 @@
                         <bk-select
                             :disabled="false"
                             v-model="formData.city"
-                            style="width: 80%"
+                            style="width: 90%"
                             ext-cls="select-custom"
                             ext-popover-cls="select-popover-custom"
                             searchable
@@ -130,12 +131,12 @@
                         </bk-select>
                     </bk-form-item>
                 </div>
-                <div class="returnReason">
+                <div class="returnLocation">
                     <bk-form-item label="退库原因">
                         <bk-select
                             :disabled="false"
                             v-model="formData.reason"
-                            style="width: 80%"
+                            style="width: 90%"
                             ext-cls="select-custom"
                             ext-popover-cls="select-popover-custom"
                             searchable
@@ -150,7 +151,7 @@
                         </bk-select>
                     </bk-form-item>
                 </div>
-                <div class="remark">
+                <div class="returnLocation">
                     <bk-form-item label="备注">
                         <bk-input
                             type="textarea"
@@ -256,6 +257,9 @@
                 this.$router.replace({ name: 'personalGoods' })
             }
             this.loadData()
+        },
+        mounted () {
+            this.$store.commit('updateViewInfo', '个人物资-退库')
         },
         methods: {
             loadData () {
@@ -413,5 +417,37 @@
                 align-items: center;
             }
         }
+    }
+    /deep/.bk-table-enable-row-transition .bk-table-body td {
+        border: none !important;
+    }
+    /deep/.bk-table {
+        border: none !important;
+        &:before {
+            height: 0px !important;
+        }
+    }
+    /deep/.bk-table-outer-border:after {
+        width: 0px !important;
+    }
+    /deep/.bk-table-pagination-wrapper {
+        border: none !important;
+    }
+    .custom-tag {
+        color: #409eff;
+    }
+    /deep/.bk-dialog-wrapper .bk-dialog-content {
+        border-radius: 10px;
+    }
+    /deep/.bk-dialog-wrapper .bk-dialog-footer {
+        border-radius: 10px;
+    }
+    .returnLocation {
+      margin-bottom: 20px;
+    }
+    /deep/.footer-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 </style>

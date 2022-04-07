@@ -12,6 +12,19 @@
             @toggle="handleToggle"
             v-if="$route.name !== 'home'"
         >
+            <div class="top">
+                <div class="top-content">
+                    <div class="top-content-info">
+                        {{viewInfo}}
+                        <bk-switcher
+                            v-model="isApplyViewSwitcherOnF"
+                            v-if="hasApplyViewSwitcher"
+                            theme="primary"
+                        ></bk-switcher>
+                    </div>
+                    <div class="top-content-underline"></div>
+                </div>
+            </div>
             <template slot="header">
                 <div class="monitor-navigation-header">
                     <ol class="header-nav">
@@ -164,10 +177,40 @@
         },
         computed: {
             ...mapState({
-                userInfo: state => state.user.userInfo
+                userInfo: state => state.user.userInfo,
+                viewInfo: state => state.viewInfo,
+                hasApplyViewSwitcher: state => state.hasApplyViewSwitcher
             }),
+            isApplyViewSwitcherOnF: {
+                get () {
+                    return this.$store.state.isApplyViewSwitcherOn
+                },
+                set (newVal) {
+                    const context = {
+                        'viewInfo': '批量申请',
+                        'hasApplyViewSwitcher': true,
+                        'isApplyViewSwitcherOn': newVal
+                    }
+                    this.$store.commit('updateViewInfo', context)
+                }
+            },
             curHeaderNav () {
                 return this.header.list[this.header.active] || {}
+            },
+            viewInfoF () {
+                return this.viewInfo
+            },
+            hasApplyViewSwitcherF () {
+                return this.hasApplyViewSwitcher
+            }
+
+        },
+        watch: {
+            viewInfoF (newVal, _) {
+                this.viewInfo = newVal
+            },
+            hasApplyViewSwitcherF (newVal, _) { // 监听vuex状态的变化
+                this.hasApplyViewSwitcher = newVal
             }
         },
         created () {
@@ -610,5 +653,30 @@
         border-radius: 0;
         -webkit-box-shadow: none;
         box-shadow: none;
+    }
+    .top {
+        .top-blank {
+            height: 100px;
+        }
+        .top-content {
+            width: 160px;
+            margin-bottom: 20px;
+            text-align: center;
+            .top-content-info {
+                font-family: "Roboto";
+                font-style: normal;
+                font-size: 20px;
+                line-height: 24px;
+                margin-bottom: 5px;
+                color: #000000;
+            }
+            .top-content-underline {
+                width: 160px;
+                height: 10px;
+                background: #0051da;
+                box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.25);
+                border-radius: 12px;
+            }
+        }
     }
 </style>
