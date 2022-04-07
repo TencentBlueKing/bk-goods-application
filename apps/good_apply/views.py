@@ -541,8 +541,15 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     @action(methods=['post'], detail=False)
     def get_all_groupmber(self, request):
         """获取用户表所有成员"""
-        username = request.username
-        queryset = OrganizationMember.objects.filter(username=username)
+        req = request.data
+        org_id = req.get('org_id')
+        username = request.user.username
+        valid_user_in_the_org(org_id, username)
+        flag = if_secretary(request, org_id)
+        if not flag:
+            raise BusinessException(StatusEnums.AUTHORITY_ERROR)
+        # 管理员获取除了当前组内其他的用户表中的成员
+        queryset = OrganizationMember.objects.exclude(org_id=org_id)
         groupmber_list = [groupmber.to_json() for groupmber in queryset]
         return JsonResponse(success_code(groupmber_list))
 
