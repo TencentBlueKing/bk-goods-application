@@ -36,26 +36,15 @@ BK_APPLY_STATIC_URL = STATIC_URL + "apply_dist"
 # REMOTE_STATIC_URL = '%sremote/' % STATIC_URL
 
 # Celery 消息队列设置 RabbitMQ
-# BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+BROKER_URL = 'amqp://guest:guest@localhost:5672//'
 # Celery 消息队列设置 Redis
-BROKER_URL = "redis://localhost:6379/0"
+# BROKER_URL = "redis://localhost:6379/0"
 
 DEBUG = True
 
 # 本地开发数据库设置
 # USE FOLLOWING SQL TO CREATE THE DATABASE NAMED APP_CODE
 # SQL: CREATE DATABASE `framework_py` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci; # noqa: E501
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": APP_CODE,  # noqa
-        "USER": "root",
-        "PASSWORD": "123456",
-        "HOST": "localhost",
-        "PORT": "3306",
-    },
-}
-
 # 前后端开发模式下支持跨域配置
 if FRONTEND_BACKEND_SEPARATION:
     INSTALLED_APPS += ("corsheaders",)

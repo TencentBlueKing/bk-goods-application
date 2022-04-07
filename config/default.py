@@ -100,7 +100,9 @@ FRONTEND_BACKEND_SEPARATION = False
 CELERYD_CONCURRENCY = os.getenv("BK_CELERYD_CONCURRENCY", 2)  # noqa
 
 # CELERY 配置，申明任务的文件路径，即包含有 @task 装饰器的函数文件
-CELERY_IMPORTS = ()
+CELERY_IMPORTS = (
+    "apps.good_apply.tasks"
+)
 
 # log level setting
 LOG_LEVEL = "INFO"
