@@ -1,7 +1,7 @@
 <template>
     <div class="applyManagement-wrapper">
         <div class="condition-form">
-            <manage-form @search="handleSearch"></manage-form>
+            <manage-form @search="handleSearch" ref="manageForm"></manage-form>
         </div>
         <el-tabs>
             <el-tab-pane>
@@ -317,12 +317,12 @@
                 if (formData.campus === 0 || formData.campus === '0') {
                     campus = ''
                 } else {
-                    campus = this.campusList.find(obj => obj.id === formData.campus).name || ''
+                    campus = this.$refs.manageForm.campusList.find(obj => obj.id === formData.campus).name || ''
                 }
                 if (formData.college === 0 || formData.college === '0') {
                     college = ''
                 } else {
-                    college = this.collegeList.find(obj => obj.id === formData.college).name || ''
+                    college = this.$refs.manageForm.collegeList.find(obj => obj.id === formData.college).name || ''
                 }
                 this.getParams.position = (!campus && !college) ? '' : campus + ',' + college
                 this.pagination.current = 1
