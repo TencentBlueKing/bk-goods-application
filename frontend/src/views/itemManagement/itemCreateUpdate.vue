@@ -68,9 +68,9 @@
                                 style="margin-left:10px"
                             >
                                 <bk-select
-                                    :disabled="false"
                                     v-model="goodFormData.good_type_id"
                                     searchable
+                                    style="width: 98%"
                                 >
                                     <bk-option
                                         v-for="goodType in goodTypeList"
@@ -100,6 +100,7 @@
                                     type="number"
                                     :precision="2"
                                     v-model="goodFormData.price"
+                                    style="width: 98%"
                                 >
                                 </bk-input>
                             </bk-form-item>
