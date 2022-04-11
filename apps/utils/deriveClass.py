@@ -8,7 +8,7 @@ from bkstorages.backends.bkrepo import BKRepoStorage
 
 
 class DeriveModel(object):
-    def __init__(self, model, goods, username, org_id):
+    def __init__(self, model, goods, username, org_id, org_name):
         self.model = model  # 模型种类
         self.goods = goods  # 数据
         self.username = username  # 导出人
@@ -18,6 +18,7 @@ class DeriveModel(object):
         self.excel_data = []  # excel文件数据
         self.file_name = ''  # excel文件名
         self.dir_path = ''  # excel文件所在文件夹
+        self.org_name = org_name  # 组名
         self.org_id = org_id  # 组id
         self.file_url = ''  # excel文件资源路径
         self.result = ''  # 标准化result
@@ -172,11 +173,11 @@ class DeriveModel(object):
                 datetime.datetime.today().strftime('%Y-%m-%d__%H') + '.xls'
         # 规定文件夹名
         if self.model == 1:
-            self.dir_path = os.path.join(self.org_id, 'personal_goods')
+            self.dir_path = os.path.join(self.org_name, 'personal_goods')
         elif self.model == 2:
-            self.dir_path = os.path.join(self.org_id, 'cart')
+            self.dir_path = os.path.join(self.org_name, 'cart')
         elif self.model == 3:
-            self.dir_path = os.path.join(self.org_id, 'apply_history')
+            self.dir_path = os.path.join(self.org_name, 'apply_history')
 
         # 检查文件夹是否存在
         if not os.path.exists(self.dir_path):

@@ -157,15 +157,17 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserInfoSerializer
 
     def list(self, request, *args, **kwargs):
-        req = request.data
+        req = request.GET
         org_id = req.get("org_id")
         valid_user_in_the_org(org_id, request.user.username)
         user_id = self.queryset.filter(username=request.user.username).first().id
         user_info = {
             'id': self.queryset.filter(username=request.user.username).first().id,
             'username': request.user.username,
-            'phone': UserProperty.filter(user_id=user_id, key='phone').first().value,
-            'position': UserProperty.filter(user_id=user_id, key='position').first().value,
+            'phone': UserProperty.objects.filter(user_id=user_id, key='phone').first().value if
+            UserProperty.objects.filter(user_id=user_id, key='phone').first() else None,
+            'position': UserProperty.objects.filter(user_id=user_id, key='position').first().value if
+            UserProperty.objects.filter(user_id=user_id, key='position').first() else None,
             'isScretary': False,
         }
         flag = if_secretary(request, org_id)
@@ -176,12 +178,10 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(methods=['post'], detail=False)
     def edit_user_info(self, request):
         username = request.user.username  # 获取用户名
+        id = User.objects.get(username=username).id
         req = request.data
-        org_id = req.get("org_id")
-        valid_user_in_the_org(org_id, request.user.username)
-        if not User.objects.filter(username=username, org_id=org_id).exists():
+        if not User.objects.filter(username=username).exists():
             raise BusinessException(StatusEnums.USER_NOT_EXIST_ERROR)
-        req = request.data
         phone = req.get('phone')
         position = req.get('position')
         user_info = {
@@ -191,8 +191,14 @@ class UserViewSet(viewsets.ModelViewSet):
         }
         user_info_serializer = UserInfoCheckSerializer(data=user_info)
         if user_info_serializer.is_valid():  # 参数校验
-            User.objects.filter(username=username, org_id=org_id).update(
-                phone=user_info.get('phone'), position=user_info.get('position'))
+            obj_phone = UserProperty.objects.filter(user_id=id, key='phone').first()
+            obj_phone.value = user_info.get('phone')
+            obj_phone.save()
+            obj_position = UserProperty.objects.filter(user_id=id, key='position').first()
+            if not obj_position:
+                obj_position = UserProperty.objects.create(user_id=id, key='position')
+            obj_position.value = user_info.get('position')
+            obj_position.save()
             return get_result({'code': 200, 'message': '修改成功'})
         err_msg = get_error_message(user_info_serializer)
         return get_result({'result': False, 'message': err_msg})
@@ -208,7 +214,7 @@ class CartViewSet(viewsets.ModelViewSet):
         获取购物车信息
         """
         username = request.user
-        req = request.data
+        req = request.GET
         org_id = req.get("org_id")
         valid_user_in_the_org(org_id, request.user.username)
         good_list = Cart.objects.filter(Q(username=username) & Q(org_id=org_id))
@@ -295,8 +301,8 @@ class GroupApplyViewSet(viewsets.ModelViewSet):
         """
         获取组内物资信息
         """
-        req = request.data
-        org_id = req.get("oeg_id")
+        req = request.GET
+        org_id = req.get("org_id")
         valid_user_in_the_org(org_id, request.user.username)
         apply_list = GroupApply.objects.filter(Q(status=4) & Q(org_id=org_id))
         if not apply_list.exists():
@@ -649,8 +655,8 @@ class GoodTypeViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False)
     def get_good_type_list(self, request):
         """获取商品类别列表"""
-        req = request.data
-        org_id = req.get("id")
+        req = request.GET
+        org_id = req.get("org_id")
         valid_user_in_the_org(org_id, request.user.username)
         good_types = GoodType.objects.filter(org_id=org_id)
         good_type_list = [good_type.to_json() for good_type in good_types]

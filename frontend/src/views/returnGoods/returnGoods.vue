@@ -245,7 +245,7 @@
                     return
                 }
                 const parentCode = this.getParentCode(val)
-                this.$http.get(GET_SUB_POSITION_LIST_URL, { params: { parent_code: parentCode } }).then(res => {
+                this.$http.get(GET_SUB_POSITION_LIST_URL, { params: { parent_code: parentCode, org_id: 1 } }).then(res => {
                     console.log(res)
                     this.cityList = res.data
                 })
@@ -286,7 +286,11 @@
                 }
             },
             getPosition () { // 获得一级地点
-                this.$http.get(GET_ROOT_POSITION_LIST_URL).then(res => {
+                this.$http.get(GET_ROOT_POSITION_LIST_URL, {
+                    params: {
+                        org_id: 1
+                    }
+                }).then(res => {
                     if (res) {
                         if (res && res.result === true) {
                             this.provinceList = res.data
@@ -297,7 +301,11 @@
                 })
             },
             getWithdrawReasons () { // 获得所有退库原因
-                this.$http.get(WITHDRAW_REASON_URL).then(res => {
+                this.$http.get(WITHDRAW_REASON_URL, {
+                    params: {
+                        org_id: 1
+                    }
+                }).then(res => {
                     if (res) {
                         if (res && res.result === true) {
                             this.reasonList = res.data
@@ -310,6 +318,7 @@
             getPersonalGoods () { // 获得个人物资
                 this.$http.get(GET_PERSONAL_GOODS_URL, {
                     params: {
+                        org_id: 1,
                         username: this.username,
                         ...this.get_params.form,
                         page: this.get_params.page,
@@ -340,7 +349,7 @@
                 this.formDialogVisible = true
             },
             returnGoods () { // 退库函数
-                this.$http.post(ADD_WITHDRAW_APPLY_URL, { good_ids: this.selected.selectedRows, reason_id: this.formData.reason, province: this.formData.province, city: this.formData.city, remark: this.formData.remark }).then(res => {
+                this.$http.post(ADD_WITHDRAW_APPLY_URL, { good_ids: this.selected.selectedRows, reason_id: this.formData.reason, province: this.formData.province, city: this.formData.city, remark: this.formData.remark, org_id: 1 }).then(res => {
                     if (res && res.result === true) {
                         this.handleError({ theme: 'success' }, '退库成功')
                         for (let index = 0; index < this.selected.selectedRows.length; index++) {

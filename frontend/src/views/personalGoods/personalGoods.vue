@@ -302,7 +302,8 @@
                 const parentCode = this.getParentCode(val)
                 this.$http.get(GET_SUB_POSITION_LIST_URL, {
                     params: {
-                        parent_code: parentCode
+                        parent_code: parentCode,
+                        org_id: 1
                     }
                 }).then(res => {
                     console.log(res)
@@ -349,7 +350,7 @@
                 this.confirmReceiptDialogVisible = true
             },
             confirmReceipt () {
-                this.$http.post(CONFIRM_RECEIPT_URL, { idList: this.selected.selectedRows }).then(res => {
+                this.$http.post(CONFIRM_RECEIPT_URL, { idList: this.selected.selectedRows, org_id: 1 }).then(res => {
                     if (res && res.result === true) {
                         this.handleError({ theme: 'success' }, res.message)
                         this.selected.selectedRows = []
@@ -378,7 +379,7 @@
                     return
                 }
                 try {
-                    this.$http.post(DERIVE_EXCEL_URL, { model: 1, dataList: this.selected }).then(res => {
+                    this.$http.post(DERIVE_EXCEL_URL, { model: 1, dataList: this.selected, org_id: 1 }).then(res => {
                         if (res && res.result === true) {
                             const link = document.createElement('a') // 生成a元素，用以实现下载功能
                             link.href = res.data.file_url
@@ -405,6 +406,7 @@
                 this.$http.get(GET_PERSONAL_GOODS_URL, {
                     params: {
                         ...this.get_params.form,
+                        org_id: 1,
                         page: this.get_params.page,
                         pageLimit: this.get_params.pageLimit
                     }
@@ -421,7 +423,11 @@
                 })
             },
             getTypes () { // 获得物品类型
-                this.$http.get(GET_GOOD_TYPE_LIST_URL).then(res => {
+                this.$http.get(GET_GOOD_TYPE_LIST_URL, {
+                    params: {
+                        org_id: 1
+                    }
+                }).then(res => {
                     if (res) {
                         if (res && res.result === true) {
                             this.typeList = res.data
@@ -443,7 +449,11 @@
                 })
             },
             getPosition () { // 获得所有地点
-                this.$http.get(GET_ROOT_POSITION_LIST_URL).then(res => {
+                this.$http.get(GET_ROOT_POSITION_LIST_URL, {
+                    params: {
+                        org_id: 1
+                    }
+                }).then(res => {
                     if (res) {
                         if (res && res.result === true) {
                             this.provinceList = res.data

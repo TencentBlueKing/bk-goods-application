@@ -341,7 +341,11 @@
         methods: {
             getGoodTypes () {
                 this.isGoodTypesLoad = true
-                this.$http.get(GET_GOOD_TYPE_LIST_URL).then(res => {
+                this.$http.get(GET_GOOD_TYPE_LIST_URL, {
+                    params: {
+                        org_id: 1
+                    }
+                }).then(res => {
                     if (res.result) {
                         this.goodTypeList = res.data
                     }
@@ -362,6 +366,7 @@
                 const formData = JSON.parse(JSON.stringify(this.goodFormData))
                 const picUrls = this.dealGoodPics()
                 formData.pics = picUrls
+                formData.org_id = 1
                 this.$http.post(ADD_GOOD_URL, formData).then(res => {
                     const config = {
                         'offsetY': 80,
@@ -384,6 +389,7 @@
                 const picUrls = this.dealGoodPics()
                 formData.pics = picUrls
                 formData.id = this.$route.query.row_id
+                formData.org_id = 1
                 this.$http.post(UPDATE_GOOD_URL, formData).then(res => {
                     const config = {
                         'offsetY': 80,
@@ -455,7 +461,7 @@
                 })
             },
             addGoodType () {
-                this.$http.post(ADD_GOOD_TYPE_URL, { type_name: this.addGoodTypeDialog.typeName }).then(res => {
+                this.$http.post(ADD_GOOD_TYPE_URL, { type_name: this.addGoodTypeDialog.typeName, org_id: 1 }).then(res => {
                     const config = {
                         'offsetY': 80
                     }
@@ -507,7 +513,8 @@
             getGoodInfo (goodId) {
                 this.$http.get(GET_GOOD_DETAIL_URL, {
                     params: {
-                        good_id: goodId
+                        good_id: goodId,
+                        org_id: 1
                     }
                 }).then(res => {
                     if (res.result) {

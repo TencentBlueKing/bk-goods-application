@@ -182,7 +182,11 @@
                 this.getGoods()
             },
             getTypes () { // 获取所有商品类型
-                this.$http.get(GET_GOOD_TYPE_LIST_URL).then(res => {
+                this.$http.get(GET_GOOD_TYPE_LIST_URL, {
+                    params: {
+                        org_id: 1
+                    }
+                }).then(res => {
                     if (res && res.result === true) { // 判空
                         this.typeList = res.data // 给类型列表赋值
                     } else if (res && res.result === false) {
@@ -200,6 +204,7 @@
                 }
                 this.$http.get(GET_GOOD_LIST_URL, {
                     params: {
+                        org_id: 1,
                         good_name: this.searchContent, // 指定商品名称所含内容
                         good_type_id: this.type.id, // 指定商品类型
                         page: this.paramPage, // 指定页
@@ -252,7 +257,7 @@
                     num: 1
                 }
                 if (this.goodInfo.id) {
-                    this.$http.post(ADD_CART_GOODS_URL, { goodInfo: updateInfo }).then(res => {
+                    this.$http.post(ADD_CART_GOODS_URL, { goodInfo: updateInfo, org_id: 1 }).then(res => {
                         // eslint-disable-next-line no-empty
                         if (res && res.result === true) {
                             this.handleError({ theme: 'success' }, res.message)

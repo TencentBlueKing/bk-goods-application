@@ -1,5 +1,6 @@
 import json
 
+from apps.good_apply.models import Organization
 from apps.tools.response import get_result
 from apps.tools.tool_valid_user_in_the_org import valid_user_in_the_org
 from apps.utils.deriveClass import DeriveModel
@@ -19,12 +20,13 @@ def derive_excel(request):
     goods = body.get('dataList')
     username = request.user.username
     org_id = body.get('org_id', None)
+    org_name = Organization.objects.get(id=org_id).group_name
     valid_user_in_the_org(org_id, username)
 
     if not model or not goods or not username:  # 判空
         raise BusinessException(StatusEnums.PARAMS_ERROR)
 
-    derive = DeriveModel(model, goods, username, org_id)
+    derive = DeriveModel(model, goods, username, org_id, org_name)
     derive.run()
 
     return get_result(derive.result)
