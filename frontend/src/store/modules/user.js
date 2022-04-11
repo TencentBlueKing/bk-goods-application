@@ -16,7 +16,11 @@ const actions = {
          * @return {Promise} promise 对象
          */
     userInfo (context, config = {}) {
-        return http.get(USER_INFO_URL, {}, config).then(response => {
+        return http.get(USER_INFO_URL, {
+            params: {
+                org_id: 1
+            }
+        }, config).then(response => {
             const userData = response.data || {}
             context.commit('setUserInfo', userData)
             return userData

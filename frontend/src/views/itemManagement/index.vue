@@ -173,6 +173,7 @@
                 this.isGoodsInfoLoad = true
                 this.$http.get(GET_GOOD_LIST_URL, {
                     params: {
+                        org_id: 1,
                         good_code: this.submitSearchInput.goodCode,
                         good_name: this.submitSearchInput.goodName,
                         good_type_id: this.submitSearchInput.goodTypeId,
@@ -200,7 +201,11 @@
             },
             getGoodTypes () {
                 this.isGoodTypesLoad = true
-                this.$http.get(GET_GOOD_TYPE_LIST_URL).then(res => {
+                this.$http.get(GET_GOOD_TYPE_LIST_URL, {
+                    params: {
+                        org_id: 1
+                    }
+                }).then(res => {
                     if (res.result) {
                         this.goodTypeList = res.data
                     }
@@ -209,7 +214,11 @@
                 })
             },
             getGoodCodeList () {
-                this.$http.get(GET_GOOD_CODE_LIST_URL).then(res => {
+                this.$http.get(GET_GOOD_CODE_LIST_URL, {
+                    params: {
+                        org_id: 1
+                    }
+                }).then(res => {
                     if (res.result) {
                         res.data.forEach((item, index) => {
                             this.goodsCodeList.push({
@@ -230,7 +239,7 @@
             },
             // 下架物品
             downGood (goodId) {
-                this.$http.post(DOWN_GOOD_URL, { id: goodId }).then(res => {
+                this.$http.post(DOWN_GOOD_URL, { id: goodId, org_id: 1 }).then(res => {
                     const config = {
                         'offsetY': 80,
                         'delay': 2000

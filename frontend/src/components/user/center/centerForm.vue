@@ -179,7 +179,11 @@
         },
         methods: {
             getPosition () { // 获得所有地点
-                this.$http.get(GET_ROOT_POSITION_LIST_URL).then(res => {
+                this.$http.get(GET_ROOT_POSITION_LIST_URL, {
+                    params: {
+                        org_id: 1
+                    }
+                }).then(res => {
                     if (res) {
                         if (res && res.result === true) {
                             this.locationList = res.data
@@ -190,7 +194,11 @@
                 })
             },
             getUserInfo () {
-                this.$http.get(USER_INFO_URL).then(res => {
+                this.$http.get(USER_INFO_URL, {
+                    params: {
+                        org_id: 1
+                    }
+                }).then(res => {
                     if (res) {
                         if (res && res.result === true) {
                             this.userInfo.username = res.data.username

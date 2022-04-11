@@ -394,7 +394,11 @@
             },
             getCartList () {
                 if (this.curUsername !== '') {
-                    this.$http.get(GET_SHOPPING_CART_URL).then((res) => {
+                    this.$http.get(GET_SHOPPING_CART_URL, {
+                        params: {
+                            org_id: 1
+                        }
+                    }).then((res) => {
                         if (res.result && res.data !== null) {
                             this.allGoodsCount = 0
                             if (res.data.length !== 0) {
@@ -532,7 +536,7 @@
                 deleteList.forEach((item) => {
                     idList.push(item.id)
                 })
-                this.$http.post(DELETE_CART_GOODS_URL, { cartIdList: idList }).then((res) => {
+                this.$http.post(DELETE_CART_GOODS_URL, { cartIdList: idList, org_id: 1 }).then((res) => {
                     if (res.result) {
                         this.deleteTableGoods(deleteList)
                     } else {
@@ -552,7 +556,7 @@
             },
             deleteApplyList (deleteList) {
                 const id = deleteList[0].id
-                this.$http.post(DELETE_GROUP_APPLY_URL, { applyId: id }).then((res) => {
+                this.$http.post(DELETE_GROUP_APPLY_URL, { applyId: id, org_id: 1 }).then((res) => {
                     if (res.result) {
                         this.deleteTableGoods(deleteList)
                     } else {
@@ -689,7 +693,7 @@
                     })
                 }
                 const updateUrl = this.isAdmin ? UPDATE_GROUP_APPLY_URL : UPDATE_CART_GOODS_URL
-                const params = this.isAdmin ? { applyList: updateList, updateType: 'num' } : { goodsList: updateList }
+                const params = this.isAdmin ? { applyList: updateList, updateType: 'num', org_id: 1 } : { goodsList: updateList, org_id: 1 }
                 this.$http.post(updateUrl, params).then((res) => {
                     if (!res.result) {
                         this.$bkMessage({
@@ -720,7 +724,8 @@
                                     UPDATE_GROUP_APPLY_URL,
                                     {
                                         userName: this.curUsername,
-                                        cartList: selectedList
+                                        cartList: selectedList,
+                                        org_id: 1
                                     }
                                 ).then((res) => {
                                     if (!res.result) {
@@ -789,7 +794,7 @@
                     })
                     return
                 }
-                this.$http.post(DERIVE_EXCEL_URL, { model: 2, dataList: submitGoods })
+                this.$http.post(DERIVE_EXCEL_URL, { model: 2, dataList: submitGoods, org_id: 1 })
                     .then((res) => {
                         if (res.result) {
                             const link = document.createElement('a') // 生成a元素，用以实现下载功能
@@ -826,7 +831,11 @@
                     })
             },
             getGroupApplyList () {
-                this.$http.get(GET_GROUP_APPLY_URL).then((res) => {
+                this.$http.get(GET_GROUP_APPLY_URL, {
+                    params: {
+                        org_id: 1
+                    }
+                }).then((res) => {
                     if (res.result && res.data !== null) {
                         this.allGoodsCount = 0
                         this.applyCartList = JSON.parse(JSON.stringify(res.data))
@@ -879,7 +888,8 @@
                                 UPDATE_GROUP_APPLY_URL,
                                 {
                                     applyList: submitApplyList,
-                                    updateType: 'status'
+                                    updateType: 'status',
+                                    org_id: 1
                                 }
                             ).then((res) => {
                                 if (!res.result) {

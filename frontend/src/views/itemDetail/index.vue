@@ -204,7 +204,8 @@
             getDetailInfo () {
                 this.$http.get(GET_GOOD_DETAIL_URL, {
                     params: {
-                        good_id: this.goodId // 指明商品id
+                        good_id: this.goodId, // 指明商品id
+                        org_id: 1
                     }
                 }).then((res) => {
                     if (res.result && res.data !== null) {
@@ -288,7 +289,8 @@
                 this.$http.post(
                     ADD_CART_GOODS_URL,
                     {
-                        goodInfo: updateInfo
+                        goodInfo: updateInfo,
+                        org_id: 1
                     }
                 ).then((res) => {
                     if (res.result) {
